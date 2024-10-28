@@ -11,10 +11,17 @@ IMAGE_TAG="$1"
 
 # Define the base URL for the source registry
 BASE_URL="docker://registry.example.com/repo/"
-ß
+
 # Construct the source and destination paths
 SOURCE="${BASE_URL}${IMAGE_TAG}"
-DESTINATION="docker-archive:${IMAGE_TAG//[:\/]/-}.tar"
+DEST_FILENAME="${IMAGE_TAG//[:\/]/-}.tar"
+DESTINATION="docker-archive:${DEST_FILENAME}"
+
+# Check if the destination file exists and remove it if necessary
+if [ -f "${DEST_FILENAME}" ]; then
+  echo "Removing existing file: ${DEST_FILENAME}"
+  rm -f "${DEST_FILENAME}"
+fi
 
 # Run skopeo copy inside the container
 docker run --rm \
