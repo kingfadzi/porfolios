@@ -27,4 +27,4 @@ fi
 docker run --rm \
   -v "$(pwd):/workdir" \
   -w /workdir \
-  skopeo:latest copy "$SOURCE" "$DESTINATION"
+  skopeo:latest copy "$SOURCE" "$DESTINATION" --src-tls-verify=false
