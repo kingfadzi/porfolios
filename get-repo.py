@@ -83,13 +83,25 @@ def get_pipeline_statistics(gl, project_id):
         return None, None, None
 
 def get_project_id_from_url(project_url):
-    # Convert URL to project path
-    project_path = project_url.replace(f"{GITLAB_URL}/", "").replace("/", "%2F").strip()
+    # Parse the URL
+    parsed_url = urlparse(project_url)
+
+    # Extract the path relative to the domain
+    # Example: '/xxx/www/group_name/project_name' becomes 'xxx/www/group_name/project_name'
+    project_path = parsed_url.path.strip("/")
+
+    # Encode the project path for the GitLab API
+    encoded_path = project_path.replace("/", "%2F")
+    print(f"Attempting to fetch project ID for: {encoded_path}")
+
     try:
-        project = gl.projects.get(project_path)
+        project = gl.projects.get(encoded_path)
         return project.id
+    except gitlab.exceptions.GitlabGetError as e:
+        print(f"GitLabGetError for {project_url}: {e.response_code} - {e.error_message}")
+        return None
     except Exception as e:
-        print(f"Error fetching project ID for {project_url}: {e}")
+        print(f"Unexpected error for {project_url}: {e}")
         return None
 
 # Main Script
