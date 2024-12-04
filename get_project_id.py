@@ -14,7 +14,7 @@ def get_project_id_from_url(project_url):
     encoded_path = project_path.replace("/", "%2F")
     print(f"Processing project path: {encoded_path}")
 
-    # Initialize GitLab client
+    # Initialize GitLab client with SSL verification disabled
     gl = gitlab.Gitlab(GITLAB_URL, private_token=PRIVATE_TOKEN, ssl_verify=False)
 
     try:
