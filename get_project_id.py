@@ -1,30 +1,27 @@
+from urllib.parse import urlparse, quote
 import gitlab
 
 # Configuration
 GITLAB_URL = "https://gitlab.example.com"  # Base GitLab instance URL
 PRIVATE_TOKEN = "your_private_token"       # Personal access token
-PROJECT_GROUP_PATH = "mycompany/workspace/projectgroup"  # Path to the project group
-PROJECT_NAME = "project1"                  # Project name
 
-def get_project_id(project_group_path, project_name):
+def get_project_id_from_url(project_url):
     try:
-        # Initialize GitLab client
+        # Parse the project path from the full URL
+        parsed_url = urlparse(project_url)
+        project_path = parsed_url.path.strip("/")  # Remove leading/trailing slashes
+
+        # Encode the project path for the GitLab API
+        encoded_path = quote(project_path, safe="")
+        print(f"Encoded project path: {encoded_path}")
+
+        # Initialize GitLab client with SSL verification disabled
         gl = gitlab.Gitlab(GITLAB_URL, private_token=PRIVATE_TOKEN, ssl_verify=False)
 
-        # Get the project group
-        project_group_obj = gl.groups.get(project_group_path)
-        print(f"Found project group: {project_group_obj.name}")
-
-        # Find the project under the project group
-        project_obj = next(
-            (proj for proj in project_group_obj.projects.list(all=True) if proj.name == project_name), None
-        )
-        if not project_obj:
-            print(f"Project '{project_name}' not found under project group '{project_group_path}'.")
-            return None
-
-        print(f"Found project: {project_obj.name}")
-        return project_obj.id
+        # Fetch the project using the encoded path
+        project = gl.projects.get(encoded_path)
+        print(f"Project found: {project.name}")
+        return project.id
 
     except gitlab.exceptions.GitlabGetError as e:
         print(f"GitLabGetError: {e.response_code} - {e.error_message}")
@@ -34,8 +31,11 @@ def get_project_id(project_group_path, project_name):
         return None
 
 if __name__ == "__main__":
+    # Example input: full GitLab project URL
+    project_url = input("Enter the GitLab project URL: ").strip()
+
     # Fetch the project ID
-    project_id = get_project_id(PROJECT_GROUP_PATH, PROJECT_NAME)
+    project_id = get_project_id_from_url(project_url)
 
     if project_id:
         print(f"Project ID: {project_id}")
