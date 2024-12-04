@@ -1,5 +1,9 @@
 import gitlab
 import requests
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
+
+# Suppress SSL warnings
+requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 # Replace these with your GitLab details
 GITLAB_URL = "https://gitlab.example.com"  # GitLab instance URL
@@ -20,7 +24,11 @@ def get_contributor_count(gitlab_url, private_token, project_id):
     try:
         # Fetch contributors using the REST API
         headers = {"PRIVATE-TOKEN": private_token}
-        response = requests.get(f"{gitlab_url}/api/v4/projects/{project_id}/repository/contributors", headers=headers)
+        response = requests.get(
+            f"{gitlab_url}/api/v4/projects/{project_id}/repository/contributors",
+            headers=headers,
+            verify=False  # Disable SSL verification
+        )
 
         if response.status_code == 200:
             contributors = response.json()
@@ -33,8 +41,8 @@ def get_contributor_count(gitlab_url, private_token, project_id):
         return None, []
 
 def main():
-    # Initialize the GitLab client
-    gl = gitlab.Gitlab(GITLAB_URL, private_token=PRIVATE_TOKEN)
+    # Initialize the GitLab client with SSL verification disabled
+    gl = gitlab.Gitlab(GITLAB_URL, private_token=PRIVATE_TOKEN, ssl_verify=False)
 
     # Get commit count
     commit_count = get_commit_count(gl, PROJECT_ID)
