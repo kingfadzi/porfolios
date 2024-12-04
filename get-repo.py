@@ -2,7 +2,7 @@ import csv
 import gitlab
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
-from urllib.parse import urlparse
+from urllib.parse import urlparse, quote
 
 # Suppress SSL warnings
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
@@ -16,7 +16,25 @@ OUTPUT_FILE = "output_project_metrics.csv" # Output CSV file with metrics
 # Initialize the GitLab client with SSL verification disabled
 gl = gitlab.Gitlab(GITLAB_URL, private_token=PRIVATE_TOKEN, ssl_verify=False)
 
-# Metrics Functions
+# Function to get project ID from URL
+def get_project_id_from_url(project_url):
+    parsed_url = urlparse(project_url)
+    project_path = parsed_url.path.strip("/")  # Extract path
+    encoded_path = quote(project_path, safe="")  # Encode path for API
+    print(f"Attempting to fetch project ID for: {encoded_path}")
+
+    try:
+        # Use the exact API endpoint
+        project = gl.http_get(f"/projects/{encoded_path}")
+        return project["id"]
+    except gitlab.exceptions.GitlabGetError as e:
+        print(f"GitLabGetError for {project_url}: {e.response_code} - {e.error_message}")
+        return None
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+        return None
+
+# Metrics Functions (as is)
 def get_commit_count(gl, project_id):
     try:
         project = gl.projects.get(project_id)
@@ -83,28 +101,6 @@ def get_pipeline_statistics(gl, project_id):
         print(f"Error fetching pipelines: {e}")
         return None, None, None
 
-def get_project_id_from_url(project_url):
-    # Parse the URL
-    parsed_url = urlparse(project_url)
-
-    # Extract the path relative to the domain
-    # Example: '/xxx/www/group_name/project_name' becomes 'xxx/www/group_name/project_name'
-    project_path = parsed_url.path.strip("/")
-
-    # Encode the project path for the GitLab API
-    encoded_path = project_path.replace("/", "%2F")
-    print(f"Attempting to fetch project ID for: {encoded_path}")
-
-    try:
-        project = gl.projects.get(encoded_path)
-        return project.id
-    except gitlab.exceptions.GitlabGetError as e:
-        print(f"GitLabGetError for {project_url}: {e.response_code} - {e.error_message}")
-        return None
-    except Exception as e:
-        print(f"Unexpected error for {project_url}: {e}")
-        return None
-
 # Main Script
 def main():
     try:
@@ -122,7 +118,10 @@ def main():
             writer.writeheader()
 
             for row in reader:
-                project_url = row["gitlab_project_url"]
+                project_url = row.get("gitlab_project_url", "").strip()
+                print(f"Processing URL: {project_url}")
+
+                # Get project ID
                 project_id = get_project_id_from_url(project_url)
 
                 if project_id:
