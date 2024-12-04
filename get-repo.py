@@ -2,6 +2,7 @@ import csv
 import gitlab
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
+from urllib.parse import urlparse
 
 # Suppress SSL warnings
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
