@@ -1,3 +1,4 @@
+import csv
 import gitlab
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
@@ -9,6 +10,7 @@ requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 GITLAB_URL = "https://gitlab.example.com"  # GitLab instance URL
 PRIVATE_TOKEN = "your_private_token"       # Personal access token
 PROJECT_ID = 12345                         # Replace with your project ID
+CSV_FILE = "gitlab_project_metrics.csv"    # Output CSV file
 
 # Initialize the GitLab client with SSL verification disabled
 gl = gitlab.Gitlab(GITLAB_URL, private_token=PRIVATE_TOKEN, ssl_verify=False)
@@ -93,46 +95,37 @@ def main():
     try:
         print("Fetching GitLab project metrics...\n")
 
-        # Commit Count
+        # Collect all metrics
         commit_count = get_commit_count(gl, PROJECT_ID)
-        if commit_count is not None:
-            print(f"Number of Commits: {commit_count}")
-
-        # Contributor Count
         contributor_count, contributors = get_contributor_count(GITLAB_URL, PRIVATE_TOKEN, PROJECT_ID)
-        if contributor_count is not None:
-            print(f"Number of Contributors: {contributor_count}")
-            for contributor in contributors:
-                print(f"  {contributor['name']}: {contributor['commits']} commits")
-
-        # Branch Count
         branch_count = get_branches_count(gl, PROJECT_ID)
-        if branch_count is not None:
-            print(f"Number of Branches: {branch_count}")
-
-        # Tag Count
         tag_count = get_tags_count(gl, PROJECT_ID)
-        if tag_count is not None:
-            print(f"Number of Tags: {tag_count}")
-
-        # Merge Requests Count
         merge_request_count = get_merge_requests_count(gl, PROJECT_ID)
-        if merge_request_count is not None:
-            print(f"Open Merge Requests: {merge_request_count}")
-
-        # Pipeline Statistics
         pipeline_count, success_count, failed_count = get_pipeline_statistics(gl, PROJECT_ID)
-        if pipeline_count is not None:
-            print(f"Total Pipelines: {pipeline_count}")
-            print(f"  Successful Pipelines: {success_count}")
-            print(f"  Failed Pipelines: {failed_count}")
-
-        # Forks and Stars
         forks_count, stars_count = get_forks_and_stars(gl, PROJECT_ID)
-        if forks_count is not None:
-            print(f"Forks: {forks_count}")
-        if stars_count is not None:
-            print(f"Stars: {stars_count}")
+
+        # Prepare data for CSV
+        metrics = {
+            "project_id": PROJECT_ID,
+            "commit_count": commit_count,
+            "contributor_count": contributor_count,
+            "branch_count": branch_count,
+            "tag_count": tag_count,
+            "open_merge_requests": merge_request_count,
+            "total_pipelines": pipeline_count,
+            "successful_pipelines": success_count,
+            "failed_pipelines": failed_count,
+            "forks": forks_count,
+            "stars": stars_count,
+        }
+
+        # Write to CSV
+        with open(CSV_FILE, mode='w', newline='') as file:
+            writer = csv.DictWriter(file, fieldnames=metrics.keys())
+            writer.writeheader()
+            writer.writerow(metrics)
+
+        print(f"Metrics saved to {CSV_FILE}")
 
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
