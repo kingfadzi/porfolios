@@ -5,8 +5,8 @@ GITLAB_URL = "https://gitlab.example.com"  # Your GitLab instance URL
 PRIVATE_TOKEN = "your_private_token"       # Your personal access token
 PROJECT_ID = 12345                         # Replace with your actual project ID
 
-# Initialize the GitLab connection
-gl = gitlab.Gitlab(GITLAB_URL, private_token=PRIVATE_TOKEN)
+# Initialize the GitLab connection with SSL verification disabled
+gl = gitlab.Gitlab(GITLAB_URL, private_token=PRIVATE_TOKEN, ssl_verify=False)
 
 try:
     # Get the project
