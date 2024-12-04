@@ -10,6 +10,10 @@ def get_project_id_from_url(project_url):
     parsed_url = urlparse(project_url)
     project_path = parsed_url.path.strip("/")  # Remove leading and trailing slashes
 
+    # Remove '.git' suffix if present
+    if project_path.endswith(".git"):
+        project_path = project_path[:-4]
+
     # Encode the project path for GitLab API
     encoded_path = project_path.replace("/", "%2F")
     print(f"Processing project path: {encoded_path}")
