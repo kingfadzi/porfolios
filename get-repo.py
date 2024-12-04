@@ -18,33 +18,42 @@ gl = gitlab.Gitlab(GITLAB_URL, private_token=PRIVATE_TOKEN, ssl_verify=False)
 
 # Function to get project ID from URL
 def get_project_id_from_url(project_url):
-    parsed_url = urlparse(project_url)
-    project_path = parsed_url.path.strip("/")  # Extract path
-    encoded_path = quote(project_path, safe="")  # Encode path for API
-    print(f"Attempting to fetch project ID for: {encoded_path}")
-
+    print(f"Original URL: {project_url}")
     try:
+        parsed_url = urlparse(project_url)
+        project_path = parsed_url.path.strip("/")  # Extract path
+        print(f"Extracted project path: {project_path}")
+        encoded_path = quote(project_path, safe="")  # Encode path for API
+        print(f"Encoded path for API: {encoded_path}")
+
         # Use the exact API endpoint
+        print(f"Making API call to fetch project ID for: {encoded_path}")
         project = gl.http_get(f"/projects/{encoded_path}")
-        return project["id"]
+        project_id = project["id"]
+        print(f"Fetched project ID: {project_id} for project: {project['name']}")
+        return project_id
     except gitlab.exceptions.GitlabGetError as e:
         print(f"GitLabGetError for {project_url}: {e.response_code} - {e.error_message}")
         return None
     except Exception as e:
-        print(f"Unexpected error: {e}")
+        print(f"Unexpected error for {project_url}: {e}")
         return None
 
-# Metrics Functions (as is)
+# Metrics Functions
 def get_commit_count(gl, project_id):
+    print(f"Fetching commit count for project ID: {project_id}")
     try:
         project = gl.projects.get(project_id)
         commits = project.commits.list(all=True)
-        return len(commits)
+        count = len(commits)
+        print(f"Commit count: {count}")
+        return count
     except Exception as e:
-        print(f"Error fetching commit count: {e}")
+        print(f"Error fetching commit count for project ID {project_id}: {e}")
         return None
 
 def get_contributor_count(gitlab_url, private_token, project_id):
+    print(f"Fetching contributor count for project ID: {project_id}")
     try:
         headers = {"PRIVATE-TOKEN": private_token}
         response = requests.get(
@@ -52,74 +61,48 @@ def get_contributor_count(gitlab_url, private_token, project_id):
             headers=headers,
             verify=False
         )
+        print(f"Contributor API response status: {response.status_code}")
         if response.status_code == 200:
             contributors = response.json()
-            return len(contributors)
+            count = len(contributors)
+            print(f"Contributor count: {count}")
+            return count
         else:
             print(f"Error fetching contributors: {response.status_code} - {response.text}")
             return None
     except Exception as e:
-        print(f"Error fetching contributors: {e}")
+        print(f"Error fetching contributors for project ID {project_id}: {e}")
         return None
 
 def get_branches_count(gl, project_id):
+    print(f"Fetching branch count for project ID: {project_id}")
     try:
         project = gl.projects.get(project_id)
         branches = project.branches.list(all=True)
-        return len(branches)
+        count = len(branches)
+        print(f"Branch count: {count}")
+        return count
     except Exception as e:
-        print(f"Error fetching branches: {e}")
+        print(f"Error fetching branch count for project ID {project_id}: {e}")
         return None
-
-def get_tags_count(gl, project_id):
-    try:
-        project = gl.projects.get(project_id)
-        tags = project.tags.list(all=True)
-        return len(tags)
-    except Exception as e:
-        print(f"Error fetching tags: {e}")
-        return None
-
-def get_merge_requests_count(gl, project_id):
-    try:
-        project = gl.projects.get(project_id)
-        merge_requests = project.mergerequests.list(state='opened', all=True)
-        return len(merge_requests)
-    except Exception as e:
-        print(f"Error fetching merge requests: {e}")
-        return None
-
-def get_pipeline_statistics(gl, project_id):
-    try:
-        project = gl.projects.get(project_id)
-        pipelines = project.pipelines.list(all=True)
-        pipeline_count = len(pipelines)
-        success_count = sum(1 for p in pipelines if p.status == 'success')
-        failed_count = sum(1 for p in pipelines if p.status == 'failed')
-        return pipeline_count, success_count, failed_count
-    except Exception as e:
-        print(f"Error fetching pipelines: {e}")
-        return None, None, None
 
 # Main Script
 def main():
     try:
-        print("Fetching GitLab project metrics...\n")
+        print("Starting GitLab project metrics fetch...\n")
 
         # Open input and output CSV files
         with open(INPUT_FILE, mode='r') as infile, open(OUTPUT_FILE, mode='w', newline='') as outfile:
             reader = csv.DictReader(infile)
             fieldnames = reader.fieldnames + [
-                "commit_count", "contributor_count", "branch_count",
-                "tag_count", "open_merge_requests", "total_pipelines",
-                "successful_pipelines", "failed_pipelines"
+                "commit_count", "contributor_count", "branch_count"
             ]
             writer = csv.DictWriter(outfile, fieldnames=fieldnames)
             writer.writeheader()
 
             for row in reader:
                 project_url = row.get("gitlab_project_url", "").strip()
-                print(f"Processing URL: {project_url}")
+                print(f"Processing project URL: {project_url}")
 
                 # Get project ID
                 project_id = get_project_id_from_url(project_url)
@@ -129,21 +112,15 @@ def main():
                     commit_count = get_commit_count(gl, project_id)
                     contributor_count = get_contributor_count(GITLAB_URL, PRIVATE_TOKEN, project_id)
                     branch_count = get_branches_count(gl, project_id)
-                    tag_count = get_tags_count(gl, project_id)
-                    merge_request_count = get_merge_requests_count(gl, project_id)
-                    pipeline_count, success_count, failed_count = get_pipeline_statistics(gl, project_id)
 
                     # Append metrics to the row
                     row.update({
                         "commit_count": commit_count,
                         "contributor_count": contributor_count,
-                        "branch_count": branch_count,
-                        "tag_count": tag_count,
-                        "open_merge_requests": merge_request_count,
-                        "total_pipelines": pipeline_count,
-                        "successful_pipelines": success_count,
-                        "failed_pipelines": failed_count
+                        "branch_count": branch_count
                     })
+                else:
+                    print(f"Skipping metrics fetch due to missing project ID for URL: {project_url}")
 
                 writer.writerow(row)
 
