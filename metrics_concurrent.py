@@ -78,6 +78,32 @@ def fetch_commits_last_n_days(project_id, days):
         logger.error(f"Error fetching commits for project ID {project_id}: {e}")
         raise
 
+def fetch_contributor_count(project_id):
+    try:
+        logger.info(f"Fetching contributors for project ID: {project_id}")
+        endpoint = f"/projects/{project_id}/repository/contributors"
+        response = gl.http_get(endpoint)
+        contributors = response if isinstance(response, list) else []
+        logger.info(f"Fetched {len(contributors)} contributors for project ID: {project_id}")
+        return len(contributors)
+    except Exception as e:
+        logger.error(f"Error fetching contributors for project ID {project_id}: {e}")
+        raise
+
+def fetch_branch_count(project_id):
+    """
+    Fetch the number of branches for a GitLab project.
+    """
+    try:
+        logger.info(f"Fetching branches for project ID: {project_id}")
+        project = gl.projects.get(project_id)
+        branches = project.branches.list(all=True)
+        logger.info(f"Fetched {len(branches)} branches for project ID: {project_id}")
+        return len(branches)
+    except Exception as e:
+        logger.error(f"Error fetching branches for project ID {project_id}: {e}")
+        raise
+
 def upsert_with_orm(project_id, project_url, metrics, extra_data):
     try:
         logger.info(f"Upserting metrics for project ID: {project_id}")
@@ -86,7 +112,7 @@ def upsert_with_orm(project_id, project_url, metrics, extra_data):
             record.commit_count = metrics["commit_count"]
             record.contributor_count = metrics["contributor_count"]
             record.branch_count = metrics["branch_count"]
-            record.lob = extra_data["LOB"]
+            record.lob = extra_data["lob"]
             record.dpt = extra_data["dpt"]
             record.project_name = extra_data["project_name"]
             record.appid = extra_data["appid"]
@@ -107,38 +133,56 @@ def upsert_with_orm(project_id, project_url, metrics, extra_data):
         logger.error(f"Error during upsert for project ID {project_id}: {e}")
         raise
 
-@task(retries=3, retry_delay=timedelta(minutes=1))
+@task
 def process_project(row):
     try:
         project_url = row["gitlab_project_url"].strip()
         logger.info(f"Starting processing for project URL: {project_url}")
+
+        # Fetch project ID
         project_id = get_project_id_from_url(project_url)
+
+        # Fetch metrics
         commit_count = fetch_commits_last_n_days(project_id, N_DAYS)
-        metrics = {"commit_count": commit_count}
+        contributor_count = fetch_contributor_count(project_id)
+        branch_count = fetch_branch_count(project_id)
+
+        # Compile metrics
+        metrics = {
+            "commit_count": commit_count,
+            "contributor_count": contributor_count,
+            "branch_count": branch_count,
+        }
+
+        # Extract extra data
         extra_data = {
-            "LOB": row["LOB"],
+            "lob": row["LOB"],
             "dpt": row["dpt"],
             "project_name": row["project_name"],
             "appid": row["appid"],
             "appname": row["appname"],
             "gitlab_workspace": row["gitlab_workspace"]
         }
+
+        # Upsert data into the database
         upsert_with_orm(project_id, project_url, metrics, extra_data)
+
         logger.info(f"Completed processing for project URL: {project_url}")
+
     except Exception as e:
         logger.error(f"Error processing project URL: {project_url} - {e}")
         raise
 
 @dag(
-    dag_id="gitlab_pipeline_proper_failure_handling",
+    dag_id="gitlab_pipeline_with_branches",
     start_date=datetime(2023, 1, 1),
     schedule_interval=None,
     catchup=False,
 )
-def gitlab_pipeline_proper_failure_handling():
-    logger.info("Starting DAG: GitLab Pipeline with Proper Failure Handling")
+def gitlab_pipeline_with_branches():
+    logger.info("Starting DAG: GitLab Pipeline with Branch Count")
     df = pd.read_csv(INPUT_FILE)
-    for _, row in df.iterrows():
-        process_project(row.to_dict())
+    rows = df.to_dict(orient="records")
+    process_project.expand(row=rows)
 
-dag = gitlab_pipeline_proper_failure_handling()
+dag = gitlab_pipeline_with_branches()
