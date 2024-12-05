@@ -8,6 +8,7 @@ import gitlab
 import pandas as pd
 from urllib.parse import urlparse, quote
 import logging
+from dateutil.parser import parse
 
 # Configuration
 GITLAB_URL = "https://gitlab.example.com"
@@ -76,7 +77,7 @@ def fetch_commits_last_n_days(project_id, days):
 
         # Determine the latest commit date
         last_commit_date = max(
-            (datetime.strptime(commit.created_at, "%Y-%m-%dT%H:%M:%S.%fZ") for commit in commits),
+            (parse(commit.created_at) for commit in commits),
             default=None,
         )
 
