@@ -9,6 +9,7 @@ import pandas as pd
 from urllib.parse import urlparse, quote
 import logging
 from dateutil.parser import parse
+from datetime import timezone
 
 # Configuration
 GITLAB_URL = "https://gitlab.example.com"
@@ -104,7 +105,7 @@ def fetch_branch_count_last_n_days(project_id, days):
     """
     try:
         logger.info(f"Fetching branches with commits in the last {days} days for project ID: {project_id}")
-        since_date = (datetime.utcnow() - timedelta(days=days)).isoformat() + "Z"
+        cutoff_date = datetime.now(timezone.utc) - timedelta(days=days)
 
         # Fetch all branches
         project = gl.projects.get(project_id)
@@ -115,8 +116,8 @@ def fetch_branch_count_last_n_days(project_id, days):
         for branch in branches:
             # Fetch the latest commit for each branch
             commit = project.commits.get(branch.commit["id"])
-            commit_date = parse(commit.created_at)
-            if commit_date >= datetime.utcnow() - timedelta(days=days):
+            commit_date = parse(commit.created_at)  # Offset-aware datetime
+            if commit_date >= cutoff_date:
                 active_branches.append(branch.name)
 
         logger.info(f"Fetched {len(active_branches)} branches active in the last {days} days for project ID: {project_id}")
