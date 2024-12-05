@@ -86,7 +86,7 @@ def upsert_with_orm(project_id, project_url, metrics, extra_data):
             record.commit_count = metrics["commit_count"]
             record.contributor_count = metrics["contributor_count"]
             record.branch_count = metrics["branch_count"]
-            record.lob = extra_data["lob"]
+            record.lob = extra_data["LOB"]
             record.dpt = extra_data["dpt"]
             record.project_name = extra_data["project_name"]
             record.appid = extra_data["appid"]
@@ -107,7 +107,7 @@ def upsert_with_orm(project_id, project_url, metrics, extra_data):
         logger.error(f"Error during upsert for project ID {project_id}: {e}")
         raise
 
-@task
+@task(retries=3, retry_delay=timedelta(minutes=1))
 def process_project(row):
     try:
         project_url = row["gitlab_project_url"].strip()
@@ -116,7 +116,7 @@ def process_project(row):
         commit_count = fetch_commits_last_n_days(project_id, N_DAYS)
         metrics = {"commit_count": commit_count}
         extra_data = {
-            "lob": row["LOB"],
+            "LOB": row["LOB"],
             "dpt": row["dpt"],
             "project_name": row["project_name"],
             "appid": row["appid"],
@@ -127,17 +127,18 @@ def process_project(row):
         logger.info(f"Completed processing for project URL: {project_url}")
     except Exception as e:
         logger.error(f"Error processing project URL: {project_url} - {e}")
+        raise
 
 @dag(
-    dag_id="gitlab_pipeline_concurrent",
+    dag_id="gitlab_pipeline_proper_failure_handling",
     start_date=datetime(2023, 1, 1),
     schedule_interval=None,
     catchup=False,
 )
-def gitlab_pipeline_concurrent():
-    logger.info("Starting DAG: GitLab Pipeline with Concurrency")
+def gitlab_pipeline_proper_failure_handling():
+    logger.info("Starting DAG: GitLab Pipeline with Proper Failure Handling")
     df = pd.read_csv(INPUT_FILE)
-    rows = df.to_dict(orient="records")
-    process_project.expand(row=rows)
+    for _, row in df.iterrows():
+        process_project(row.to_dict())
 
-dag = gitlab_pipeline_concurrent()
+dag = gitlab_pipeline_proper_failure_handling()
