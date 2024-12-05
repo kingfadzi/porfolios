@@ -129,15 +129,15 @@ def process_project(row):
         logger.error(f"Error processing project URL: {project_url} - {e}")
 
 @dag(
-    dag_id="gitlab_pipeline_last_n_days",
+    dag_id="gitlab_pipeline_concurrent",
     start_date=datetime(2023, 1, 1),
     schedule_interval=None,
     catchup=False,
 )
-def gitlab_pipeline_last_n_days():
-    logger.info("Starting DAG: GitLab Pipeline for Last N Days")
+def gitlab_pipeline_concurrent():
+    logger.info("Starting DAG: GitLab Pipeline with Concurrency")
     df = pd.read_csv(INPUT_FILE)
-    for _, row in df.iterrows():
-        process_project(row.to_dict())
+    rows = df.to_dict(orient="records")
+    process_project.expand(row=rows)
 
-dag = gitlab_pipeline_last_n_days()
+dag = gitlab_pipeline_concurrent()
