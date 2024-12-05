@@ -10,7 +10,7 @@ from urllib.parse import urlparse, quote
 import logging
 from dateutil.parser import parse
 from datetime import timezone
-from sqlalchemy.types import JSON
+import json
 
 # Configuration
 GITLAB_URL = "https://gitlab.example.com"
@@ -38,7 +38,7 @@ class ProjectMetric(Base):
     contributor_count = Column(Integer)
     branch_count = Column(Integer)
     last_commit_date = Column(DateTime)  # New field for the last commit date
-    languages = Column(JSON)  # New field for languages
+    languages = Column(String)  # New field for languages
     lob = Column(String)
     dpt = Column(String)
     project_name = Column(String)
@@ -137,8 +137,9 @@ def fetch_project_languages(project_id):
         logger.info(f"Fetching languages for project ID: {project_id}")
         project = gl.projects.get(project_id)
         languages = project.languages()
-        logger.info(f"Languages for project ID {project_id}: {languages}")
-        return languages
+        languages_text = json.dumps(languages)
+        logger.info(f"Languages for project ID {project_id}: {languages_text}")
+        return languages_text
     except Exception as e:
         logger.error(f"Error fetching languages for project ID {project_id}: {e}")
         raise
