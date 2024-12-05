@@ -37,6 +37,7 @@ class ProjectMetric(Base):
     contributor_count = Column(Integer)
     branch_count = Column(Integer)
     last_commit_date = Column(DateTime)  # New field for the last commit date
+    languages = Column(JSON)  # New field for languages
     lob = Column(String)
     dpt = Column(String)
     project_name = Column(String)
@@ -126,7 +127,21 @@ def fetch_branch_count_last_n_days(project_id, days):
     except Exception as e:
         logger.error(f"Error fetching branches for project ID {project_id}: {e}")
         raise
-        
+
+def fetch_project_languages(project_id):
+    """
+    Fetch the languages used in a GitLab project.
+    """
+    try:
+        logger.info(f"Fetching languages for project ID: {project_id}")
+        project = gl.projects.get(project_id)
+        languages = project.languages()
+        logger.info(f"Languages for project ID {project_id}: {languages}")
+        return languages
+    except Exception as e:
+        logger.error(f"Error fetching languages for project ID {project_id}: {e}")
+        raise
+
 def upsert_with_orm(project_id, project_url, metrics, extra_data):
     try:
         logger.info(f"Upserting metrics for project ID: {project_id}")
@@ -136,6 +151,7 @@ def upsert_with_orm(project_id, project_url, metrics, extra_data):
             record.contributor_count = metrics["contributor_count"]
             record.branch_count = metrics["branch_count"]
             record.last_commit_date = metrics["last_commit_date"]
+            record.languages = metrics["languages"]
             record.lob = extra_data["lob"]
             record.dpt = extra_data["dpt"]
             record.project_name = extra_data["project_name"]
@@ -171,6 +187,7 @@ def process_project(row):
         commit_count = len(commits)
         contributor_count = fetch_contributor_count_last_n_days(project_id, N_DAYS)
         branch_count = fetch_branch_count_last_n_days(project_id, N_DAYS)
+        languages = fetch_project_languages(project_id)
 
         # Compile metrics
         metrics = {
@@ -178,6 +195,7 @@ def process_project(row):
             "contributor_count": contributor_count,
             "branch_count": branch_count,
             "last_commit_date": last_commit_date,
+            "languages": languages,
         }
 
         # Extract extra data
