@@ -101,25 +101,32 @@ def fetch_contributor_count_last_n_days(project_id, days):
 
 def fetch_branch_count_last_n_days(project_id, days):
     """
-    Fetch branches with commits in the last N days using commit activity.
+    Fetch branches with commits in the last N days by matching commits to branch heads.
     """
     try:
         logger.info(f"Fetching branches with commits in the last {days} days for project ID: {project_id}")
         cutoff_date = (datetime.utcnow() - timedelta(days=days)).isoformat() + "Z"
 
-        # Fetch commits within the last N days
+        # Fetch recent commits
         project = gl.projects.get(project_id)
-        commits = project.commits.list(since=cutoff_date, all=True)
+        recent_commits = project.commits.list(since=cutoff_date, all=True)
 
-        # Extract unique branch names from commit references
-        active_branches = {commit["ref"] for commit in commits if "ref" in commit}
+        # Fetch all branches
+        branches = project.branches.list(all=True)
+
+        # Match branches with recent commits
+        active_branches = []
+        for branch in branches:
+            branch_commit_id = branch.commit["id"]
+            if any(commit.id == branch_commit_id for commit in recent_commits):
+                active_branches.append(branch.name)
 
         logger.info(f"Fetched {len(active_branches)} branches active in the last {days} days for project ID: {project_id}")
         return len(active_branches)
     except Exception as e:
         logger.error(f"Error fetching branches for project ID {project_id}: {e}")
         raise
-
+        
 def upsert_with_orm(project_id, project_url, metrics, extra_data):
     try:
         logger.info(f"Upserting metrics for project ID: {project_id}")
