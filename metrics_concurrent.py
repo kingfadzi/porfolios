@@ -2,7 +2,7 @@ from airflow import DAG
 from airflow.decorators import task, dag
 from datetime import datetime, timedelta
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, create_engine
+from sqlalchemy import Column, Integer, String, DateTime, create_engine
 from sqlalchemy.orm import sessionmaker
 import gitlab
 import pandas as pd
@@ -18,7 +18,7 @@ DB_PASSWORD = "your_db_password"
 DB_HOST = "localhost"
 DB_PORT = 5432
 INPUT_FILE = "/path/to/input_projects.csv"
-N_DAYS = 7  # Number of days to look back for commits
+N_DAYS = 7  # Number of days to look back for metrics
 
 # Logging Configuration
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -34,6 +34,7 @@ class ProjectMetric(Base):
     commit_count = Column(Integer)
     contributor_count = Column(Integer)
     branch_count = Column(Integer)
+    last_commit_date = Column(DateTime)  # New field for the last commit date
     lob = Column(String)
     dpt = Column(String)
     project_name = Column(String)
@@ -72,34 +73,37 @@ def fetch_commits_last_n_days(project_id, days):
 
         project = gl.projects.get(project_id)
         commits = project.commits.list(since=since_date, until=until_date, all=True)
-        logger.info(f"Fetched {len(commits)} commits for project ID: {project_id}")
-        return len(commits)
+
+        # Determine the latest commit date
+        last_commit_date = max(
+            (datetime.strptime(commit.created_at, "%Y-%m-%dT%H:%M:%S.%fZ") for commit in commits),
+            default=None,
+        )
+
+        logger.info(f"Fetched {len(commits)} commits. Last commit date: {last_commit_date}")
+        return commits, last_commit_date
     except Exception as e:
         logger.error(f"Error fetching commits for project ID {project_id}: {e}")
         raise
 
-def fetch_contributor_count(project_id):
+def fetch_contributor_count_last_n_days(project_id, days):
     try:
-        logger.info(f"Fetching contributors for project ID: {project_id}")
-        endpoint = f"/projects/{project_id}/repository/contributors"
-        response = gl.http_get(endpoint)
-        contributors = response if isinstance(response, list) else []
-        logger.info(f"Fetched {len(contributors)} contributors for project ID: {project_id}")
+        logger.info(f"Fetching contributors for the last {days} days for project ID: {project_id}")
+        commits, _ = fetch_commits_last_n_days(project_id, days)
+        contributors = {commit.author_email for commit in commits}
+        logger.info(f"Fetched {len(contributors)} contributors for the last {days} days for project ID: {project_id}")
         return len(contributors)
     except Exception as e:
         logger.error(f"Error fetching contributors for project ID {project_id}: {e}")
         raise
 
-def fetch_branch_count(project_id):
-    """
-    Fetch the number of branches for a GitLab project.
-    """
+def fetch_branch_count_last_n_days(project_id, days):
     try:
-        logger.info(f"Fetching branches for project ID: {project_id}")
-        project = gl.projects.get(project_id)
-        branches = project.branches.list(all=True)
-        logger.info(f"Fetched {len(branches)} branches for project ID: {project_id}")
-        return len(branches)
+        logger.info(f"Fetching branches with commits in the last {days} days for project ID: {project_id}")
+        commits, _ = fetch_commits_last_n_days(project_id, days)
+        active_branches = {commit.refs[0] for commit in commits if commit.refs}
+        logger.info(f"Fetched {len(active_branches)} branches active in the last {days} days for project ID: {project_id}")
+        return len(active_branches)
     except Exception as e:
         logger.error(f"Error fetching branches for project ID {project_id}: {e}")
         raise
@@ -112,6 +116,7 @@ def upsert_with_orm(project_id, project_url, metrics, extra_data):
             record.commit_count = metrics["commit_count"]
             record.contributor_count = metrics["contributor_count"]
             record.branch_count = metrics["branch_count"]
+            record.last_commit_date = metrics["last_commit_date"]
             record.lob = extra_data["lob"]
             record.dpt = extra_data["dpt"]
             record.project_name = extra_data["project_name"]
@@ -143,15 +148,17 @@ def process_project(row):
         project_id = get_project_id_from_url(project_url)
 
         # Fetch metrics
-        commit_count = fetch_commits_last_n_days(project_id, N_DAYS)
-        contributor_count = fetch_contributor_count(project_id)
-        branch_count = fetch_branch_count(project_id)
+        commits, last_commit_date = fetch_commits_last_n_days(project_id, N_DAYS)
+        commit_count = len(commits)
+        contributor_count = fetch_contributor_count_last_n_days(project_id, N_DAYS)
+        branch_count = fetch_branch_count_last_n_days(project_id, N_DAYS)
 
         # Compile metrics
         metrics = {
             "commit_count": commit_count,
             "contributor_count": contributor_count,
             "branch_count": branch_count,
+            "last_commit_date": last_commit_date,
         }
 
         # Extract extra data
@@ -174,15 +181,15 @@ def process_project(row):
         raise
 
 @dag(
-    dag_id="gitlab_pipeline_with_branches",
+    dag_id="gitlab_pipeline_with_last_commit_date",
     start_date=datetime(2023, 1, 1),
     schedule_interval=None,
     catchup=False,
 )
-def gitlab_pipeline_with_branches():
-    logger.info("Starting DAG: GitLab Pipeline with Branch Count")
+def gitlab_pipeline_with_last_commit_date():
+    logger.info("Starting DAG: GitLab Pipeline with Last Commit Date")
     df = pd.read_csv(INPUT_FILE)
     rows = df.to_dict(orient="records")
     process_project.expand(row=rows)
 
-dag = gitlab_pipeline_with_branches()
+dag = gitlab_pipeline_with_last_commit_date()
