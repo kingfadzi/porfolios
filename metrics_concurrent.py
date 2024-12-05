@@ -10,6 +10,7 @@ from urllib.parse import urlparse, quote
 import logging
 from dateutil.parser import parse
 from datetime import timezone
+from sqlalchemy.types import JSON
 
 # Configuration
 GITLAB_URL = "https://gitlab.example.com"
