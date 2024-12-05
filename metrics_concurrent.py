@@ -1,7 +1,6 @@
 from airflow import DAG
-from airflow.operators.python import PythonOperator
 from airflow.decorators import task, dag
-from datetime import datetime
+from datetime import datetime, timedelta
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, create_engine
 from sqlalchemy.orm import sessionmaker
@@ -19,6 +18,7 @@ DB_PASSWORD = "your_db_password"
 DB_HOST = "localhost"
 DB_PORT = 5432
 INPUT_FILE = "/path/to/input_projects.csv"
+N_DAYS = 7  # Number of days to look back for commits
 
 # Logging Configuration
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -34,12 +34,12 @@ class ProjectMetric(Base):
     commit_count = Column(Integer)
     contributor_count = Column(Integer)
     branch_count = Column(Integer)
-    lob = Column(String)  # Line of Business
-    dpt = Column(String)  # Department
-    project_name = Column(String)  # Project Name
-    appid = Column(String)  # Application ID
-    appname = Column(String)  # Application Name
-    gitlab_workspace = Column(String)  # GitLab Workspace
+    lob = Column(String)
+    dpt = Column(String)
+    project_name = Column(String)
+    appid = Column(String)
+    appname = Column(String)
+    gitlab_workspace = Column(String)
 
 # Initialize GitLab client
 gl = gitlab.Gitlab(GITLAB_URL, private_token=PRIVATE_TOKEN, ssl_verify=False)
@@ -63,21 +63,19 @@ def get_project_id_from_url(project_url):
         logger.error(f"Error fetching project ID for URL: {project_url} - {e}")
         raise
 
-def fetch_metrics(project_id):
+def fetch_commits_last_n_days(project_id, days):
     try:
-        logger.info(f"Fetching metrics for project ID: {project_id}")
-        commit_count = len(gl.projects.get(project_id).commits.list(all=True))
-        contributor_count = len(gl.projects.get(project_id).repository_contributors())
-        branch_count = len(gl.projects.get(project_id).branches.list(all=True))
-        metrics = {
-            "commit_count": commit_count,
-            "contributor_count": contributor_count,
-            "branch_count": branch_count,
-        }
-        logger.info(f"Fetched metrics for project ID: {project_id} - {metrics}")
-        return metrics
+        logger.info(f"Fetching commits for project ID: {project_id} for the last {days} days")
+        since_date = (datetime.utcnow() - timedelta(days=days)).isoformat() + "Z"
+        until_date = datetime.utcnow().isoformat() + "Z"
+        logger.debug(f"Commit API parameters - since: {since_date}, until: {until_date}")
+
+        project = gl.projects.get(project_id)
+        commits = project.commits.list(since=since_date, until=until_date, all=True)
+        logger.info(f"Fetched {len(commits)} commits for project ID: {project_id}")
+        return len(commits)
     except Exception as e:
-        logger.error(f"Error fetching metrics for project ID: {project_id} - {e}")
+        logger.error(f"Error fetching commits for project ID {project_id}: {e}")
         raise
 
 def upsert_with_orm(project_id, project_url, metrics, extra_data):
@@ -115,7 +113,8 @@ def process_project(row):
         project_url = row["gitlab_project_url"].strip()
         logger.info(f"Starting processing for project URL: {project_url}")
         project_id = get_project_id_from_url(project_url)
-        metrics = fetch_metrics(project_id)
+        commit_count = fetch_commits_last_n_days(project_id, N_DAYS)
+        metrics = {"commit_count": commit_count}
         extra_data = {
             "lob": row["LOB"],
             "dpt": row["dpt"],
@@ -130,15 +129,15 @@ def process_project(row):
         logger.error(f"Error processing project URL: {project_url} - {e}")
 
 @dag(
-    dag_id="gitlab_pipeline_with_extra_fields",
+    dag_id="gitlab_pipeline_last_n_days",
     start_date=datetime(2023, 1, 1),
     schedule_interval=None,
     catchup=False,
 )
-def gitlab_pipeline_with_extra_fields():
-    logger.info("Starting DAG: GitLab Pipeline with Extra Fields")
+def gitlab_pipeline_last_n_days():
+    logger.info("Starting DAG: GitLab Pipeline for Last N Days")
     df = pd.read_csv(INPUT_FILE)
     for _, row in df.iterrows():
         process_project(row.to_dict())
 
-dag = gitlab_pipeline_with_extra_fields()
+dag = gitlab_pipeline_last_n_days()
