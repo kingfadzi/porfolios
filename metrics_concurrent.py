@@ -99,10 +99,26 @@ def fetch_contributor_count_last_n_days(project_id, days):
         raise
 
 def fetch_branch_count_last_n_days(project_id, days):
+    """
+    Fetch branches with commits in the last N days.
+    """
     try:
         logger.info(f"Fetching branches with commits in the last {days} days for project ID: {project_id}")
-        commits, _ = fetch_commits_last_n_days(project_id, days)
-        active_branches = {commit.refs[0] for commit in commits if commit.refs}
+        since_date = (datetime.utcnow() - timedelta(days=days)).isoformat() + "Z"
+
+        # Fetch all branches
+        project = gl.projects.get(project_id)
+        branches = project.branches.list(all=True)
+
+        # Filter branches with recent commits
+        active_branches = []
+        for branch in branches:
+            # Fetch the latest commit for each branch
+            commit = project.commits.get(branch.commit["id"])
+            commit_date = parse(commit.created_at)
+            if commit_date >= datetime.utcnow() - timedelta(days=days):
+                active_branches.append(branch.name)
+
         logger.info(f"Fetched {len(active_branches)} branches active in the last {days} days for project ID: {project_id}")
         return len(active_branches)
     except Exception as e:
