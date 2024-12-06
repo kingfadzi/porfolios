@@ -100,13 +100,30 @@ def get_input_projects():
     try:
         session = Session()
         projects = session.query(InputProject).all()
-        logger.info(f"Found {len(projects)} input projects for metrics processing.")
-        return [project.__dict__ for project in projects]
+
+        # Convert SQLAlchemy objects to dictionaries
+        project_list = []
+        for project in projects:
+            project_dict = {
+                "id": project.id,
+                "gitlab_project_url": project.gitlab_project_url,
+                "lob": project.lob,
+                "dpt": project.dpt,
+                "project_name": project.project_name,
+                "appid": project.appid,
+                "appname": project.appname,
+                "gitlab_workspace": project.gitlab_workspace,
+            }
+            project_list.append(project_dict)
+
+        logger.info(f"Found {len(project_list)} input projects for metrics processing.")
+        return project_list
     except Exception as e:
         logger.error(f"Error fetching input projects: {e}")
         raise
     finally:
         session.close()
+
 
 @task
 def process_metrics_row(project):
