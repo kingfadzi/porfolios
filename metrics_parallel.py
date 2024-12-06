@@ -68,6 +68,12 @@ def generate_hash(url):
     """Generate a SHA256 hash for the given URL."""
     return hashlib.sha256(url.encode("utf-8")).hexdigest()
 
+def encode_gitlab_project_url(project_url):
+    """Encode GitLab project URL for API requests."""
+    # Remove leading/trailing slashes and replace `/` with `%2F`
+    encoded_path = quote(project_url.strip('/').replace('/', '%2F'))
+    return encoded_path
+
 @task
 def load_csv_to_db():
     """Load CSV into input_projects table using hashed IDs."""
@@ -122,11 +128,17 @@ def fetch_metrics(batch_number):
             return
 
         for project in projects:
-            logger.info(f"Fetching metrics for project: {project.gitlab_project_url} (Hash: {project.id})")
+           # Properly encode the GitLab project path
+            encoded_path = encode_gitlab_project_url(project.gitlab_project_url)
+            logger.debug(f"Encoded path for API call: {encoded_path}")
 
             # Fetch project details from GitLab
-            parsed_url = quote(project.gitlab_project_url.strip('/'), safe='')
-            gl_project = gl.http_get(f"/projects/{parsed_url}")
+            try:
+                gl_project = gl.http_get(f"/projects/{encoded_path}")
+            except gitlab.exceptions.GitlabHttpError as e:
+                logger.error(f"Error fetching project for {encoded_path}: {e}")
+                continue
+
             gitlab_project_id = gl_project["id"]
 
             project_obj = gl.projects.get(gitlab_project_id)
