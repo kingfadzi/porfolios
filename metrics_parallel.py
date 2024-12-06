@@ -73,6 +73,11 @@ def load_csv_to_db():
     """Load CSV into input_projects table using hashed IDs."""
     session = Session()
     try:
+
+        # Truncate the table
+        session.execute("TRUNCATE TABLE input_projects RESTART IDENTITY CASCADE;")
+        logger.info("Truncated input_projects table.")
+        
         df = pd.read_csv(INPUT_FILE)
         projects = []
         for _, row in df.iterrows():
