@@ -9,7 +9,7 @@ import pandas as pd
 import gitlab
 import hashlib
 import logging
-from urllib.parse import quote
+from urllib.parse import urlparse, quote
 
 # Configuration
 GITLAB_URL = "https://gitlab.example.com"
@@ -70,8 +70,11 @@ def generate_hash(url):
 
 def encode_gitlab_project_url(project_url):
     """Encode GitLab project URL for API requests."""
-    # Remove leading/trailing slashes and replace `/` with `%2F`
-    encoded_path = quote(project_url.strip('/').replace('/', '%2F'))
+
+    parsed_url = urlparse(project_url)
+    project_path = parsed_url.path.strip("/")
+    encoded_path = quote(project_path, safe="")
+    
     return encoded_path
 
 @task
