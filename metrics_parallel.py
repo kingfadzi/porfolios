@@ -58,10 +58,9 @@ class ProjectLanguage(Base):
 # Initialize GitLab client
 gl = gitlab.Gitlab(GITLAB_URL, private_token=PRIVATE_TOKEN, ssl_verify=False)
 
-# Create database engine and session
+# Create database engine
 engine = create_engine(f"postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}")
 Session = sessionmaker(bind=engine)
-session = Session()
 
 def generate_hash(url):
     """Generate a hash for the given URL."""
@@ -71,6 +70,7 @@ def generate_hash(url):
 def load_csv_row(row):
     """Load a single row from the CSV into the `input_projects` table."""
     try:
+        session = Session()
         url = row["gitlab_project_url"].strip()
         url_hash = generate_hash(url)
         logger.info(f"Loading row for project: {url} (Hash: {url_hash})")
@@ -91,11 +91,14 @@ def load_csv_row(row):
         session.rollback()
         logger.error(f"Error loading row: {e}")
         raise
+    finally:
+        session.close()
 
-@task
+@task(retries=3, retry_delay=timedelta(minutes=5))
 def process_metrics_row(project):
     """Process metrics for a single project."""
     try:
+        session = Session()
         project_url = project.gitlab_project_url
         url_hash = project.id
         logger.info(f"Processing metrics for project: {project_url} (Hash: {url_hash})")
@@ -111,7 +114,7 @@ def process_metrics_row(project):
         commit_count = len(commits)
         contributor_count = len({commit.author_email for commit in commits})
         branch_count = len(project_obj.branches.list(all=True))
-        last_commit_date = max(commit.created_at for commit in commits)
+        last_commit_date = max(datetime.strptime(commit.created_at, "%Y-%m-%dT%H:%M:%S.%fZ") for commit in commits)
 
         # Upsert into project_metrics table
         record = session.query(ProjectMetric).filter_by(input_id=url_hash).first()
@@ -135,11 +138,14 @@ def process_metrics_row(project):
         session.rollback()
         logger.error(f"Error processing metrics: {e}")
         raise
+    finally:
+        session.close()
 
 @task
 def process_language_row(project_id):
-    """Process languages for a single project based on `project_id`."""
+    """Process languages for a single project."""
     try:
+        session = Session()
         logger.info(f"Processing languages for project ID: {project_id}")
 
         # Fetch languages from GitLab API
@@ -157,6 +163,8 @@ def process_language_row(project_id):
         session.rollback()
         logger.error(f"Error processing languages: {e}")
         raise
+    finally:
+        session.close()
 
 @dag(
     dag_id="metrics_parallel",
@@ -171,6 +179,7 @@ def metrics_parallel():
     load_csv_task = load_csv_row.expand(row=df.to_dict(orient="records"))
 
     # Process metrics for each project in parallel
+    session = Session()
     input_projects = session.query(InputProject).all()
     metrics_task = process_metrics_row.expand(project=input_projects)
 
