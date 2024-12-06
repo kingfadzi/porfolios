@@ -95,76 +95,47 @@ def load_csv_row(row):
         session.close()
 
 @task
-def get_input_projects():
-    """Retrieve all input projects from the `input_projects` table."""
+def process_metrics():
+    """Process metrics for all projects."""
+    session = Session()
     try:
-        session = Session()
         projects = session.query(InputProject).all()
-
-        # Convert SQLAlchemy objects to dictionaries
-        project_list = []
         for project in projects:
-            project_dict = {
-                "id": project.id,
-                "gitlab_project_url": project.gitlab_project_url,
-                "lob": project.lob,
-                "dpt": project.dpt,
-                "project_name": project.project_name,
-                "appid": project.appid,
-                "appname": project.appname,
-                "gitlab_workspace": project.gitlab_workspace,
-            }
-            project_list.append(project_dict)
+            project_url = project.gitlab_project_url
+            url_hash = project.id
+            logger.info(f"Processing metrics for project: {project_url} (Hash: {url_hash})")
 
-        logger.info(f"Found {len(project_list)} input projects for metrics processing.")
-        return project_list
-    except Exception as e:
-        logger.error(f"Error fetching input projects: {e}")
-        raise
-    finally:
-        session.close()
+            # Fetch project ID from GitLab
+            parsed_url = quote(project_url.strip('/'), safe='')
+            project_data = gl.http_get(f"/projects/{parsed_url}")
+            project_id = project_data["id"]
 
+            # Fetch metrics
+            project_obj = gl.projects.get(project_id)
+            commits = project_obj.commits.list(since=(datetime.utcnow() - timedelta(days=N_DAYS)).isoformat() + "Z", all=True)
+            commit_count = len(commits)
+            contributor_count = len({commit.author_email for commit in commits})
+            branch_count = len(project_obj.branches.list(all=True))
+            last_commit_date = max(datetime.strptime(commit.created_at, "%Y-%m-%dT%H:%M:%S.%fZ") for commit in commits)
 
-@task
-def process_metrics_row(project):
-    """Process metrics for a single project."""
-    try:
-        session = Session()
-        project_url = project["gitlab_project_url"]
-        url_hash = project["id"]
-        logger.info(f"Processing metrics for project: {project_url} (Hash: {url_hash})")
-
-        # Fetch project ID from GitLab
-        parsed_url = quote(project_url.strip('/'), safe='')
-        project_data = gl.http_get(f"/projects/{parsed_url}")
-        project_id = project_data["id"]
-
-        # Fetch metrics
-        project_obj = gl.projects.get(project_id)
-        commits = project_obj.commits.list(since=(datetime.utcnow() - timedelta(days=N_DAYS)).isoformat() + "Z", all=True)
-        commit_count = len(commits)
-        contributor_count = len({commit.author_email for commit in commits})
-        branch_count = len(project_obj.branches.list(all=True))
-        last_commit_date = max(datetime.strptime(commit.created_at, "%Y-%m-%dT%H:%M:%S.%fZ") for commit in commits)
-
-        # Upsert into project_metrics table
-        record = session.query(ProjectMetric).filter_by(input_id=url_hash).first()
-        if not record:
-            record = ProjectMetric(
-                id=project_id,
-                input_id=url_hash,
-                commit_count=commit_count,
-                contributor_count=contributor_count,
-                branch_count=branch_count,
-                last_commit_date=last_commit_date,
-            )
-            session.add(record)
-        else:
-            record.commit_count = commit_count
-            record.contributor_count = contributor_count
-            record.branch_count = branch_count
-            record.last_commit_date = last_commit_date
-        session.commit()
+            # Upsert into project_metrics table
+            record = session.query(ProjectMetric).filter_by(input_id=url_hash).first()
+            if not record:
+                record = ProjectMetric(
+                    id=project_id,
+                    input_id=url_hash,
+                    commit_count=commit_count,
+                    contributor_count=contributor_count,
+                    branch_count=branch_count,
+                    last_commit_date=last_commit_date,
+                )
+                session.add(record)
+            else:
+                record.commit_count = commit_count
+                record.contributor_count = contributor_count
+                record.branch_count = branch_count
+                record.last_commit_date = last_commit_date
+            session.commit()
     except Exception as e:
         session.rollback()
         logger.error(f"Error processing metrics: {e}")
@@ -173,37 +144,26 @@ def process_metrics_row(project):
         session.close()
 
 @task
-def get_project_ids():
-    """Retrieve all project IDs from the `project_metrics` table."""
+def process_languages():
+    """Process languages for all projects."""
+    session = Session()
     try:
-        session = Session()
-        project_ids = [metric.id for metric in session.query(ProjectMetric).all()]
-        logger.info(f"Found {len(project_ids)} project IDs for language processing.")
-        return project_ids
-    except Exception as e:
-        logger.error(f"Error fetching project IDs: {e}")
-        raise
-    finally:
-        session.close()
+        metrics = session.query(ProjectMetric).all()
+        for metric in metrics:
+            project_id = metric.id
+            logger.info(f"Processing languages for project ID: {project_id}")
 
-@task
-def process_language_row(project_id):
-    """Process languages for a single project."""
-    try:
-        session = Session()
-        logger.info(f"Processing languages for project ID: {project_id}")
+            # Fetch languages from GitLab API
+            project_obj = gl.projects.get(project_id)
+            languages = project_obj.languages()
 
-        # Fetch languages from GitLab API
-        project_obj = gl.projects.get(project_id)
-        languages = project_obj.languages()
+            # Clear old languages for the project
+            session.query(ProjectLanguage).filter_by(project_id=project_id).delete()
 
-        # Clear old languages for the project
-        session.query(ProjectLanguage).filter_by(project_id=project_id).delete()
-
-        # Insert new languages
-        for language, percentage in languages.items():
-            session.add(ProjectLanguage(project_id=project_id, language=language, percentage=str(percentage)))
-        session.commit()
+            # Insert new languages
+            for language, percentage in languages.items():
+                session.add(ProjectLanguage(project_id=project_id, language=language, percentage=str(percentage)))
+            session.commit()
     except Exception as e:
         session.rollback()
         logger.error(f"Error processing languages: {e}")
@@ -223,19 +183,11 @@ def metrics_parallel():
     df = pd.read_csv(INPUT_FILE)
     load_csv_task = load_csv_row.expand(row=df.to_dict(orient="records"))
 
-    # Dynamically retrieve projects for metrics processing
-    get_projects_task = get_input_projects()
-
-    # Process metrics for each project in parallel
-    metrics_task = process_metrics_row.expand(project=get_projects_task)
-
-    # Dynamically retrieve project IDs for language processing
-    get_project_ids_task = get_project_ids()
-
-    # Process languages for each project in parallel
-    languages_task = process_language_row.expand(project_id=get_project_ids_task)
+    # Process metrics and languages
+    metrics_task = process_metrics()
+    languages_task = process_languages()
 
     # Define dependencies
-    load_csv_task >> get_projects_task >> metrics_task >> get_project_ids_task >> languages_task
+    load_csv_task >> metrics_task >> languages_task
 
 dag = metrics_parallel()
