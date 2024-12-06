@@ -94,13 +94,27 @@ def load_csv_row(row):
     finally:
         session.close()
 
-@task(retries=3, retry_delay=timedelta(minutes=5))
+@task
+def get_input_projects():
+    """Retrieve all input projects from the `input_projects` table."""
+    try:
+        session = Session()
+        projects = session.query(InputProject).all()
+        logger.info(f"Found {len(projects)} input projects for metrics processing.")
+        return [project.__dict__ for project in projects]
+    except Exception as e:
+        logger.error(f"Error fetching input projects: {e}")
+        raise
+    finally:
+        session.close()
+
+@task
 def process_metrics_row(project):
     """Process metrics for a single project."""
     try:
         session = Session()
-        project_url = project.gitlab_project_url
-        url_hash = project.id
+        project_url = project["gitlab_project_url"]
+        url_hash = project["id"]
         logger.info(f"Processing metrics for project: {project_url} (Hash: {url_hash})")
 
         # Fetch project ID from GitLab
@@ -142,6 +156,20 @@ def process_metrics_row(project):
         session.close()
 
 @task
+def get_project_ids():
+    """Retrieve all project IDs from the `project_metrics` table."""
+    try:
+        session = Session()
+        project_ids = [metric.id for metric in session.query(ProjectMetric).all()]
+        logger.info(f"Found {len(project_ids)} project IDs for language processing.")
+        return project_ids
+    except Exception as e:
+        logger.error(f"Error fetching project IDs: {e}")
+        raise
+    finally:
+        session.close()
+
+@task
 def process_language_row(project_id):
     """Process languages for a single project."""
     try:
@@ -178,16 +206,19 @@ def metrics_parallel():
     df = pd.read_csv(INPUT_FILE)
     load_csv_task = load_csv_row.expand(row=df.to_dict(orient="records"))
 
+    # Dynamically retrieve projects for metrics processing
+    get_projects_task = get_input_projects()
+
     # Process metrics for each project in parallel
-    session = Session()
-    input_projects = session.query(InputProject).all()
-    metrics_task = process_metrics_row.expand(project=input_projects)
+    metrics_task = process_metrics_row.expand(project=get_projects_task)
+
+    # Dynamically retrieve project IDs for language processing
+    get_project_ids_task = get_project_ids()
 
     # Process languages for each project in parallel
-    project_ids = [metric.id for metric in session.query(ProjectMetric).all()]
-    languages_task = process_language_row.expand(project_id=project_ids)
+    languages_task = process_language_row.expand(project_id=get_project_ids_task)
 
     # Define dependencies
-    load_csv_task >> metrics_task >> languages_task
+    load_csv_task >> get_projects_task >> metrics_task >> get_project_ids_task >> languages_task
 
 dag = metrics_parallel()
