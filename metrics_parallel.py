@@ -118,14 +118,28 @@ def fetch_batch(session, model, batch_number, batch_size=BATCH_SIZE):
 def fetch_metrics(project_obj):
     """Fetch metrics (commits, contributors, branches, and last commit date) for a project."""
     try:
-        # Determine commit filtering logic
+        # Initialize variables
+        commits = []
+        page = 1
+        per_page = 100  # Number of commits per page
+
         if N_DAYS > 0:
             since_date = (datetime.utcnow() - timedelta(days=N_DAYS)).isoformat() + "Z"
             logger.info(f"Fetching commits since {since_date} for project ID: {project_obj.id}")
-            commits = project_obj.commits.list(since=since_date, all=True)
+            while True:
+                batch = project_obj.commits.list(since=since_date, page=page, per_page=per_page)
+                if not batch:
+                    break
+                commits.extend(batch)
+                page += 1
         else:
             logger.info(f"Fetching all commits for project ID: {project_obj.id}")
-            commits = project_obj.commits.list(all=True)
+            while True:
+                batch = project_obj.commits.list(page=page, per_page=per_page)
+                if not batch:
+                    break
+                commits.extend(batch)
+                page += 1
 
         # Fetch commits and contributors
         commit_count = len(commits)
@@ -161,6 +175,7 @@ def fetch_metrics(project_obj):
             "branch_count": 0,
             "last_commit_date": None,
         }
+
 
 def upsert_project_metric(session, project_id, metrics, input_project_id):
     """Upsert a ProjectMetric record."""
