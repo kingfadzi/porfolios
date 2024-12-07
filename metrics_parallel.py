@@ -73,6 +73,10 @@ def encode_gitlab_project_url(project_url):
     encoded_path = quote(project_path, safe="")
     return encoded_path
 
+def calculate_total_batches(session, model, batch_size):
+    total_rows = session.query(model).count()
+    return (total_rows + batch_size - 1) // batch_size  # Ceiling division
+
 @task
 def load_csv_to_db():
     """Load CSV into input_projects table using hashed IDs."""
@@ -299,11 +303,19 @@ with DAG(
     load_csv = load_csv_to_db()
 
     with TaskGroup("process_metrics_group") as process_metrics_group:
-        for batch_num in range(10):  # Dynamically calculate the number of batches
+        session = Session()
+        total_batches = calculate_total_batches(session, InputProject, BATCH_SIZE)
+        session.close()
+    
+        for batch_num in range(total_batches):
             process_metrics(batch_number=batch_num)
-
+    
     with TaskGroup("process_languages_group") as process_languages_group:
-        for batch_num in range(10):  # Dynamically calculate the number of batches
+        session = Session()
+        total_batches = calculate_total_batches(session, ProjectMetric, BATCH_SIZE)
+        session.close()
+    
+        for batch_num in range(total_batches):
             fetch_languages(batch_number=batch_num)
 
     load_csv >> process_metrics_group >> process_languages_group
