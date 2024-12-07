@@ -117,18 +117,29 @@ def fetch_batch(session, model, batch_number, batch_size=BATCH_SIZE):
 def fetch_metrics(project_obj):
     """Fetch metrics (commits, contributors, branches, and last commit date) for a project."""
     try:
-        # Fetch commits
-        commits = project_obj.commits.list(since=(datetime.utcnow() - timedelta(days=N_DAYS)).isoformat() + "Z")
-        commit_count = len(commits)
+        # Determine commit filtering logic
+        if N_DAYS > 0:
+            since_date = (datetime.utcnow() - timedelta(days=N_DAYS)).isoformat() + "Z"
+            logger.info(f"Fetching commits since {since_date} for project ID: {project_obj.id}")
+            commits = project_obj.commits.list(since=since_date, all=True)
+        else:
+            logger.info(f"Fetching all commits for project ID: {project_obj.id}")
+            commits = project_obj.commits.list(all=True)
 
-        # Fetch contributors
-        contributor_count = len({commit.author_email for commit in commits})
+        # Fetch commits and contributors
+        commit_count = len(commits)
+        contributor_count = len({commit.author_email for commit in commits}) if commits else 0
 
         # Fetch branches
-        branch_count = len(project_obj.branches.list())
+        branches = project_obj.branches.list(all=True)
+        branch_count = len(branches)
 
-        # Fetch last commit date
-        last_commit_date = max(commit.created_at for commit in commits) if commits else None
+        # Determine the last commit date
+        last_commit_date = (
+            max(datetime.strptime(commit.created_at, "%Y-%m-%dT%H:%M:%S.%fZ") for commit in commits)
+            if commits
+            else None
+        )
 
         logger.info(
             f"Metrics fetched: commits={commit_count}, contributors={contributor_count}, "
