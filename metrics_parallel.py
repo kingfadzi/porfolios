@@ -168,27 +168,6 @@ def upsert_project_metric(session, project_id, metrics, input_project_id):
         session.rollback()
         logger.error(f"Error upserting metrics for project ID {project_id}: {e}")
 
-def persist_languages(session, project_id, languages):
-    """Persist languages in the `project_languages` table."""
-    try:
-        # Clear existing languages
-        session.query(ProjectLanguage).filter_by(project_id=project_id).delete()
-
-        # Insert new languages
-        for language, percentage in languages.items():
-            session.add(
-                ProjectLanguage(
-                    project_id=project_id,
-                    language_name=language,
-                    percentage=percentage,
-                )
-            )
-        session.commit()
-        logger.info(f"Persisted languages for project ID: {project_id}")
-    except Exception as e:
-        session.rollback()
-        logger.error(f"Error persisting languages for project ID {project_id}: {e}")
-
 @task
 def process_metrics(batch_number):
     """Fetch and process metrics for a batch of projects."""
