@@ -73,9 +73,17 @@ def encode_gitlab_project_url(project_url):
     encoded_path = quote(project_path, safe="")
     return encoded_path
 
-def calculate_total_batches(session, model, batch_size):
-    total_rows = session.query(model).count()
-    return (total_rows + batch_size - 1) // batch_size  # Ceiling division
+def calculate_total_batches_from_csv(csv_path, batch_size):
+    """Calculate the total number of batches based on CSV row count."""
+    try:
+        row_count = sum(1 for _ in open(csv_path)) - 1  # Exclude the header row
+        num_batches = (row_count + batch_size - 1) // batch_size  # Ceiling division
+        logger.info(f"CSV row count: {row_count}, Total batches: {num_batches}")
+        return num_batches
+    except Exception as e:
+        logger.error(f"Error calculating batches from CSV: {e}")
+        raise
+
 
 @task
 def load_csv_to_db():
@@ -302,19 +310,13 @@ with DAG(
 
     load_csv = load_csv_to_db()
 
+    total_batches = calculate_total_batches_from_csv(INPUT_FILE, BATCH_SIZE)
+
     with TaskGroup("process_metrics_group") as process_metrics_group:
-        session = Session()
-        total_batches = calculate_total_batches(session, InputProject, BATCH_SIZE)
-        session.close()
-    
         for batch_num in range(total_batches):
             process_metrics(batch_number=batch_num)
-    
+
     with TaskGroup("process_languages_group") as process_languages_group:
-        session = Session()
-        total_batches = calculate_total_batches(session, ProjectMetric, BATCH_SIZE)
-        session.close()
-    
         for batch_num in range(total_batches):
             fetch_languages(batch_number=batch_num)
 
