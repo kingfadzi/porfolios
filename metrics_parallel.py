@@ -200,14 +200,26 @@ def process_metrics(batch_number):
             return
 
         for project in projects:
-            encoded_path = encode_gitlab_project_url(project.gitlab_project_url)
-            gl_project = gl.http_get(f"/projects/{encoded_path}")
-            project_obj = gl.projects.get(gl_project["id"])
+            try:
+                # Properly encode the GitLab project path
+                encoded_path = encode_gitlab_project_url(project.gitlab_project_url)
+                gl_project = gl.http_get(f"/projects/{encoded_path}")
+                project_obj = gl.projects.get(gl_project["id"])
 
-            metrics = fetch_metrics(project_obj)
-            upsert_project_metric(session, gl_project["id"], metrics, project.id)
+                # Fetch metrics
+                metrics = fetch_metrics(project_obj)
+
+                # Upsert metrics
+                upsert_project_metric(session, gl_project["id"], metrics, project.id)
+            except gitlab.exceptions.GitlabGetError as e:
+                logger.error(f"Project not found in GitLab for URL: {project.gitlab_project_url} - {e}")
+                continue  # Skip this project and continue with the next one
+            except Exception as e:
+                logger.error(f"Error processing project: {project.gitlab_project_url} - {e}")
+                continue  # Skip this project and continue with the next one
     finally:
         session.close()
+
 
 @task
 def fetch_languages(batch_number):
