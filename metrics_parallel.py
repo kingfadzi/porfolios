@@ -226,17 +226,51 @@ def fetch_languages(batch_number):
     """Fetch and persist languages for a batch of projects."""
     session = Session()
     try:
+        # Fetch a batch of metrics
         metrics = fetch_batch(session, ProjectMetric, batch_number, batch_size=BATCH_SIZE)
         if not metrics:
             logger.info(f"No metrics found in batch {batch_number}.")
             return
 
         for metric in metrics:
-            project_obj = gl.projects.get(metric.id)
-            languages = project_obj.languages()
-            persist_languages(session, metric.id, languages)
+            try:
+                logger.info(f"Fetching languages for project ID: {metric.id}")
+
+                # Fetch languages from GitLab API
+                project_obj = gl.projects.get(metric.id)
+                languages = project_obj.languages()
+
+                # Log if no languages are found
+                if not languages:
+                    logger.warning(f"No languages found for project ID: {metric.id}")
+                    continue
+
+                # Clear old languages for the project
+                deleted_count = session.query(ProjectLanguage).filter_by(project_id=metric.id).delete()
+                logger.info(f"Deleted {deleted_count} old languages for project ID: {metric.id}")
+
+                # Insert new languages
+                for language, percentage in languages.items():
+                    session.add(
+                        ProjectLanguage(
+                            project_id=metric.id,
+                            language_name=language,
+                            percentage=percentage,
+                        )
+                    )
+                session.commit()
+                logger.info(f"Persisted {len(languages)} languages for project ID: {metric.id}")
+
+            except gitlab.exceptions.GitlabGetError as e:
+                logger.error(f"Error fetching project for metric ID: {metric.id} - {e}")
+                continue
+            except Exception as e:
+                session.rollback()
+                logger.error(f"Error processing languages for project ID: {metric.id} - {e}")
+                continue
     finally:
         session.close()
+
 
 # Define DAG
 default_args = {
