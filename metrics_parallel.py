@@ -10,6 +10,7 @@ import gitlab
 import hashlib
 import logging
 from urllib.parse import urlparse, quote
+from dateutil.parser import parse
 
 # Configuration
 GITLAB_URL = "https://gitlab.example.com"
@@ -136,7 +137,7 @@ def fetch_metrics(project_obj):
 
         # Determine the last commit date
         last_commit_date = (
-            max(datetime.strptime(commit.created_at, "%Y-%m-%dT%H:%M:%S.%fZ") for commit in commits)
+            max(parse(commit.created_at) for commit in commits).astimezone()
             if commits
             else None
         )
