@@ -199,7 +199,6 @@ def process_metrics(batch_number):
     finally:
         session.close()
 
-
 @task
 def fetch_languages(batch_number):
     """Fetch and persist languages for a batch of projects."""
@@ -226,19 +225,21 @@ def fetch_languages(batch_number):
 
                 # Clear old languages for the project
                 deleted_count = session.query(ProjectLanguage).filter_by(project_id=metric.id).delete()
+                session.commit()  # Ensure deletion is committed
                 logger.info(f"Deleted {deleted_count} old languages for project ID: {metric.id}")
 
                 # Insert new languages
-                for language, percentage in languages.items():
-                    session.add(
-                        ProjectLanguage(
-                            project_id=metric.id,
-                            language_name=language,
-                            percentage=percentage,
-                        )
+                language_records = [
+                    ProjectLanguage(
+                        project_id=metric.id,
+                        language_name=language,
+                        percentage=percentage,
                     )
+                    for language, percentage in languages.items()
+                ]
+                session.bulk_save_objects(language_records)
                 session.commit()
-                logger.info(f"Persisted {len(languages)} languages for project ID: {metric.id}")
+                logger.info(f"Persisted {len(language_records)} languages for project ID: {metric.id}")
 
             except gitlab.exceptions.GitlabGetError as e:
                 logger.error(f"Error fetching project for metric ID: {metric.id} - {e}")
@@ -249,7 +250,6 @@ def fetch_languages(batch_number):
                 continue
     finally:
         session.close()
-
 
 # Define DAG
 default_args = {
