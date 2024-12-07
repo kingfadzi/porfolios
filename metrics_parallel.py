@@ -39,25 +39,22 @@ class InputProject(Base):
     appid = Column(String)
     appname = Column(String)
     gitlab_workspace = Column(String)
-    created_at = Column(DateTime, default=datetime.utcnow)
 
 class ProjectMetric(Base):
     __tablename__ = "project_metrics"
-    id = Column(Integer, primary_key=True, autoincrement=True)
+    id = Column(Integer, primary_key=True)  # GitLab Project ID
     input_project_id = Column(String)  # Foreign key to InputProject.id
     commit_count = Column(Integer)
     contributor_count = Column(Integer)
     branch_count = Column(Integer)
     last_commit_date = Column(DateTime)
-    created_at = Column(DateTime, default=datetime.utcnow)
 
 class ProjectLanguage(Base):
     __tablename__ = "project_languages"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    project_metric_id = Column(Integer)  # Foreign key to ProjectMetric.id
+    project_id = Column(Integer)  # Foreign key to ProjectMetric.id
     language_name = Column(String)
     percentage = Column(Float)
-    created_at = Column(DateTime, default=datetime.utcnow)
 
 # Initialize SQLAlchemy
 engine = create_engine(DB_CONNECTION)
@@ -70,11 +67,9 @@ def generate_hash(url):
 
 def encode_gitlab_project_url(project_url):
     """Encode GitLab project URL for API requests."""
-
     parsed_url = urlparse(project_url)
     project_path = parsed_url.path.strip("/")
     encoded_path = quote(project_path, safe="")
-    
     return encoded_path
 
 @task
@@ -82,11 +77,10 @@ def load_csv_to_db():
     """Load CSV into input_projects table using hashed IDs."""
     session = Session()
     try:
-
         # Truncate the table
         session.execute("TRUNCATE TABLE input_projects RESTART IDENTITY CASCADE;")
         logger.info("Truncated input_projects table.")
-        
+
         df = pd.read_csv(INPUT_FILE)
         projects = []
         for _, row in df.iterrows():
@@ -120,9 +114,84 @@ def fetch_batch(session, model, batch_number, batch_size=BATCH_SIZE):
     """Fetch a batch of rows from the database."""
     return session.query(model).offset(batch_number * batch_size).limit(batch_size).all()
 
+def fetch_metrics(project_obj):
+    """Fetch metrics (commits, contributors, branches, and last commit date) for a project."""
+    try:
+        # Fetch commits
+        commits = project_obj.commits.list(since=(datetime.utcnow() - timedelta(days=N_DAYS)).isoformat() + "Z")
+        commit_count = len(commits)
+
+        # Fetch contributors
+        contributor_count = len({commit.author_email for commit in commits})
+
+        # Fetch branches
+        branch_count = len(project_obj.branches.list())
+
+        # Fetch last commit date
+        last_commit_date = max(commit.created_at for commit in commits) if commits else None
+
+        logger.info(
+            f"Metrics fetched: commits={commit_count}, contributors={contributor_count}, "
+            f"branches={branch_count}, last_commit_date={last_commit_date}"
+        )
+
+        return {
+            "commit_count": commit_count,
+            "contributor_count": contributor_count,
+            "branch_count": branch_count,
+            "last_commit_date": last_commit_date,
+        }
+    except Exception as e:
+        logger.error(f"Error fetching metrics: {e}")
+        return {
+            "commit_count": 0,
+            "contributor_count": 0,
+            "branch_count": 0,
+            "last_commit_date": None,
+        }
+
+def upsert_project_metric(session, project_id, metrics, input_project_id):
+    """Upsert a ProjectMetric record."""
+    metric = ProjectMetric(
+        id=project_id,
+        input_project_id=input_project_id,
+        commit_count=metrics["commit_count"],
+        contributor_count=metrics["contributor_count"],
+        branch_count=metrics["branch_count"],
+        last_commit_date=metrics["last_commit_date"],
+    )
+    try:
+        session.merge(metric)  # Upsert using merge
+        session.commit()
+        logger.info(f"Upserted metrics for project ID: {project_id}")
+    except Exception as e:
+        session.rollback()
+        logger.error(f"Error upserting metrics for project ID {project_id}: {e}")
+
+def persist_languages(session, project_id, languages):
+    """Persist languages in the `project_languages` table."""
+    try:
+        # Clear existing languages
+        session.query(ProjectLanguage).filter_by(project_id=project_id).delete()
+
+        # Insert new languages
+        for language, percentage in languages.items():
+            session.add(
+                ProjectLanguage(
+                    project_id=project_id,
+                    language_name=language,
+                    percentage=percentage,
+                )
+            )
+        session.commit()
+        logger.info(f"Persisted languages for project ID: {project_id}")
+    except Exception as e:
+        session.rollback()
+        logger.error(f"Error persisting languages for project ID {project_id}: {e}")
+
 @task
-def fetch_metrics(batch_number):
-    """Fetch metrics for a batch of projects."""
+def process_metrics(batch_number):
+    """Fetch and process metrics for a batch of projects."""
     session = Session()
     try:
         projects = fetch_batch(session, InputProject, batch_number, batch_size=BATCH_SIZE)
@@ -131,49 +200,18 @@ def fetch_metrics(batch_number):
             return
 
         for project in projects:
-           # Properly encode the GitLab project path
             encoded_path = encode_gitlab_project_url(project.gitlab_project_url)
-            logger.debug(f"Encoded path for API call: {encoded_path}")
+            gl_project = gl.http_get(f"/projects/{encoded_path}")
+            project_obj = gl.projects.get(gl_project["id"])
 
-            # Fetch project details from GitLab
-            try:
-                gl_project = gl.http_get(f"/projects/{encoded_path}")
-            except gitlab.exceptions.GitlabHttpError as e:
-                logger.error(f"Error fetching project for {encoded_path}: {e}")
-                continue
-
-            gitlab_project_id = gl_project["id"]
-
-            project_obj = gl.projects.get(gitlab_project_id)
-            commits = project_obj.commits.list(since=(datetime.utcnow() - timedelta(days=N_DAYS)).isoformat() + "Z")
-            commit_count = len(commits)
-            contributors = len({commit.author_email for commit in commits})
-            branches = len(project_obj.branches.list())
-            last_commit_date = max(commit.created_at for commit in commits)
-
-            # Upsert metrics
-            metric = session.query(ProjectMetric).filter_by(input_project_id=project.id).first()
-            if not metric:
-                metric = ProjectMetric(
-                    input_project_id=project.id,
-                    commit_count=commit_count,
-                    contributor_count=contributors,
-                    branch_count=branches,
-                    last_commit_date=last_commit_date,
-                )
-                session.add(metric)
-            else:
-                metric.commit_count = commit_count
-                metric.contributor_count = contributors
-                metric.branch_count = branches
-                metric.last_commit_date = last_commit_date
-            session.commit()
+            metrics = fetch_metrics(project_obj)
+            upsert_project_metric(session, gl_project["id"], metrics, project.id)
     finally:
         session.close()
 
 @task
 def fetch_languages(batch_number):
-    """Fetch languages for a batch of projects."""
+    """Fetch and persist languages for a batch of projects."""
     session = Session()
     try:
         metrics = fetch_batch(session, ProjectMetric, batch_number, batch_size=BATCH_SIZE)
@@ -182,18 +220,9 @@ def fetch_languages(batch_number):
             return
 
         for metric in metrics:
-            logger.info(f"Fetching languages for project_metric_id: {metric.id}")
-
             project_obj = gl.projects.get(metric.id)
             languages = project_obj.languages()
-
-            # Clear old languages
-            session.query(ProjectLanguage).filter_by(project_metric_id=metric.id).delete()
-
-            # Insert new languages
-            for language, percentage in languages.items():
-                session.add(ProjectLanguage(project_metric_id=metric.id, language_name=language, percentage=percentage))
-            session.commit()
+            persist_languages(session, metric.id, languages)
     finally:
         session.close()
 
@@ -212,20 +241,17 @@ with DAG(
     schedule_interval=None,
     start_date=datetime(2023, 1, 1),
     catchup=False,
-    max_active_tasks=10,  # Limit concurrent tasks
+    max_active_tasks=10,
 ) as dag:
 
     load_csv = load_csv_to_db()
 
-    # Parallel metrics processing
-    with TaskGroup("fetch_metrics_group") as fetch_metrics_group:
-        for batch_num in range(10):  # Number of batches (adjust as needed)
-            fetch_metrics(batch_number=batch_num)
+    with TaskGroup("process_metrics_group") as process_metrics_group:
+        for batch_num in range(10):  # Dynamically calculate the number of batches
+            process_metrics(batch_number=batch_num)
 
-    # Parallel languages processing
-    with TaskGroup("fetch_languages_group") as fetch_languages_group:
-        for batch_num in range(10):  # Number of batches (adjust as needed)
+    with TaskGroup("process_languages_group") as process_languages_group:
+        for batch_num in range(10):  # Dynamically calculate the number of batches
             fetch_languages(batch_number=batch_num)
 
-    # Define task dependencies
-    load_csv >> fetch_metrics_group >> fetch_languages_group
+    load_csv >> process_metrics_group >> process_languages_group
