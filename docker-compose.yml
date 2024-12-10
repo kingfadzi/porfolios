@@ -1,0 +1,8 @@
+version: '3.8'
+services:
+  app:
+    image: registry.access.redhat.com/ubi8/ubi-minimal
+    user: "${USER_ID}:${GROUP_ID}"  # Run as the non-root user
+    volumes:
+      - ./app-data:/app
+    command: sh -c 'echo "Running as $(id)" && touch /app/testfile && ls -l /app'
