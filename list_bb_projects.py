@@ -1,31 +1,27 @@
-from atlassian import Bitbucket
+import requests
+import urllib3
+
+# Suppress SSL warnings (optional)
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # Configuration
-BITBUCKET_URL = "https://xx.yy.com"
-USERNAME = "your_username"
-PASSWORD = "your_app_password"  # Or use your Personal Access Token
+BITBUCKET_URL = "https://xx.yy.com/rest/api/1.0/projects"
+TOKEN = "your_personal_access_token"
 
-# Initialize Bitbucket connection
-bitbucket = Bitbucket(
-    url=BITBUCKET_URL,
-    username=USERNAME,
-    password=PASSWORD,
-    cloud=False,  # Set to True for Bitbucket Cloud
-    verify_ssl=False
+# Headers for token-based authentication
+headers = {
+    "Authorization": f"Bearer {TOKEN}"
+}
+
+# Make an API request
+response = requests.get(
+    BITBUCKET_URL,
+    headers=headers,
+    verify=False  # Disable SSL verification if needed
 )
 
-# Fetch all projects
-def fetch_projects():
-    projects = bitbucket.project_list()
-    for project in projects:
-        print(f"Project Key: {project['key']}, Name: {project['name']}")
-
-# Fetch repositories for a specific project
-def fetch_repositories(project_key):
-    repos = bitbucket.repo_list(project_key)
-    for repo in repos:
-        print(f"Repo Slug: {repo['slug']}, Name: {repo['name']}, URL: {repo['links']['clone'][0]['href']}")
-
-# Example Usage
-fetch_projects()
-fetch_repositories("MY_PROJECT_KEY")
+# Check response
+if response.status_code == 200:
+    print("Projects:", response.json())
+else:
+    print(f"Error: {response.status_code} - {response.text}")
