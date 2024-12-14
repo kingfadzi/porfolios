@@ -53,9 +53,12 @@ class Repository(Base):
 Base.metadata.create_all(engine)
 
 # Fetch and store project metadata
-def fetch_and_store_projects():
+def fetch_and_store_projects(limit=10):
     projects = bitbucket.project_list()
+    count = 0
     for project in projects:
+        if count >= limit:  # Stop after 'limit' projects
+            break
         # Extract project metadata
         project_data = Project(
             project_key=project["key"],
@@ -67,15 +70,19 @@ def fetch_and_store_projects():
         )
         # Upsert project metadata
         session.merge(project_data)
+        count += 1
     session.commit()
-    print("Projects stored successfully.")
+    print(f"Stored metadata for {count} projects.")
 
 # Fetch and store repository metadata
-def fetch_and_store_repositories():
-    projects = session.query(Project).all()
+def fetch_and_store_repositories(limit=10):
+    projects = session.query(Project).limit(limit).all()  # Limit to first 'limit' projects
     for project in projects:
         repos = bitbucket.repo_list(project.project_key)
+        repo_count = 0
         for repo in repos:
+            if repo_count >= limit:  # Stop after 'limit' repositories per project
+                break
             # Extract repository metadata
             repo_data = Repository(
                 repo_id=f"{project.project_key}/{repo['slug']}",
@@ -92,9 +99,13 @@ def fetch_and_store_repositories():
             )
             # Upsert repository metadata
             session.merge(repo_data)
+            repo_count += 1
+        print(f"Stored metadata for {repo_count} repositories in project {project.project_key}.")
     session.commit()
-    print("Repositories stored successfully.")
 
 if __name__ == "__main__":
-    fetch_and_store_projects()
-    fetch_and_store_repositories()
+    print("Fetching and storing project metadata...")
+    fetch_and_store_projects(limit=10)
+
+    print("Fetching and storing repository metadata...")
+    fetch_and_store_repositories(limit=10)
