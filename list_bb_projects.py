@@ -10,7 +10,8 @@ bitbucket = Bitbucket(
     url=BITBUCKET_URL,
     username=USERNAME,
     password=PASSWORD,
-    cloud=False  # Set to True for Bitbucket Cloud
+    cloud=False,  # Set to True for Bitbucket Cloud
+    verify_ssl=False
 )
 
 # Fetch all projects
