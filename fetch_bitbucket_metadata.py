@@ -72,74 +72,72 @@ with DAG(
 ) as dag:
 
     @task()
-def fetch_projects():
-    """Fetch all projects from Bitbucket and store them in the database."""
-    log.info("Starting to fetch projects from Bitbucket...")
-    session = Session()
-    try:
-        # Convert generator to list
-        projects = list(bitbucket.project_list())
-        log.info(f"Fetched {len(projects)} projects from Bitbucket.")
+    def fetch_projects():
+        """Fetch all projects from Bitbucket and store them in the database."""
+        log.info("Starting to fetch projects from Bitbucket...")
+        session = Session()
+        try:
+            # Convert generator to list
+            projects = list(bitbucket.project_list())
+            log.info(f"Fetched {len(projects)} projects from Bitbucket.")
 
-        for project in projects:
-            project_data = Project(
-                project_key=project["key"],
-                project_name=project["name"],
-                description=project.get("description"),
-                is_private=project.get("public", False),
-                created_on=None,
-                updated_on=None
-            )
-            session.merge(project_data)  # Upsert the project
-            log.debug(f"Upserted project: {project['key']} - {project['name']}")
-        
-        session.commit()
-        log.info("Projects stored successfully in the database.")
-    except Exception as e:
-        log.error("Failed to fetch or store projects.", exc_info=True)
-        raise
-    finally:
-        session.close()
+            for project in projects:
+                project_data = Project(
+                    project_key=project["key"],
+                    project_name=project["name"],
+                    description=project.get("description"),
+                    is_private=project.get("public", False),
+                    created_on=None,
+                    updated_on=None
+                )
+                session.merge(project_data)  # Upsert the project
+                log.debug(f"Upserted project: {project['key']} - {project['name']}")
+            
+            session.commit()
+            log.info("Projects stored successfully in the database.")
+        except Exception as e:
+            log.error("Failed to fetch or store projects.", exc_info=True)
+            raise
+        finally:
+            session.close()
 
-    # Return project keys for dynamic task mapping
-    return [project["key"] for project in projects]
+        # Return project keys for dynamic task mapping
+        return [project["key"] for project in projects]
 
+    @task()
+    def fetch_and_store_repositories(project_key):
+        """Fetch repositories for a given project and store them in the database."""
+        log.info(f"Fetching repositories for project {project_key}...")
+        session = Session()
+        try:
+            # Convert generator to list
+            repos = list(bitbucket.repo_list(project_key))
+            log.info(f"Fetched {len(repos)} repositories for project {project_key}.")
 
-@task()
-def fetch_and_store_repositories(project_key):
-    """Fetch repositories for a given project and store them in the database."""
-    log.info(f"Fetching repositories for project {project_key}...")
-    session = Session()
-    try:
-        # Convert generator to list
-        repos = list(bitbucket.repo_list(project_key))
-        log.info(f"Fetched {len(repos)} repositories for project {project_key}.")
+            for repo in repos:
+                repo_data = Repository(
+                    repo_id=f"{project_key}/{repo['slug']}",
+                    project_key=project_key,
+                    repo_name=repo["name"],
+                    repo_slug=repo["slug"],
+                    clone_url_https=repo["links"]["clone"][0]["href"] if repo["links"]["clone"][0]["name"] == "https" else None,
+                    clone_url_ssh=repo["links"]["clone"][1]["href"] if len(repo["links"]["clone"]) > 1 else None,
+                    language=repo.get("language"),
+                    size=repo.get("size"),
+                    forks=repo.get("forks_count", 0),
+                    created_on=repo.get("created_on"),
+                    updated_on=repo.get("updated_on")
+                )
+                session.merge(repo_data)  # Upsert the repository
+                log.debug(f"Upserted repository: {repo['slug']} - {repo['name']}")
 
-        for repo in repos:
-            repo_data = Repository(
-                repo_id=f"{project_key}/{repo['slug']}",
-                project_key=project_key,
-                repo_name=repo["name"],
-                repo_slug=repo["slug"],
-                clone_url_https=repo["links"]["clone"][0]["href"] if repo["links"]["clone"][0]["name"] == "https" else None,
-                clone_url_ssh=repo["links"]["clone"][1]["href"] if len(repo["links"]["clone"]) > 1 else None,
-                language=repo.get("language"),
-                size=repo.get("size"),
-                forks=repo.get("forks_count", 0),
-                created_on=repo.get("created_on"),
-                updated_on=repo.get("updated_on")
-            )
-            session.merge(repo_data)  # Upsert the repository
-            log.debug(f"Upserted repository: {repo['slug']} - {repo['name']}")
-
-        session.commit()
-        log.info(f"Repositories for project {project_key} stored successfully in the database.")
-    except Exception as e:
-        log.error(f"Failed to fetch or store repositories for project {project_key}.", exc_info=True)
-        raise
-    finally:
-        session.close()
-
+            session.commit()
+            log.info(f"Repositories for project {project_key} stored successfully in the database.")
+        except Exception as e:
+            log.error(f"Failed to fetch or store repositories for project {project_key}.", exc_info=True)
+            raise
+        finally:
+            session.close()
 
     # Task 1: Fetch all projects
     project_keys = fetch_projects()
