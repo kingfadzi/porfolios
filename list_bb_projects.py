@@ -1,27 +1,32 @@
-import requests
-import urllib3
-
-# Suppress SSL warnings (optional)
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+from atlassian import Bitbucket
 
 # Configuration
-BITBUCKET_URL = "https://xx.yy.com/rest/api/1.0/projects"
-TOKEN = "your_personal_access_token"
+BITBUCKET_URL = "https://xx.yy.com"  # Replace with your Bitbucket Server/DC URL
+TOKEN = "your_personal_access_token"  # Replace with your Personal Access Token
 
-# Headers for token-based authentication
-headers = {
-    "Authorization": f"Bearer {TOKEN}"
-}
-
-# Make an API request
-response = requests.get(
-    BITBUCKET_URL,
-    headers=headers,
-    verify=False  # Disable SSL verification if needed
+# Initialize Bitbucket connection using token
+bitbucket = Bitbucket(
+    url=BITBUCKET_URL,
+    token=TOKEN,
+    cloud=False,       # Set to True if using Bitbucket Cloud
+    verify_ssl=False   # Set to False to ignore SSL verification (optional)
 )
 
-# Check response
-if response.status_code == 200:
-    print("Projects:", response.json())
-else:
-    print(f"Error: {response.status_code} - {response.text}")
+# Fetch all projects
+def fetch_projects():
+    projects = bitbucket.project_list()
+    for project in projects:
+        print(f"Project Key: {project['key']}, Name: {project['name']}")
+
+# Fetch repositories for a specific project
+def fetch_repositories(project_key):
+    repos = bitbucket.repo_list(project_key)
+    for repo in repos:
+        print(f"Repo Slug: {repo['slug']}, Name: {repo['name']}, URL: {repo['links']['clone'][0]['href']}")
+
+if __name__ == "__main__":
+    print("Fetching projects...")
+    fetch_projects()
+
+    print("\nFetching repositories for project: MY_PROJECT_KEY")
+    fetch_repositories("MY_PROJECT_KEY")  # Replace with your project key
