@@ -1,5 +1,6 @@
 import logging
-import re
+import os
+import subprocess
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from sqlalchemy import create_engine, Column, String, Float, DateTime, UniqueConstraint
@@ -7,8 +8,6 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects.postgresql import insert
 from datetime import datetime
-import os
-import subprocess
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -20,7 +19,7 @@ engine = create_engine(DB_URL)
 Session = sessionmaker(bind=engine)
 Base = declarative_base()
 
-# Repository ORM model (read-only)
+# Repository ORM model
 class Repository(Base):
     __tablename__ = "bitbucket_repositories"
     repo_id = Column(String, primary_key=True)
@@ -44,7 +43,25 @@ class LanguageAnalysis(Base):
     analysis_date = Column(DateTime, default=datetime.utcnow)
     __table_args__ = (UniqueConstraint('repo_id', 'language', name='_repo_language_uc'),)
 
-# Function to ensure the URL is in SSH format
+# Fetch repositories in batches
+def fetch_repositories_in_batches(batch_size=1000):
+    """
+    Generator to fetch repositories in batches.
+    This avoids loading all records into memory at once.
+    """
+    session = Session()
+    offset = 0
+
+    while True:
+        batch = session.query(Repository).offset(offset).limit(batch_size).all()
+        if not batch:
+            break
+        yield batch
+        offset += batch_size
+
+    session.close()
+
+# Ensure the URL is in SSH format
 def ensure_ssh_url(clone_url):
     """
     Ensure the given URL is in SSH format.
@@ -62,111 +79,66 @@ def ensure_ssh_url(clone_url):
     else:
         raise ValueError(f"Unsupported URL format: {clone_url}")
 
-# Function to analyze a repository
+# Analyze a single repository
 def analyze_repo_task(repo_id):
-    logger.info(f"Starting analysis for repo_id: {repo_id}")
+    logger.info(f"Processing repository with ID: {repo_id}")
     session = Session()
-
     try:
         # Fetch repository details
         repo = session.query(Repository).filter(Repository.repo_id == repo_id).first()
         if not repo:
-            logger.error(f"Repository with repo_id {repo_id} not found!")
-            raise ValueError(f"Repository with repo_id {repo_id} not found!")
-        logger.info(f"Fetched repository details: {repo.repo_name} ({repo.repo_id})")
+            logger.error(f"Repository with ID {repo_id} not found!")
+            raise ValueError(f"Repository with ID {repo_id} not found!")
 
-        # Ensure the URL is in SSH format
-        clone_url = repo.clone_url_ssh
-        if not clone_url:
-            logger.error(f"No clone URL for repository {repo.repo_name} (ID: {repo.repo_id})")
-            raise ValueError(f"No clone URL for repository {repo.repo_name} (ID: {repo.repo_id})")
-        
-        clone_url = ensure_ssh_url(clone_url)
-        logger.info(f"Using clone URL: {clone_url}")
+        logger.info(f"Fetched repository: {repo.repo_name} ({repo.repo_id})")
+        clone_url = ensure_ssh_url(repo.clone_url_ssh)
 
         # Clone the repository
         repo_dir = f"/tmp/{repo.repo_slug}"
-        os.system(f"git clone {clone_url} {repo_dir}")
-        logger.info(f"Cloned repository {repo.repo_name} to {repo_dir}")
+        logger.info(f"Cloning repository: {clone_url} into {repo_dir}")
+        subprocess.run(f"git clone {clone_url} {repo_dir}", shell=True, check=True)
 
         # Run go-enry analysis
         analysis_file = f"{repo_dir}_analysis.txt"
         go_enry_cmd = f"go-enry {repo_dir} > {analysis_file}"
-        logger.info(f"Running go-enry command: {go_enry_cmd}")
-        
-        try:
-            # Execute the go-enry command and capture stdout and stderr
-            result = subprocess.run(go_enry_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True)
-            logger.info(f"go-enry stdout: {result.stdout}")
-            logger.info(f"go-enry stderr: {result.stderr}")
-        except subprocess.CalledProcessError as e:
-            logger.error(f"go-enry failed with exit code {e.returncode}")
-            logger.error(f"go-enry stderr: {e.stderr}")
-            raise
+        logger.info(f"Running go-enry analysis: {go_enry_cmd}")
+        subprocess.run(go_enry_cmd, shell=True, check=True)
 
-        # Check the contents of the analysis file
+        # Parse and upsert analysis results
         if os.path.exists(analysis_file):
             with open(analysis_file, 'r') as f:
-                analysis_content = f.read()
-            logger.info(f"Contents of analysis file:\n{analysis_content}")
+                lines = f.readlines()
+            results = [line.strip().split(',') for line in lines if line.strip()]
+
+            logger.info(f"Parsed go-enry results for {repo.repo_name}: {results}")
+            for language, percent_usage in results:
+                stmt = insert(LanguageAnalysis).values(
+                    repo_id=repo.repo_id,
+                    language=language,
+                    percent_usage=float(percent_usage),
+                ).on_conflict_do_update(
+                    index_elements=['repo_id', 'language'],
+                    set_={
+                        'percent_usage': float(percent_usage),
+                        'analysis_date': datetime.utcnow(),
+                    },
+                )
+                session.execute(stmt)
+            session.commit()
         else:
-            logger.error(f"Analysis file not created: {analysis_file}")
-            raise FileNotFoundError(f"Analysis file not created: {analysis_file}")
+            logger.error(f"Analysis file not found for {repo.repo_name}")
 
-        # Parse go-enry output
-        with open(analysis_file, 'r') as f:
-            lines = f.readlines()
-        results = [line.strip().split(',') for line in lines if line.strip()]
-        logger.info(f"Parsed go-enry results: {results}")
-
-        # Perform upsert into the languages_analysis table
-        for language, percent_usage in results:
-            stmt = insert(LanguageAnalysis).values(
-                repo_id=repo.repo_id,
-                language=language,
-                percent_usage=float(percent_usage)
-            ).on_conflict_do_update(
-                index_elements=['repo_id', 'language'],
-                set_={
-                    'percent_usage': float(percent_usage),
-                    'analysis_date': datetime.utcnow()
-                }
-            )
-            session.execute(stmt)
-        session.commit()
-        logger.info(f"Analysis results upserted for repository {repo.repo_name} ({repo.repo_id})")
+        # Cleanup
+        os.system(f"rm -rf {repo_dir}")
 
     except Exception as e:
-        logger.exception(f"Error processing repository {repo_id}: {e}")
-        session.rollback()
+        logger.error(f"Error processing repository {repo_id}: {e}")
         raise e
 
     finally:
-        # Cleanup the cloned repository
-        os.system(f"rm -rf {repo_dir}")
         session.close()
 
-# Fetch repositories in batches
-def fetch_repositories_in_batches(batch_size=1000):
-    """Fetch repositories in batches to avoid loading all 60,000+ records at once."""
-    logger.info("Fetching repositories in batches.")
-    session = Session()
-    offset = 0
-
-    while True:
-        batch = session.query(Repository).offset(offset).limit(batch_size).all()
-        if not batch:
-            break
-        yield batch
-        offset += batch_size
-
-    session.close()
-
-# Sanitize task IDs
-def sanitize_task_id(task_id: str) -> str:
-    return re.sub(r"[^a-zA-Z0-9_\-\.]", "_", task_id)
-
-# Define the Airflow DAG
+# Define the DAG
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
@@ -174,13 +146,18 @@ default_args = {
     'retries': 1,
 }
 
-with DAG('bitbucket_repo_analysis_batches', default_args=default_args, schedule_interval=None) as dag:
-    batch_size = 1000  # Customize the batch size
+with DAG(
+    'repo_processing_with_language_update',
+    default_args=default_args,
+    schedule_interval=None,
+    max_active_tasks=16,  # Adjust based on system resources
+) as dag:
+    batch_size = 1000
     for batch in fetch_repositories_in_batches(batch_size=batch_size):
         for repo in batch:
-            sanitized_task_id = sanitize_task_id(f"analyze_repo_{repo.repo_id}")
-            analyze_task = PythonOperator(
-                task_id=sanitized_task_id,
+            task_id = f"analyze_repo_{repo.repo_id}"
+            PythonOperator(
+                task_id=task_id,
                 python_callable=analyze_repo_task,
                 op_kwargs={'repo_id': repo.repo_id},
             )
