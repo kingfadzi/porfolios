@@ -91,13 +91,32 @@ def analyze_repo_task(repo_id):
 
         # Run go-enry analysis
         analysis_file = f"{repo_dir}_analysis.txt"
-        subprocess.run(f"go-enry {repo_dir} > {analysis_file}", shell=True, check=True)
-        logger.info(f"go-enry analysis completed. Output saved to {analysis_file}")
+        go_enry_cmd = f"go-enry {repo_dir} > {analysis_file}"
+        logger.debug(f"Running go-enry command: {go_enry_cmd}")
+        
+        try:
+            # Execute the go-enry command and capture stdout and stderr
+            result = subprocess.run(go_enry_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True)
+            logger.debug(f"go-enry stdout: {result.stdout}")
+            logger.debug(f"go-enry stderr: {result.stderr}")
+        except subprocess.CalledProcessError as e:
+            logger.error(f"go-enry failed with exit code {e.returncode}")
+            logger.error(f"go-enry stderr: {e.stderr}")
+            raise
+
+        # Check the contents of the analysis file
+        if os.path.exists(analysis_file):
+            with open(analysis_file, 'r') as f:
+                analysis_content = f.read()
+            logger.debug(f"Contents of analysis file:\n{analysis_content}")
+        else:
+            logger.error(f"Analysis file not created: {analysis_file}")
+            raise FileNotFoundError(f"Analysis file not created: {analysis_file}")
 
         # Parse go-enry output
         with open(analysis_file, 'r') as f:
             lines = f.readlines()
-        results = [line.strip().split(',') for line in lines]
+        results = [line.strip().split(',') for line in lines if line.strip()]
         logger.debug(f"Parsed go-enry results: {results}")
 
         # Perform upsert into the languages_analysis table
@@ -123,8 +142,10 @@ def analyze_repo_task(repo_id):
         raise e
 
     finally:
+        # Cleanup the cloned repository
         os.system(f"rm -rf {repo_dir}")
         session.close()
+
 
 # Fetch a sample of 10 repositories
 def fetch_sample_repositories():
