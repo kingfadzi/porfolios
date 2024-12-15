@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 # Database setup
-DB_URL = "postgresql+psycopg2://username:password@localhost/repo_analysis"
+DB_URL = "postgresql+psycopg2://postgres:postgres@localhost/gitlab-usage"
 engine = create_engine(DB_URL)
 Session = sessionmaker(bind=engine)
 Base = declarative_base()
@@ -27,7 +27,6 @@ class Repository(Base):
     project_key = Column(String)
     repo_name = Column(String, nullable=False)
     repo_slug = Column(String, nullable=False)
-    clone_url_https = Column(String)
     clone_url_ssh = Column(String)
     language = Column(String)
     size = Column(Float)
@@ -45,7 +44,25 @@ class LanguageAnalysis(Base):
     analysis_date = Column(DateTime, default=datetime.utcnow)
     __table_args__ = (UniqueConstraint('repo_id', 'language', name='_repo_language_uc'),)
 
-# Analyze a single repository and upsert results
+# Function to ensure the URL is in SSH format
+def ensure_ssh_url(clone_url):
+    """
+    Ensure the given URL is in SSH format.
+    If the URL is HTTP, convert it to SSH.
+    """
+    if clone_url.startswith("https://"):
+        match = re.match(r"https://(.*?)/scm/(.*?)/(.*?\.git)", clone_url)
+        if not match:
+            raise ValueError(f"Invalid HTTP URL format: {clone_url}")
+        domain, project_key, repo_slug = match.groups()
+        ssh_url = f"ssh://git@{domain}:7999/{project_key}/{repo_slug}"
+        return ssh_url
+    elif clone_url.startswith("ssh://"):
+        return clone_url
+    else:
+        raise ValueError(f"Unsupported URL format: {clone_url}")
+
+# Function to analyze a repository
 def analyze_repo_task(repo_id):
     logger.debug(f"Starting analysis for repo_id: {repo_id}")
     session = Session()
@@ -58,11 +75,13 @@ def analyze_repo_task(repo_id):
             raise ValueError(f"Repository with repo_id {repo_id} not found!")
         logger.info(f"Fetched repository details: {repo.repo_name} ({repo.repo_id})")
 
-        # Determine the clone URL
-        clone_url = repo.clone_url_ssh or repo.clone_url_https
+        # Ensure the URL is in SSH format
+        clone_url = repo.clone_url_ssh
         if not clone_url:
             logger.error(f"No clone URL for repository {repo.repo_name} (ID: {repo.repo_id})")
             raise ValueError(f"No clone URL for repository {repo.repo_name} (ID: {repo.repo_id})")
+        
+        clone_url = ensure_ssh_url(clone_url)
         logger.debug(f"Using clone URL: {clone_url}")
 
         # Clone the repository
