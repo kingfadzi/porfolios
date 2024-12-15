@@ -11,7 +11,7 @@ import os
 import subprocess
 
 # Set up logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Database setup
@@ -64,7 +64,7 @@ def ensure_ssh_url(clone_url):
 
 # Function to analyze a repository
 def analyze_repo_task(repo_id):
-    logger.debug(f"Starting analysis for repo_id: {repo_id}")
+    logger.info(f"Starting analysis for repo_id: {repo_id}")
     session = Session()
 
     try:
@@ -82,7 +82,7 @@ def analyze_repo_task(repo_id):
             raise ValueError(f"No clone URL for repository {repo.repo_name} (ID: {repo.repo_id})")
         
         clone_url = ensure_ssh_url(clone_url)
-        logger.debug(f"Using clone URL: {clone_url}")
+        logger.info(f"Using clone URL: {clone_url}")
 
         # Clone the repository
         repo_dir = f"/tmp/{repo.repo_slug}"
@@ -92,13 +92,13 @@ def analyze_repo_task(repo_id):
         # Run go-enry analysis
         analysis_file = f"{repo_dir}_analysis.txt"
         go_enry_cmd = f"go-enry {repo_dir} > {analysis_file}"
-        logger.debug(f"Running go-enry command: {go_enry_cmd}")
+        logger.info(f"Running go-enry command: {go_enry_cmd}")
         
         try:
             # Execute the go-enry command and capture stdout and stderr
             result = subprocess.run(go_enry_cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=True)
-            logger.debug(f"go-enry stdout: {result.stdout}")
-            logger.debug(f"go-enry stderr: {result.stderr}")
+            logger.info(f"go-enry stdout: {result.stdout}")
+            logger.info(f"go-enry stderr: {result.stderr}")
         except subprocess.CalledProcessError as e:
             logger.error(f"go-enry failed with exit code {e.returncode}")
             logger.error(f"go-enry stderr: {e.stderr}")
@@ -108,7 +108,7 @@ def analyze_repo_task(repo_id):
         if os.path.exists(analysis_file):
             with open(analysis_file, 'r') as f:
                 analysis_content = f.read()
-            logger.debug(f"Contents of analysis file:\n{analysis_content}")
+            logger.info(f"Contents of analysis file:\n{analysis_content}")
         else:
             logger.error(f"Analysis file not created: {analysis_file}")
             raise FileNotFoundError(f"Analysis file not created: {analysis_file}")
@@ -117,7 +117,7 @@ def analyze_repo_task(repo_id):
         with open(analysis_file, 'r') as f:
             lines = f.readlines()
         results = [line.strip().split(',') for line in lines if line.strip()]
-        logger.debug(f"Parsed go-enry results: {results}")
+        logger.info(f"Parsed go-enry results: {results}")
 
         # Perform upsert into the languages_analysis table
         for language, percent_usage in results:
@@ -146,16 +146,21 @@ def analyze_repo_task(repo_id):
         os.system(f"rm -rf {repo_dir}")
         session.close()
 
-
-# Fetch a sample of 10 repositories
-def fetch_sample_repositories():
-    """Fetch a sample of 10 repositories from the bitbucket_repositories table."""
-    logger.debug("Fetching a sample of 10 repositories.")
+# Fetch repositories in batches
+def fetch_repositories_in_batches(batch_size=1000):
+    """Fetch repositories in batches to avoid loading all 60,000+ records at once."""
+    logger.info("Fetching repositories in batches.")
     session = Session()
-    try:
-        return session.query(Repository).limit(10).all()
-    finally:
-        session.close()
+    offset = 0
+
+    while True:
+        batch = session.query(Repository).offset(offset).limit(batch_size).all()
+        if not batch:
+            break
+        yield batch
+        offset += batch_size
+
+    session.close()
 
 # Sanitize task IDs
 def sanitize_task_id(task_id: str) -> str:
@@ -169,14 +174,13 @@ default_args = {
     'retries': 1,
 }
 
-with DAG('bitbucket_repo_analysis_sample', default_args=default_args, schedule_interval=None) as dag:
-    # Fetch a sample of 10 repositories and create tasks
-    repositories = fetch_sample_repositories()
-
-    for repo in repositories:
-        sanitized_task_id = sanitize_task_id(f"analyze_repo_{repo.repo_id}")
-        analyze_task = PythonOperator(
-            task_id=sanitized_task_id,
-            python_callable=analyze_repo_task,
-            op_kwargs={'repo_id': repo.repo_id},
-        )
+with DAG('bitbucket_repo_analysis_batches', default_args=default_args, schedule_interval=None) as dag:
+    batch_size = 1000  # Customize the batch size
+    for batch in fetch_repositories_in_batches(batch_size=batch_size):
+        for repo in batch:
+            sanitized_task_id = sanitize_task_id(f"analyze_repo_{repo.repo_id}")
+            analyze_task = PythonOperator(
+                task_id=sanitized_task_id,
+                python_callable=analyze_repo_task,
+                op_kwargs={'repo_id': repo.repo_id},
+            )
