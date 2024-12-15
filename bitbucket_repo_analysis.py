@@ -107,13 +107,13 @@ def analyze_repo_task(repo_id):
         os.system(f"rm -rf {repo_dir}")
         session.close()
 
-# Fetch repositories from the database in batches
-def fetch_repositories_batch(offset=0, limit=100):
-    """Fetch repositories from the bitbucket_repositories table in batches."""
-    logger.debug(f"Fetching repositories: offset={offset}, limit={limit}")
+# Fetch a sample of 10 repositories
+def fetch_sample_repositories():
+    """Fetch a sample of 10 repositories from the bitbucket_repositories table."""
+    logger.debug("Fetching a sample of 10 repositories.")
     session = Session()
     try:
-        return session.query(Repository).offset(offset).limit(limit).all()
+        return session.query(Repository).limit(10).all()
     finally:
         session.close()
 
@@ -129,21 +129,14 @@ default_args = {
     'retries': 1,
 }
 
-with DAG('bitbucket_repo_analysis', default_args=default_args, schedule_interval=None) as dag:
-    # Fetch repositories in batches and create tasks
-    offset = 0
-    batch_size = 100
-    while True:
-        repositories = fetch_repositories_batch(offset, batch_size)
-        if not repositories:
-            break
+with DAG('bitbucket_repo_analysis_sample', default_args=default_args, schedule_interval=None) as dag:
+    # Fetch a sample of 10 repositories and create tasks
+    repositories = fetch_sample_repositories()
 
-        for repo in repositories:
-            sanitized_task_id = sanitize_task_id(f"analyze_repo_{repo.repo_id}")
-            analyze_task = PythonOperator(
-                task_id=sanitized_task_id,
-                python_callable=analyze_repo_task,
-                op_kwargs={'repo_id': repo.repo_id},
-            )
-
-        offset += batch_size
+    for repo in repositories:
+        sanitized_task_id = sanitize_task_id(f"analyze_repo_{repo.repo_id}")
+        analyze_task = PythonOperator(
+            task_id=sanitized_task_id,
+            python_callable=analyze_repo_task,
+            op_kwargs={'repo_id': repo.repo_id},
+        )
