@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 import subprocess
 from airflow import DAG
 from airflow.operators.python import PythonOperator
@@ -138,6 +139,17 @@ def analyze_repo_task(repo_id):
     finally:
         session.close()
 
+# Sanitize task IDs
+def sanitize_task_id(task_id: str) -> str:
+    """
+    Ensure task IDs are alphanumeric and meet Airflow's requirements.
+    Replaces invalid characters with underscores.
+    """
+    sanitized_id = re.sub(r"[^a-zA-Z0-9_\-\.]", "_", task_id)
+    if len(sanitized_id) > 200:
+        sanitized_id = sanitized_id[:200]  # Ensure task ID is within Airflow's character limit
+    return sanitized_id
+
 # Define the DAG
 default_args = {
     'owner': 'airflow',
@@ -155,7 +167,7 @@ with DAG(
     batch_size = 1000
     for batch in fetch_repositories_in_batches(batch_size=batch_size):
         for repo in batch:
-            task_id = f"analyze_repo_{repo.repo_id}"
+            task_id = sanitize_task_id(f"analyze_repo_{repo.repo_id}")
             PythonOperator(
                 task_id=task_id,
                 python_callable=analyze_repo_task,
