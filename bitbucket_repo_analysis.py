@@ -35,7 +35,7 @@ class Repository(Base):
     created_on = Column(DateTime)
     updated_on = Column(DateTime)
 
-# Languages Analysis ORM model (managed by this script)
+# Languages Analysis ORM model
 class LanguageAnalysis(Base):
     __tablename__ = "languages_analysis"
     id = Column(String, primary_key=True)
@@ -44,12 +44,6 @@ class LanguageAnalysis(Base):
     percent_usage = Column(Float, nullable=False)
     analysis_date = Column(DateTime, default=datetime.utcnow)
     __table_args__ = (UniqueConstraint('repo_id', 'language', name='_repo_language_uc'),)
-
-# Ensure the languages_analysis table is created
-def initialize_languages_table():
-    logger.debug("Initializing languages_analysis table.")
-    Base.metadata.create_all(engine)
-    logger.info("languages_analysis table created (if not already existing).")
 
 # Analyze a single repository and upsert results
 def analyze_repo_task(repo_id):
@@ -115,6 +109,7 @@ def analyze_repo_task(repo_id):
 
 # Fetch repositories from the database in batches
 def fetch_repositories_batch(offset=0, limit=100):
+    """Fetch repositories from the bitbucket_repositories table in batches."""
     logger.debug(f"Fetching repositories: offset={offset}, limit={limit}")
     session = Session()
     try:
@@ -135,12 +130,6 @@ default_args = {
 }
 
 with DAG('bitbucket_repo_analysis', default_args=default_args, schedule_interval=None) as dag:
-    # Ensure the languages_analysis table exists
-    initialize_task = PythonOperator(
-        task_id='initialize_languages_table',
-        python_callable=initialize_languages_table
-    )
-
     # Fetch repositories in batches and create tasks
     offset = 0
     batch_size = 100
@@ -156,6 +145,5 @@ with DAG('bitbucket_repo_analysis', default_args=default_args, schedule_interval
                 python_callable=analyze_repo_task,
                 op_kwargs={'repo_id': repo.repo_id},
             )
-            initialize_task >> analyze_task
 
         offset += batch_size
