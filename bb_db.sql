@@ -22,3 +22,11 @@ CREATE TABLE bitbucket_repositories (
     created_on TIMESTAMP,
     updated_on TIMESTAMP
 );
+CREATE TABLE languages_analysis (
+    id SERIAL PRIMARY KEY,
+    repo_id VARCHAR NOT NULL,
+    language VARCHAR NOT NULL,
+    percent_usage FLOAT NOT NULL,
+    analysis_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (repo_id, language)
+);
