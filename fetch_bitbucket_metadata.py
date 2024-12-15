@@ -6,6 +6,7 @@ from sqlalchemy import create_engine, Column, String, Boolean, BigInteger, DateT
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from atlassian import Bitbucket
+from itertools import islice
 import os
 
 # Airflow logger
@@ -58,6 +59,13 @@ bitbucket = Bitbucket(
     verify_ssl=False
 )
 
+# Helper function for chunking
+def chunk_list(data, chunk_size):
+    """Yield successive chunk_size chunks from data."""
+    it = iter(data)
+    for first in it:
+        yield [first] + list(islice(it, chunk_size - 1))
+
 # Define the DAG
 default_args = {
     "start_date": days_ago(1),
@@ -77,7 +85,7 @@ with DAG(
         log.info("Starting to fetch projects from Bitbucket...")
         session = Session()
         try:
-            # Convert generator to list
+            # Fetch and convert generator to list
             projects = list(bitbucket.project_list())
             log.info(f"Fetched {len(projects)} projects from Bitbucket.")
 
@@ -86,55 +94,57 @@ with DAG(
                     project_key=project["key"],
                     project_name=project["name"],
                     description=project.get("description"),
-                    is_private=project.get("public", False),
-                    created_on=None,
-                    updated_on=None
+                    is_private=project.get("public", False)
                 )
                 session.merge(project_data)  # Upsert the project
                 log.debug(f"Upserted project: {project['key']} - {project['name']}")
-            
             session.commit()
-            log.info("Projects stored successfully in the database.")
         except Exception as e:
             log.error("Failed to fetch or store projects.", exc_info=True)
             raise
         finally:
             session.close()
 
-        # Return project keys for dynamic task mapping
         return [project["key"] for project in projects]
 
     @task()
-    def fetch_and_store_repositories(project_key):
-        """Fetch repositories for a given project and store them in the database."""
-        log.info(f"Fetching repositories for project {project_key}...")
+    def chunk_project_keys(project_keys):
+        """Split project keys into manageable chunks."""
+        chunk_size = 100  # Adjust chunk size as needed
+        chunks = list(chunk_list(project_keys, chunk_size))
+        log.info(f"Split {len(project_keys)} projects into {len(chunks)} chunks of size {chunk_size}.")
+        return chunks
+
+    @task()
+    def process_project_chunk(project_chunk):
+        """Process a single chunk of project keys."""
         session = Session()
         try:
-            # Convert generator to list
-            repos = list(bitbucket.repo_list(project_key))
-            log.info(f"Fetched {len(repos)} repositories for project {project_key}.")
+            for project_key in project_chunk:
+                log.info(f"Fetching repositories for project {project_key}...")
+                repos = list(bitbucket.repo_list(project_key))
+                log.info(f"Fetched {len(repos)} repositories for project {project_key}.")
 
-            for repo in repos:
-                repo_data = Repository(
-                    repo_id=f"{project_key}/{repo['slug']}",
-                    project_key=project_key,
-                    repo_name=repo["name"],
-                    repo_slug=repo["slug"],
-                    clone_url_https=repo["links"]["clone"][0]["href"] if repo["links"]["clone"][0]["name"] == "https" else None,
-                    clone_url_ssh=repo["links"]["clone"][1]["href"] if len(repo["links"]["clone"]) > 1 else None,
-                    language=repo.get("language"),
-                    size=repo.get("size"),
-                    forks=repo.get("forks_count", 0),
-                    created_on=repo.get("created_on"),
-                    updated_on=repo.get("updated_on")
-                )
-                session.merge(repo_data)  # Upsert the repository
-                log.debug(f"Upserted repository: {repo['slug']} - {repo['name']}")
-
-            session.commit()
-            log.info(f"Repositories for project {project_key} stored successfully in the database.")
+                for repo in repos:
+                    repo_data = Repository(
+                        repo_id=f"{project_key}/{repo['slug']}",
+                        project_key=project_key,
+                        repo_name=repo["name"],
+                        repo_slug=repo["slug"],
+                        clone_url_https=repo["links"]["clone"][0]["href"] if repo["links"]["clone"][0]["name"] == "https" else None,
+                        clone_url_ssh=repo["links"]["clone"][1]["href"] if len(repo["links"]["clone"]) > 1 else None,
+                        language=repo.get("language"),
+                        size=repo.get("size"),
+                        forks=repo.get("forks_count", 0),
+                        created_on=repo.get("created_on"),
+                        updated_on=repo.get("updated_on")
+                    )
+                    session.merge(repo_data)  # Upsert the repository
+                    log.debug(f"Upserted repository: {repo['slug']} - {repo['name']}")
+                session.commit()
+                log.info(f"Repositories for project {project_key} stored successfully.")
         except Exception as e:
-            log.error(f"Failed to fetch or store repositories for project {project_key}.", exc_info=True)
+            log.error(f"Failed to fetch or store repositories for chunk {project_chunk}.", exc_info=True)
             raise
         finally:
             session.close()
@@ -142,5 +152,8 @@ with DAG(
     # Task 1: Fetch all projects
     project_keys = fetch_projects()
 
-    # Task 2: Dynamically fetch and store repositories for each project
-    fetch_and_store_repositories.expand(project_key=project_keys)
+    # Task 2: Chunk project keys into manageable sizes
+    project_chunks = chunk_project_keys(project_keys=project_keys)
+
+    # Task 3: Process each chunk in parallel
+    process_project_chunk.expand(project_chunk=project_chunks)
