@@ -1,4 +1,5 @@
 import logging
+import re
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from sqlalchemy import create_engine, Column, String, Float, DateTime, UniqueConstraint
@@ -8,13 +9,12 @@ from sqlalchemy.dialects.postgresql import insert
 from datetime import datetime
 import os
 import subprocess
-import re
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-# Database configuration
+# Database setup
 DB_URL = "postgresql+psycopg2://username:password@localhost/repo_analysis"
 engine = create_engine(DB_URL)
 Session = sessionmaker(bind=engine)
@@ -51,10 +51,10 @@ def initialize_languages_table():
     Base.metadata.create_all(engine)
     logger.info("languages_analysis table created (if not already existing).")
 
-# Analyze a repository and upsert into languages_analysis
-def analyze_repo(repo_id, **kwargs):
-    session = Session()
+# Analyze a single repository and upsert results
+def analyze_repo_task(repo_id):
     logger.debug(f"Starting analysis for repo_id: {repo_id}")
+    session = Session()
 
     try:
         # Fetch repository details
@@ -67,19 +67,17 @@ def analyze_repo(repo_id, **kwargs):
         # Determine the clone URL
         clone_url = repo.clone_url_ssh or repo.clone_url_https
         if not clone_url:
-            logger.error(f"No clone URL found for repository {repo.repo_name} (ID: {repo.repo_id})")
-            raise ValueError(f"No clone URL found for repository {repo.repo_name} (ID: {repo.repo_id})")
+            logger.error(f"No clone URL for repository {repo.repo_name} (ID: {repo.repo_id})")
+            raise ValueError(f"No clone URL for repository {repo.repo_name} (ID: {repo.repo_id})")
         logger.debug(f"Using clone URL: {clone_url}")
 
         # Clone the repository
         repo_dir = f"/tmp/{repo.repo_slug}"
-        logger.debug(f"Cloning repository to {repo_dir}")
         os.system(f"git clone {clone_url} {repo_dir}")
         logger.info(f"Cloned repository {repo.repo_name} to {repo_dir}")
 
         # Run go-enry analysis
         analysis_file = f"{repo_dir}_analysis.txt"
-        logger.debug(f"Running go-enry analysis on {repo_dir}")
         subprocess.run(f"go-enry {repo_dir} > {analysis_file}", shell=True, check=True)
         logger.info(f"go-enry analysis completed. Output saved to {analysis_file}")
 
@@ -91,7 +89,6 @@ def analyze_repo(repo_id, **kwargs):
 
         # Perform upsert into the languages_analysis table
         for language, percent_usage in results:
-            logger.debug(f"Upserting language: {language}, usage: {percent_usage}%")
             stmt = insert(LanguageAnalysis).values(
                 repo_id=repo.repo_id,
                 language=language,
@@ -104,10 +101,8 @@ def analyze_repo(repo_id, **kwargs):
                 }
             )
             session.execute(stmt)
-        logger.info(f"Analysis results upserted for repository {repo.repo_name} ({repo.repo_id})")
-
-        # Commit results
         session.commit()
+        logger.info(f"Analysis results upserted for repository {repo.repo_name} ({repo.repo_id})")
 
     except Exception as e:
         logger.exception(f"Error processing repository {repo_id}: {e}")
@@ -115,16 +110,23 @@ def analyze_repo(repo_id, **kwargs):
         raise e
 
     finally:
-        # Clean up temporary files
-        logger.debug(f"Cleaning up temporary files for {repo.repo_name} ({repo.repo_id})")
         os.system(f"rm -rf {repo_dir}")
+        session.close()
+
+# Fetch repositories from the database in batches
+def fetch_repositories_batch(offset=0, limit=100):
+    logger.debug(f"Fetching repositories: offset={offset}, limit={limit}")
+    session = Session()
+    try:
+        return session.query(Repository).offset(offset).limit(limit).all()
+    finally:
         session.close()
 
 # Sanitize task IDs
 def sanitize_task_id(task_id: str) -> str:
     return re.sub(r"[^a-zA-Z0-9_\-\.]", "_", task_id)
 
-# Airflow DAG definition
+# Define the Airflow DAG
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
@@ -132,26 +134,28 @@ default_args = {
     'retries': 1,
 }
 
-with DAG('bitbucket_repo_analysis', default_args=default_args, schedule_interval=None, concurrency=20) as dag:
+with DAG('bitbucket_repo_analysis', default_args=default_args, schedule_interval=None) as dag:
     # Ensure the languages_analysis table exists
     initialize_task = PythonOperator(
         task_id='initialize_languages_table',
         python_callable=initialize_languages_table
     )
 
-    session = Session()
-    repositories = session.query(Repository).all()
-    session.close()
+    # Fetch repositories in batches and create tasks
+    offset = 0
+    batch_size = 100
+    while True:
+        repositories = fetch_repositories_batch(offset, batch_size)
+        if not repositories:
+            break
 
-    analyze_tasks = []
-    for repo in repositories:
-        # Sanitize task ID
-        sanitized_task_id = sanitize_task_id(f"analyze_repo_{repo.repo_id}")
+        for repo in repositories:
+            sanitized_task_id = sanitize_task_id(f"analyze_repo_{repo.repo_id}")
+            analyze_task = PythonOperator(
+                task_id=sanitized_task_id,
+                python_callable=analyze_repo_task,
+                op_kwargs={'repo_id': repo.repo_id},
+            )
+            initialize_task >> analyze_task
 
-        analyze_task = PythonOperator(
-            task_id=sanitized_task_id,
-            python_callable=analyze_repo,
-            op_kwargs={'repo_id': repo.repo_id},
-        )
-        initialize_task >> analyze_task  # Ensure initialization happens first
-        analyze_tasks.append(analyze_task)
+        offset += batch_size
