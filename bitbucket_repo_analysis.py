@@ -11,7 +11,7 @@ from sqlalchemy.dialects.postgresql import insert
 from datetime import datetime
 
 # Set up logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.DEBUG)  # Set to DEBUG for detailed messages
 logger = logging.getLogger(__name__)
 
 # Database setup
@@ -47,44 +47,63 @@ class LanguageAnalysis(Base):
 def fetch_repositories(batch_size=1000):
     session = Session()
     offset = 0
+    logger.debug(f"Starting to fetch repositories in batches of {batch_size}")
     while True:
         batch = session.query(Repository).offset(offset).limit(batch_size).all()
         if not batch:
+            logger.debug("No more repositories to fetch.")
             break
+        logger.debug(f"Fetched {len(batch)} repositories from offset {offset}")
         yield batch
         offset += batch_size
     session.close()
+    logger.debug("Completed fetching all repositories.")
 
 # Ensure SSH URL
 def ensure_ssh_url(clone_url):
+    logger.debug(f"Ensuring SSH format for URL: {clone_url}")
     if clone_url.startswith("https://"):
         match = re.match(r"https://(.*?)/scm/(.*?)/(.*?\.git)", clone_url)
         if match:
             domain, project_key, repo_slug = match.groups()
-            return f"ssh://git@{domain}:7999/{project_key}/{repo_slug}"
+            ssh_url = f"ssh://git@{domain}:7999/{project_key}/{repo_slug}"
+            logger.debug(f"Converted HTTPS URL to SSH: {ssh_url}")
+            return ssh_url
     elif clone_url.startswith("ssh://"):
+        logger.debug(f"URL is already in SSH format: {clone_url}")
         return clone_url
-    raise ValueError(f"Unsupported URL format: {clone_url}")
+    else:
+        logger.error(f"Unsupported URL format: {clone_url}")
+        raise ValueError(f"Unsupported URL format: {clone_url}")
 
 # Analyze repositories
 def analyze_repositories(batch):
+    logger.info(f"Processing a batch of {len(batch)} repositories.")
     session = Session()
     for repo in batch:
         try:
-            if not isinstance(repo, Repository):
-                logger.error(f"Invalid repository object: {repo}")
-                continue
+            logger.info(f"Processing repository: {repo.repo_name} (ID: {repo.repo_id})")
+            logger.debug(f"Repository details: {repo}")
 
+            # Ensure clone URL
             clone_url = ensure_ssh_url(repo.clone_url_ssh)
+
+            # Clone the repository
             repo_dir = f"/tmp/{repo.repo_slug}"
+            logger.info(f"Cloning repository {repo.repo_name} into {repo_dir}")
             subprocess.run(f"git clone {clone_url} {repo_dir}", shell=True, check=True)
+
+            # Run go-enry
             analysis_file = f"{repo_dir}_analysis.txt"
+            logger.info(f"Running go-enry analysis on {repo_dir}")
             subprocess.run(f"go-enry {repo_dir} > {analysis_file}", shell=True, check=True)
 
+            # Parse and upsert results
             if os.path.exists(analysis_file):
                 with open(analysis_file, 'r') as f:
                     lines = f.readlines()
                 results = [line.strip().split(',') for line in lines if line.strip()]
+                logger.debug(f"Parsed go-enry results for {repo.repo_name}: {results}")
 
                 for language, percent_usage in results:
                     stmt = insert(LanguageAnalysis).values(
@@ -97,9 +116,16 @@ def analyze_repositories(batch):
                     )
                     session.execute(stmt)
                 session.commit()
+                logger.info(f"Language analysis results saved for repository {repo.repo_name}")
+            else:
+                logger.error(f"Analysis file not found for repository {repo.repo_name}")
+
+            # Cleanup
+            logger.info(f"Cleaning up cloned repository: {repo_dir}")
             os.system(f"rm -rf {repo_dir}")
+
         except Exception as e:
-            logger.error(f"Error processing repository {repo.repo_name}: {e}")
+            logger.error(f"Error processing repository {repo.repo_name if repo else 'unknown'}: {e}")
             session.rollback()
         finally:
             session.close()
@@ -108,7 +134,7 @@ def analyze_repositories(batch):
 default_args = {'owner': 'airflow', 'depends_on_past': False, 'start_date': datetime(2023, 12, 15), 'retries': 1}
 
 with DAG(
-    'repo_processing_with_batches',
+    'repo_processing_with_batches_debug',
     default_args=default_args,
     schedule_interval=None,
     max_active_tasks=10,
@@ -118,12 +144,14 @@ with DAG(
     def create_batches():
         batch_size = 1000
         num_tasks = 10
-
+        logger.info("Starting batch creation process.")
         # Flatten all repositories into a single list
         all_repositories = [repo for batch in fetch_repositories(batch_size) for repo in batch]
+        logger.info(f"Fetched {len(all_repositories)} repositories in total.")
 
         # Split the flat list into task batches
         task_batches = [all_repositories[i::num_tasks] for i in range(num_tasks)]
+        logger.info(f"Created {num_tasks} task batches.")
         return task_batches
 
     batches = create_batches()  # Generate batches at DAG parse time
