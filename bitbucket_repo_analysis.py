@@ -9,6 +9,8 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects.postgresql import insert
 from datetime import datetime
+from git import Repo
+import pytz
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -42,6 +44,19 @@ class LanguageAnalysis(Base):
     percent_usage = Column(Float, nullable=False)
     analysis_date = Column(DateTime, default=datetime.utcnow)
     __table_args__ = (UniqueConstraint('repo_id', 'language', name='_repo_language_uc'),)
+
+class RepoMetrics(Base):
+    __tablename__ = "repo_metrics"
+    repo_id = Column(String, primary_key=True)
+    repo_size_bytes = Column(Float, nullable=False)
+    file_count = Column(Integer, nullable=False)
+    total_commits = Column(Integer, nullable=False)
+    number_of_contributors = Column(Integer, nullable=False)
+    last_commit_date = Column(DateTime, nullable=True)
+    repo_age_days = Column(Integer, nullable=False)
+    active_branch_count = Column(Integer, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
 
 # Fetch repositories
 def fetch_repositories(batch_size=1000):
@@ -83,7 +98,6 @@ def analyze_repositories(batch):
     for repo in batch:
         try:
             logger.info(f"Processing repository: {repo.repo_name} (ID: {repo.repo_id})")
-            logger.debug(f"Repository details: {repo}")
 
             # Ensure clone URL
             clone_url = ensure_ssh_url(repo.clone_url_ssh)
@@ -99,87 +113,100 @@ def analyze_repositories(batch):
             os.chdir(repo_dir)
 
             try:
+                # Language Analysis
                 logger.info(f"Running go-enry in directory: {os.getcwd()}")
                 analysis_file = f"{repo_dir}/analysis.txt"
                 go_enry_command = f"go-enry > {analysis_file}"
-                logger.debug(f"Executing command: {go_enry_command}")
                 subprocess.run(go_enry_command, shell=True, check=True)
 
-                # Parse and log results
                 if os.path.exists(analysis_file):
                     logger.info(f"Analysis file found: {analysis_file}")
                     with open(analysis_file, 'r') as f:
                         lines = f.readlines()
 
-                    if not lines:
-                        logger.warning(f"Analysis file is empty for repository {repo.repo_name}")
-                    else:
-                        logger.debug(f"Content of analysis file:\n{''.join(lines)}")
-
-                    # Parse results
+                    # Parse and save language analysis
                     results = []
                     for line in lines:
-                        line = line.strip()
-                        if not line:
-                            logger.debug(f"Skipping empty line in analysis file for {repo.repo_name}")
-                            continue
+                        parts = line.strip().split(maxsplit=1)
+                        if len(parts) == 2:
+                            percent_usage, language = parts
+                            results.append((language.strip(), float(percent_usage.strip('%'))))
 
-                        try:
-                            # Handle lines in the format 'percent language' (e.g., '36.15% Shell')
-                            parts = line.split(maxsplit=1)
-                            if len(parts) != 2:
-                                raise ValueError(f"Malformed line: {line}")
-
-                            percent_usage, language = parts  # Reverse the order
-                            percent_usage = float(percent_usage.strip('%'))  # Remove '%' and convert to float
-                            results.append((language.strip(), percent_usage))
-                        except ValueError as e:
-                            logger.error(f"Error parsing line: '{line}': {e}")
-                            continue
-
-                    logger.debug(f"Parsed go-enry results: {results}")
-
-                    # Upsert results into the database
                     for language, percent_usage in results:
-                        try:
-                            stmt = insert(LanguageAnalysis).values(
-                                repo_id=repo.repo_id,
-                                language=language,
-                                percent_usage=percent_usage,
-                            ).on_conflict_do_update(
-                                index_elements=['repo_id', 'language'],
-                                set_={'percent_usage': percent_usage, 'analysis_date': datetime.utcnow()},
-                            )
-                            logger.debug(f"Executing SQL: {stmt}")
-                            session.execute(stmt)
-                        except Exception as e:
-                            logger.error(f"Error inserting/updating database for {repo.repo_name}: {e}")
-                            session.rollback()
+                        stmt = insert(LanguageAnalysis).values(
+                            repo_id=repo.repo_id,
+                            language=language,
+                            percent_usage=percent_usage,
+                        ).on_conflict_do_update(
+                            index_elements=['repo_id', 'language'],
+                            set_={'percent_usage': percent_usage, 'analysis_date': datetime.utcnow()},
+                        )
+                        session.execute(stmt)
                     session.commit()
-                    logger.info(f"Language analysis results saved for repository {repo.repo_name}")
-                else:
-                    logger.error(f"Analysis file not found for repository {repo.repo_name}")
+
+                # Repository Metrics Analysis
+                calculate_and_persist_repo_metrics(repo_dir, repo, session)
+
             finally:
                 # Reset working directory
-                logger.info(f"Resetting working directory to {original_dir}")
                 os.chdir(original_dir)
 
-        except subprocess.CalledProcessError as e:
-            logger.error(f"Subprocess error: {e}")
         except Exception as e:
-            logger.error(f"Error processing repository {repo.repo_name if repo else 'unknown'}: {e}")
+            logger.error(f"Error processing repository {repo.repo_name}: {e}")
             session.rollback()
         finally:
-            # Cleanup to ensure repo is always deleted
-            logger.info(f"Deleting cloned repository directory: {repo_dir}")
+            # Cleanup
             if os.path.exists(repo_dir):
-                if os.system(f"rm -rf {repo_dir}") == 0:
-                    logger.info(f"Successfully deleted {repo_dir}")
-                else:
-                    logger.error(f"Failed to delete {repo_dir}")
-            else:
-                logger.warning(f"Repository directory {repo_dir} does not exist; skipping deletion.")
-            session.close()
+                subprocess.run(f"rm -rf {repo_dir}", shell=True)
+    session.close()
+
+def calculate_and_persist_repo_metrics(repo_dir, repo, session):
+    try:
+        logger.info(f"Calculating repository metrics for {repo.repo_name} (ID: {repo.repo_id})")
+        repo_obj = Repo(repo_dir)
+
+        # Calculate repository metrics
+        total_size = sum(blob.size for blob in repo_obj.tree().traverse() if blob.type == 'blob')
+        file_count = sum(1 for blob in repo_obj.tree().traverse() if blob.type == 'blob')
+        total_commits = sum(1 for _ in repo_obj.iter_commits())
+        contributors = set(commit.author.email for commit in repo_obj.iter_commits())
+        last_commit_date = max(commit.committed_datetime for commit in repo_obj.iter_commits())
+        first_commit_date = min(commit.committed_datetime for commit in repo_obj.iter_commits())
+        repo_age_days = (datetime.now(pytz.utc) - first_commit_date).days
+        active_branch_count = sum(
+            1 for branch in repo_obj.branches
+            if (datetime.now(pytz.utc) - repo_obj.commit(branch.name).committed_datetime).days <= 90
+        )
+
+        # Upsert repository metrics into the database
+        stmt = insert(RepoMetrics).values(
+            repo_id=repo.repo_id,
+            repo_size_bytes=total_size,
+            file_count=file_count,
+            total_commits=total_commits,
+            number_of_contributors=len(contributors),
+            last_commit_date=last_commit_date,
+            repo_age_days=repo_age_days,
+            active_branch_count=active_branch_count
+        ).on_conflict_do_update(
+            index_elements=['repo_id'],
+            set_={
+                "repo_size_bytes": total_size,
+                "file_count": file_count,
+                "total_commits": total_commits,
+                "number_of_contributors": len(contributors),
+                "last_commit_date": last_commit_date,
+                "repo_age_days": repo_age_days,
+                "active_branch_count": active_branch_count,
+                "updated_at": datetime.utcnow()
+            }
+        )
+        session.execute(stmt)
+        session.commit()
+        logger.info(f"Repository metrics saved for {repo.repo_name} (ID: {repo.repo_id})")
+    except Exception as e:
+        logger.error(f"Error calculating repository metrics for {repo.repo_name}: {e}")
+        session.rollback()
 
 # DAG definition
 default_args = {'owner': 'airflow', 'depends_on_past': False, 'start_date': datetime(2023, 12, 15), 'retries': 1}
