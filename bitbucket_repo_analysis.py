@@ -110,24 +110,44 @@ def analyze_repositories(batch):
                     logger.info(f"Analysis file found: {analysis_file}")
                     with open(analysis_file, 'r') as f:
                         lines = f.readlines()
-                    if lines:
-                        logger.debug(f"Content of analysis file for {repo.repo_name}:\n{''.join(lines)}")
+
+                    if not lines:
+                        logger.warning(f"Analysis file is empty for repository {repo.repo_name}")
                     else:
-                        logger.warning(f"Analysis file is empty for {repo.repo_name}")
-                    results = [line.strip().split(',') for line in lines if line.strip()]
+                        logger.debug(f"Content of analysis file:\n{''.join(lines)}")
+
+                    # Parse results
+                    results = []
+                    for line in lines:
+                        line = line.strip()
+                        if not line:
+                            logger.debug(f"Skipping empty line in analysis file for {repo.repo_name}")
+                            continue
+                        try:
+                            language, percent_usage = line.split(',', 1)
+                            results.append((language.strip(), float(percent_usage.strip())))
+                        except ValueError as e:
+                            logger.error(f"Error parsing line '{line}': {e}")
+                            continue
+
                     logger.debug(f"Parsed go-enry results: {results}")
 
                     # Upsert results into the database
                     for language, percent_usage in results:
-                        stmt = insert(LanguageAnalysis).values(
-                            repo_id=repo.repo_id,
-                            language=language,
-                            percent_usage=float(percent_usage),
-                        ).on_conflict_do_update(
-                            index_elements=['repo_id', 'language'],
-                            set_={'percent_usage': float(percent_usage), 'analysis_date': datetime.utcnow()},
-                        )
-                        session.execute(stmt)
+                        try:
+                            stmt = insert(LanguageAnalysis).values(
+                                repo_id=repo.repo_id,
+                                language=language,
+                                percent_usage=percent_usage,
+                            ).on_conflict_do_update(
+                                index_elements=['repo_id', 'language'],
+                                set_={'percent_usage': percent_usage, 'analysis_date': datetime.utcnow()},
+                            )
+                            logger.debug(f"Executing SQL: {stmt}")
+                            session.execute(stmt)
+                        except Exception as e:
+                            logger.error(f"Error inserting/updating database for {repo.repo_name}: {e}")
+                            session.rollback()
                     session.commit()
                     logger.info(f"Language analysis results saved for repository {repo.repo_name}")
                 else:
@@ -137,20 +157,23 @@ def analyze_repositories(batch):
                 logger.info(f"Resetting working directory to {original_dir}")
                 os.chdir(original_dir)
 
-            # Cleanup
-            logger.info(f"Deleting cloned repository directory: {repo_dir}")
-            if os.system(f"rm -rf {repo_dir}") == 0:
-                logger.info(f"Successfully deleted {repo_dir}")
-            else:
-                logger.error(f"Failed to delete {repo_dir}")
-
         except subprocess.CalledProcessError as e:
             logger.error(f"Subprocess error: {e}")
         except Exception as e:
             logger.error(f"Error processing repository {repo.repo_name if repo else 'unknown'}: {e}")
             session.rollback()
         finally:
+            # Cleanup to ensure repo is always deleted
+            logger.info(f"Deleting cloned repository directory: {repo_dir}")
+            if os.path.exists(repo_dir):
+                if os.system(f"rm -rf {repo_dir}") == 0:
+                    logger.info(f"Successfully deleted {repo_dir}")
+                else:
+                    logger.error(f"Failed to delete {repo_dir}")
+            else:
+                logger.warning(f"Repository directory {repo_dir} does not exist; skipping deletion.")
             session.close()
+
 
 # DAG definition
 default_args = {'owner': 'airflow', 'depends_on_past': False, 'start_date': datetime(2023, 12, 15), 'retries': 1}
