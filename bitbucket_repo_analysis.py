@@ -20,7 +20,7 @@ engine = create_engine(DB_URL)
 Session = sessionmaker(bind=engine)
 Base = declarative_base()
 
-# Repository ORM model
+# ORM models
 class Repository(Base):
     __tablename__ = "bitbucket_repositories"
     repo_id = Column(String, primary_key=True)
@@ -34,7 +34,6 @@ class Repository(Base):
     created_on = Column(DateTime)
     updated_on = Column(DateTime)
 
-# Languages Analysis ORM model
 class LanguageAnalysis(Base):
     __tablename__ = "languages_analysis"
     id = Column(String, primary_key=True)
@@ -44,11 +43,8 @@ class LanguageAnalysis(Base):
     analysis_date = Column(DateTime, default=datetime.utcnow)
     __table_args__ = (UniqueConstraint('repo_id', 'language', name='_repo_language_uc'),)
 
-# Fetch repositories in batches
+# Fetch repositories
 def fetch_repositories(batch_size=1000):
-    """
-    Generator to fetch repositories in batches from the database.
-    """
     session = Session()
     offset = 0
     while True:
@@ -59,12 +55,8 @@ def fetch_repositories(batch_size=1000):
         offset += batch_size
     session.close()
 
-# Ensure SSH URL format
+# Ensure SSH URL
 def ensure_ssh_url(clone_url):
-    """
-    Ensure the given URL is in SSH format.
-    If the URL is HTTP, convert it to SSH.
-    """
     if clone_url.startswith("https://"):
         match = re.match(r"https://(.*?)/scm/(.*?)/(.*?\.git)", clone_url)
         if match:
@@ -74,11 +66,8 @@ def ensure_ssh_url(clone_url):
         return clone_url
     raise ValueError(f"Unsupported URL format: {clone_url}")
 
-# Analyze repositories in a batch
+# Analyze repositories
 def analyze_repositories(batch):
-    """
-    Process a batch of repositories: Clone, analyze with go-enry, and store results.
-    """
     session = Session()
     for repo in batch:
         try:
@@ -86,18 +75,12 @@ def analyze_repositories(batch):
                 logger.error(f"Invalid repository object: {repo}")
                 continue
 
-            logger.info(f"Processing repository: {repo.repo_name} ({repo.repo_id})")
             clone_url = ensure_ssh_url(repo.clone_url_ssh)
-
-            # Clone the repository
             repo_dir = f"/tmp/{repo.repo_slug}"
             subprocess.run(f"git clone {clone_url} {repo_dir}", shell=True, check=True)
-
-            # Run go-enry
             analysis_file = f"{repo_dir}_analysis.txt"
             subprocess.run(f"go-enry {repo_dir} > {analysis_file}", shell=True, check=True)
 
-            # Parse and upsert results
             if os.path.exists(analysis_file):
                 with open(analysis_file, 'r') as f:
                     lines = f.readlines()
@@ -110,36 +93,25 @@ def analyze_repositories(batch):
                         percent_usage=float(percent_usage),
                     ).on_conflict_do_update(
                         index_elements=['repo_id', 'language'],
-                        set_={
-                            'percent_usage': float(percent_usage),
-                            'analysis_date': datetime.utcnow(),
-                        },
+                        set_={'percent_usage': float(percent_usage), 'analysis_date': datetime.utcnow()},
                     )
                     session.execute(stmt)
                 session.commit()
-
-            # Cleanup
             os.system(f"rm -rf {repo_dir}")
-
         except Exception as e:
-            logger.error(f"Error processing repository {repo.repo_name if repo else 'unknown'}: {e}")
+            logger.error(f"Error processing repository {repo.repo_name}: {e}")
             session.rollback()
         finally:
             session.close()
 
-# Define the DAG
-default_args = {
-    'owner': 'airflow',
-    'depends_on_past': False,
-    'start_date': datetime(2023, 12, 15),
-    'retries': 1,
-}
+# DAG
+default_args = {'owner': 'airflow', 'depends_on_past': False, 'start_date': datetime(2023, 12, 15), 'retries': 1}
 
 with DAG(
-    'repo_processing_with_batching',
+    'repo_processing_with_batches',
     default_args=default_args,
     schedule_interval=None,
-    max_active_tasks=10,  # Set max number of concurrent tasks
+    max_active_tasks=10,
 ) as dag:
 
     def create_and_process_batches(**kwargs):
@@ -147,7 +119,6 @@ with DAG(
         num_tasks = 10
         all_batches = list(fetch_repositories(batch_size))
         task_batches = [all_batches[i::num_tasks] for i in range(num_tasks)]
-
         for task_id, task_batch in enumerate(task_batches):
             PythonOperator(
                 task_id=f"process_batch_{task_id}",
@@ -155,8 +126,4 @@ with DAG(
                 op_args=[task_batch],
             ).execute(context=kwargs)
 
-    create_batches_task = PythonOperator(
-        task_id="create_batches_and_tasks",
-        python_callable=create_and_process_batches,
-        provide_context=True,
-    )
+    PythonOperator(task_id="create_batches_and_tasks", python_callable=create_and_process_batches)
