@@ -123,11 +123,18 @@ def analyze_repositories(batch):
                         if not line:
                             logger.debug(f"Skipping empty line in analysis file for {repo.repo_name}")
                             continue
+
                         try:
-                            language, percent_usage = line.split(',', 1)
-                            results.append((language.strip(), float(percent_usage.strip())))
+                            # Handle lines in the format 'percent language' (e.g., '36.15% Shell')
+                            parts = line.split(maxsplit=1)
+                            if len(parts) != 2:
+                                raise ValueError(f"Malformed line: {line}")
+
+                            percent_usage, language = parts  # Reverse the order
+                            percent_usage = float(percent_usage.strip('%'))  # Remove '%' and convert to float
+                            results.append((language.strip(), percent_usage))
                         except ValueError as e:
-                            logger.error(f"Error parsing line '{line}': {e}")
+                            logger.error(f"Error parsing line: '{line}': {e}")
                             continue
 
                     logger.debug(f"Parsed go-enry results: {results}")
@@ -173,7 +180,6 @@ def analyze_repositories(batch):
             else:
                 logger.warning(f"Repository directory {repo_dir} does not exist; skipping deletion.")
             session.close()
-
 
 # DAG definition
 default_args = {'owner': 'airflow', 'depends_on_past': False, 'start_date': datetime(2023, 12, 15), 'retries': 1}
