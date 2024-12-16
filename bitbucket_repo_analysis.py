@@ -9,7 +9,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects.postgresql import insert
 from datetime import datetime
-from git import Repo
+from git import Repo, InvalidGitRepositoryError, GitCommandError
 import pytz
 
 # Set up logging
@@ -165,13 +165,22 @@ def calculate_and_persist_repo_metrics(repo_dir, repo, session):
         logger.info(f"Calculating repository metrics for {repo.repo_name} (ID: {repo.repo_id})")
         repo_obj = Repo(repo_dir)
 
+        # Detect the default branch
+        try:
+            default_branch = repo_obj.active_branch.name
+        except TypeError:  # No active branch
+            logger.warning(f"No active branch detected for {repo.repo_name}. Falling back to 'main'.")
+            default_branch = "main" if "main" in repo_obj.heads else list(repo_obj.heads)[0].name
+
+        logger.info(f"Default branch detected: {default_branch}")
+
         # Calculate repository metrics
-        total_size = sum(blob.size for blob in repo_obj.tree().traverse() if blob.type == 'blob')
-        file_count = sum(1 for blob in repo_obj.tree().traverse() if blob.type == 'blob')
-        total_commits = sum(1 for _ in repo_obj.iter_commits())
-        contributors = set(commit.author.email for commit in repo_obj.iter_commits())
-        last_commit_date = max(commit.committed_datetime for commit in repo_obj.iter_commits())
-        first_commit_date = min(commit.committed_datetime for commit in repo_obj.iter_commits())
+        total_size = sum(blob.size for blob in repo_obj.tree(default_branch).traverse() if blob.type == 'blob')
+        file_count = sum(1 for blob in repo_obj.tree(default_branch).traverse() if blob.type == 'blob')
+        total_commits = sum(1 for _ in repo_obj.iter_commits(default_branch))
+        contributors = set(commit.author.email for commit in repo_obj.iter_commits(default_branch))
+        last_commit_date = max(commit.committed_datetime for commit in repo_obj.iter_commits(default_branch))
+        first_commit_date = min(commit.committed_datetime for commit in repo_obj.iter_commits(default_branch))
         repo_age_days = (datetime.now(pytz.utc) - first_commit_date).days
         active_branch_count = sum(
             1 for branch in repo_obj.branches
@@ -204,6 +213,12 @@ def calculate_and_persist_repo_metrics(repo_dir, repo, session):
         session.execute(stmt)
         session.commit()
         logger.info(f"Repository metrics saved for {repo.repo_name} (ID: {repo.repo_id})")
+    except InvalidGitRepositoryError:
+        logger.error(f"Invalid repository: {repo.repo_name}")
+        session.rollback()
+    except GitCommandError as e:
+        logger.error(f"Git command error for repository {repo.repo_name}: {e}")
+        session.rollback()
     except Exception as e:
         logger.error(f"Error calculating repository metrics for {repo.repo_name}: {e}")
         session.rollback()
