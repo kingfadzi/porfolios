@@ -115,7 +115,7 @@ with DAG(
 ) as dag:
 
     # Fetch repositories and dynamically create tasks
-    def create_and_process_batches():
+    def create_and_process_batches(**kwargs):
         batch_size = 1000
         num_tasks = 10
 
@@ -126,16 +126,26 @@ with DAG(
         task_batches = [all_repositories[i::num_tasks] for i in range(num_tasks)]
 
         # Dynamically create tasks for each batch
+        task_operators = []
         for task_id, task_batch in enumerate(task_batches):
-            PythonOperator(
+            task_operator = PythonOperator(
                 task_id=f"process_batch_{task_id}",
                 python_callable=analyze_repositories,
                 op_args=[task_batch],
-                dag=dag,  # Ensure the dynamically created task is attached to the DAG
+                dag=dag,  # Attach the task to the DAG
             )
+            task_operators.append(task_operator)
 
-    # Create the dynamic tasks
+        # Return the list of dynamically created tasks
+        return task_operators
+
+    # Task 1: Create batches
     create_batches_task = PythonOperator(
         task_id="create_batches_and_tasks",
         python_callable=create_and_process_batches,
+        provide_context=True,
     )
+
+    # Dynamically link created tasks to `create_batches_and_tasks`
+    for task in create_and_process_batches():
+        create_batches_task >> task  # Set dependency: run dynamic tasks after `create_batches_and_tasks`
