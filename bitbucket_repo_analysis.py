@@ -114,17 +114,28 @@ with DAG(
     max_active_tasks=10,
 ) as dag:
 
-    def create_and_process_batches(**kwargs):
+    # Fetch repositories and dynamically create tasks
+    def create_and_process_batches():
         batch_size = 1000
         num_tasks = 10
+
+        # Flatten all repositories into a single list
         all_repositories = [repo for batch in fetch_repositories(batch_size) for repo in batch]
+
+        # Split the flat list into task batches
         task_batches = [all_repositories[i::num_tasks] for i in range(num_tasks)]
 
+        # Dynamically create tasks for each batch
         for task_id, task_batch in enumerate(task_batches):
             PythonOperator(
                 task_id=f"process_batch_{task_id}",
                 python_callable=analyze_repositories,
                 op_args=[task_batch],
-            ).execute(context=kwargs)
+                dag=dag,  # Ensure the dynamically created task is attached to the DAG
+            )
 
-    PythonOperator(task_id="create_batches_and_tasks", python_callable=create_and_process_batches)
+    # Create the dynamic tasks
+    create_batches_task = PythonOperator(
+        task_id="create_batches_and_tasks",
+        python_callable=create_and_process_batches,
+    )
