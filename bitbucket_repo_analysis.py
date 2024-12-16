@@ -91,6 +91,24 @@ def ensure_ssh_url(clone_url):
         logger.error(f"Unsupported URL format: {clone_url}")
         raise ValueError(f"Unsupported URL format: {clone_url}")
 
+def get_default_branch(repo_obj):
+    """
+    Detect the default branch for a repository.
+    """
+    try:
+        # Try to get the active branch
+        return repo_obj.active_branch.name
+    except (TypeError, AttributeError):
+        # If no active branch, check common defaults or fall back
+        logger.warning("No active branch detected. Attempting to guess the default branch.")
+        branches = [head.name for head in repo_obj.heads]
+        if "main" in branches:
+            return "main"
+        elif branches:
+            return branches[0]  # Fallback to the first branch
+        else:
+            raise ValueError("Repository has no branches.")
+
 # Analyze repositories
 def analyze_repositories(batch):
     logger.info(f"Processing a batch of {len(batch)} repositories.")
@@ -165,13 +183,8 @@ def calculate_and_persist_repo_metrics(repo_dir, repo, session):
         logger.info(f"Calculating repository metrics for {repo.repo_name} (ID: {repo.repo_id})")
         repo_obj = Repo(repo_dir)
 
-        # Detect the default branch
-        try:
-            default_branch = repo_obj.active_branch.name
-        except TypeError:  # No active branch
-            logger.warning(f"No active branch detected for {repo.repo_name}. Falling back to 'main'.")
-            default_branch = "main" if "main" in repo_obj.heads else list(repo_obj.heads)[0].name
-
+        # Get the default branch
+        default_branch = get_default_branch(repo_obj)
         logger.info(f"Default branch detected: {default_branch}")
 
         # Calculate repository metrics
@@ -213,12 +226,6 @@ def calculate_and_persist_repo_metrics(repo_dir, repo, session):
         session.execute(stmt)
         session.commit()
         logger.info(f"Repository metrics saved for {repo.repo_name} (ID: {repo.repo_id})")
-    except InvalidGitRepositoryError:
-        logger.error(f"Invalid repository: {repo.repo_name}")
-        session.rollback()
-    except GitCommandError as e:
-        logger.error(f"Git command error for repository {repo.repo_name}: {e}")
-        session.rollback()
     except Exception as e:
         logger.error(f"Error calculating repository metrics for {repo.repo_name}: {e}")
         session.rollback()
