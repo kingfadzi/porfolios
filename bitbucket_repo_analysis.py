@@ -109,13 +109,40 @@ def get_default_branch(repo_obj):
         else:
             raise ValueError("Repository has no branches.")
 
-# Analyze repositories
+def update_repository_status(session, repo_id, status, comment=None, level="DEBUG"):
+    """
+    Update the status and comment fields for a repository.
+    Args:
+        session (Session): SQLAlchemy session.
+        repo_id (str): Repository ID.
+        status (str): New status (e.g., COMPLETED, ERROR).
+        comment (str): Additional comment or debug-level information.
+        level (str): Log level for the comment (e.g., DEBUG, ERROR).
+    """
+    try:
+        repo = session.query(Repository).filter_by(repo_id=repo_id).first()
+        if repo:
+            repo.status = status
+            if comment:
+                # Prefix the log level to the comment
+                prefixed_comment = f"[{level}] {comment}\n"
+                repo.comment = (repo.comment or "") + prefixed_comment
+            session.commit()
+            logger.info(f"Updated status for repo {repo_id} to {status}.")
+    except Exception as e:
+        logger.error(f"Failed to update status for repo {repo_id}: {e}")
+        session.rollback()
+
+
 def analyze_repositories(batch):
     logger.info(f"Processing a batch of {len(batch)} repositories.")
     session = Session()
     for repo in batch:
         try:
             logger.info(f"Processing repository: {repo.repo_name} (ID: {repo.repo_id})")
+
+            # Set status to PROCESSING
+            update_repository_status(session, repo.repo_id, "PROCESSING", "Starting repository processing.", "DEBUG")
 
             # Ensure clone URL
             clone_url = ensure_ssh_url(repo.clone_url_ssh)
@@ -125,8 +152,8 @@ def analyze_repositories(batch):
             logger.info(f"Cloning repository {repo.repo_name} into {repo_dir}")
             subprocess.run(f"git clone {clone_url} {repo_dir}", shell=True, check=True)
 
-            # Change working directory to repo_dir and run go-enry
-            logger.info(f"Changing working directory to {repo_dir} for go-enry analysis.")
+            # Change working directory to repo_dir
+            logger.info(f"Changing working directory to {repo_dir} for analysis.")
             original_dir = os.getcwd()
             os.chdir(repo_dir)
 
@@ -161,22 +188,41 @@ def analyze_repositories(batch):
                         )
                         session.execute(stmt)
                     session.commit()
+                else:
+                    update_repository_status(
+                        session, repo.repo_id, "ERROR",
+                        "Language analysis file not found.", "ERROR"
+                    )
+                    continue
 
                 # Repository Metrics Analysis
                 calculate_and_persist_repo_metrics(repo_dir, repo, session)
+
+                # Set status to COMPLETED
+                update_repository_status(session, repo.repo_id, "COMPLETED", "Repository processing completed.", "DEBUG")
 
             finally:
                 # Reset working directory
                 os.chdir(original_dir)
 
+        except subprocess.CalledProcessError as e:
+            error_message = f"Git subprocess error: {e}"
+            logger.error(error_message)
+            update_repository_status(session, repo.repo_id, "ERROR", error_message, "ERROR")
+
         except Exception as e:
-            logger.error(f"Error processing repository {repo.repo_name}: {e}")
-            session.rollback()
+            error_message = f"Unexpected error processing repository: {e}"
+            logger.error(error_message)
+            update_repository_status(session, repo.repo_id, "ERROR", error_message, "ERROR")
+
         finally:
             # Cleanup
             if os.path.exists(repo_dir):
                 subprocess.run(f"rm -rf {repo_dir}", shell=True)
+                update_repository_status(session, repo.repo_id, repo.status, "Repository directory cleaned up.", "DEBUG")
     session.close()
+
+
 
 def calculate_and_persist_repo_metrics(repo_dir, repo, session):
     try:
