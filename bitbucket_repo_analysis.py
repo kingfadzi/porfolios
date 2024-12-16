@@ -32,6 +32,7 @@ class Repository(Base):
     clone_url_ssh = Column(String)
     language = Column(String)
     status = Column(String)
+    comment = Column(String)
     size = Column(Float)
     forks = Column(Float)
     created_on = Column(DateTime)
