@@ -44,11 +44,48 @@ class LanguageAnalysis(Base):
     analysis_date = Column(DateTime, default=datetime.utcnow)
     __table_args__ = (UniqueConstraint('repo_id', 'language', name='_repo_language_uc'),)
 
+# Fetch repositories in batches
+def fetch_repositories(batch_size=1000):
+    """
+    Generator to fetch repositories in batches from the database.
+    """
+    session = Session()
+    offset = 0
+    while True:
+        batch = session.query(Repository).offset(offset).limit(batch_size).all()
+        if not batch:
+            break
+        yield batch
+        offset += batch_size
+    session.close()
+
+# Ensure SSH URL format
+def ensure_ssh_url(clone_url):
+    """
+    Ensure the given URL is in SSH format.
+    If the URL is HTTP, convert it to SSH.
+    """
+    if clone_url.startswith("https://"):
+        match = re.match(r"https://(.*?)/scm/(.*?)/(.*?\.git)", clone_url)
+        if match:
+            domain, project_key, repo_slug = match.groups()
+            return f"ssh://git@{domain}:7999/{project_key}/{repo_slug}"
+    elif clone_url.startswith("ssh://"):
+        return clone_url
+    raise ValueError(f"Unsupported URL format: {clone_url}")
+
 # Analyze repositories in a batch
 def analyze_repositories(batch):
+    """
+    Process a batch of repositories: Clone, analyze with go-enry, and store results.
+    """
     session = Session()
     for repo in batch:
         try:
+            if not isinstance(repo, Repository):
+                logger.error(f"Invalid repository object: {repo}")
+                continue
+
             logger.info(f"Processing repository: {repo.repo_name} ({repo.repo_id})")
             clone_url = ensure_ssh_url(repo.clone_url_ssh)
 
@@ -85,35 +122,12 @@ def analyze_repositories(batch):
             os.system(f"rm -rf {repo_dir}")
 
         except Exception as e:
-            logger.error(f"Error processing repository {repo.repo_name}: {e}")
+            logger.error(f"Error processing repository {repo.repo_name if repo else 'unknown'}: {e}")
             session.rollback()
         finally:
             session.close()
 
-# Ensure SSH URL format
-def ensure_ssh_url(clone_url):
-    if clone_url.startswith("https://"):
-        match = re.match(r"https://(.*?)/scm/(.*?)/(.*?\.git)", clone_url)
-        if match:
-            domain, project_key, repo_slug = match.groups()
-            return f"ssh://git@{domain}:7999/{project_key}/{repo_slug}"
-    elif clone_url.startswith("ssh://"):
-        return clone_url
-    raise ValueError(f"Unsupported URL format: {clone_url}")
-
-# Fetch repositories in batches
-def fetch_repositories(batch_size=1000):
-    session = Session()
-    offset = 0
-    while True:
-        batch = session.query(Repository).offset(offset).limit(batch_size).all()
-        if not batch:
-            break
-        yield batch
-        offset += batch_size
-    session.close()
-
-# DAG definition
+# Define the DAG
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
@@ -131,8 +145,8 @@ with DAG(
     def create_and_process_batches(**kwargs):
         batch_size = 1000
         num_tasks = 10
-        batches = list(fetch_repositories(batch_size))
-        task_batches = [batches[i::num_tasks] for i in range(num_tasks)]
+        all_batches = list(fetch_repositories(batch_size))
+        task_batches = [all_batches[i::num_tasks] for i in range(num_tasks)]
 
         for task_id, task_batch in enumerate(task_batches):
             PythonOperator(
