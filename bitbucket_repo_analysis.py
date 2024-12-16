@@ -63,9 +63,16 @@ class RepoMetrics(Base):
 def fetch_repositories(batch_size=1000):
     session = Session()
     offset = 0
-    logger.debug(f"Starting to fetch repositories in batches of {batch_size}")
+    logger.debug(f"Starting to fetch repositories in batches of {batch_size} with status 'NEW'.")
     while True:
-        batch = session.query(Repository).offset(offset).limit(batch_size).all()
+        # Fetch repositories with status 'NEW'
+        batch = (
+            session.query(Repository)
+            .filter_by(status="NEW")
+            .offset(offset)
+            .limit(batch_size)
+            .all()
+        )
         if not batch:
             logger.debug("No more repositories to fetch.")
             break
