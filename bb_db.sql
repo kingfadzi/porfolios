@@ -30,3 +30,14 @@ CREATE TABLE languages_analysis (
     analysis_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     UNIQUE (repo_id, language)
 );
+CREATE TABLE repo_metrics (
+    repo_id VARCHAR PRIMARY KEY,
+    repo_size_bytes FLOAT NOT NULL,
+    file_count INTEGER NOT NULL,
+    total_commits INTEGER NOT NULL,
+    number_of_contributors INTEGER NOT NULL,
+    last_commit_date TIMESTAMP NULL,
+    repo_age_days INTEGER NOT NULL,
+    active_branch_count INTEGER NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
