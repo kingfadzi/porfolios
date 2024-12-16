@@ -157,7 +157,12 @@ def analyze_repositories(batch):
             clone_url = ensure_ssh_url(repo.clone_url_ssh)
 
             # Clone the repository
-            repo_dir = f"/tmp/{repo.repo_slug}"
+            base_dir = "/tmp/cloned_repositories"  # Dedicated directory for cloned repositories
+            repo_dir = f"{base_dir}/{repo.repo_slug}"
+            
+            # Ensure the base directory exists
+            os.makedirs(base_dir, exist_ok=True)
+
             logger.info(f"Cloning repository {repo.repo_name} into {repo_dir}")
             subprocess.run(f"git clone {clone_url} {repo_dir}", shell=True, check=True)
 
