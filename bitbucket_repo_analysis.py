@@ -104,7 +104,7 @@ def analyze_repositories(batch):
         finally:
             session.close()
 
-# DAG
+# DAG definition
 default_args = {'owner': 'airflow', 'depends_on_past': False, 'start_date': datetime(2023, 12, 15), 'retries': 1}
 
 with DAG(
@@ -117,8 +117,9 @@ with DAG(
     def create_and_process_batches(**kwargs):
         batch_size = 1000
         num_tasks = 10
-        all_batches = list(fetch_repositories(batch_size))
-        task_batches = [all_batches[i::num_tasks] for i in range(num_tasks)]
+        all_repositories = [repo for batch in fetch_repositories(batch_size) for repo in batch]
+        task_batches = [all_repositories[i::num_tasks] for i in range(num_tasks)]
+
         for task_id, task_batch in enumerate(task_batches):
             PythonOperator(
                 task_id=f"process_batch_{task_id}",
