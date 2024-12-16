@@ -11,7 +11,7 @@ from sqlalchemy.dialects.postgresql import insert
 from datetime import datetime
 
 # Set up logging
-logging.basicConfig(level=logging.DEBUG)  # Set to DEBUG for detailed messages
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 # Database setup
@@ -93,39 +93,49 @@ def analyze_repositories(batch):
             logger.info(f"Cloning repository {repo.repo_name} into {repo_dir}")
             subprocess.run(f"git clone {clone_url} {repo_dir}", shell=True, check=True)
 
-            # Run go-enry
-            analysis_file = f"{repo_dir}_analysis.txt"
-            go_enry_command = f"go-enry {repo_dir} > {analysis_file}"
-            logger.info(f"Running go-enry analysis: {go_enry_command}")
-            subprocess.run(go_enry_command, shell=True, check=True)
+            # Change working directory to repo_dir and run go-enry
+            logger.info(f"Changing working directory to {repo_dir} for go-enry analysis.")
+            original_dir = os.getcwd()
+            os.chdir(repo_dir)
 
-            # Parse and log results
-            if os.path.exists(analysis_file):
-                logger.info(f"Analysis file found: {analysis_file}")
-                with open(analysis_file, 'r') as f:
-                    lines = f.readlines()
-                if lines:
-                    logger.debug(f"Content of analysis file for {repo.repo_name}:\n{''.join(lines)}")
+            try:
+                logger.info(f"Running go-enry in directory: {os.getcwd()}")
+                analysis_file = f"{repo_dir}/analysis.txt"
+                go_enry_command = f"go-enry > {analysis_file}"
+                logger.debug(f"Executing command: {go_enry_command}")
+                subprocess.run(go_enry_command, shell=True, check=True)
+
+                # Parse and log results
+                if os.path.exists(analysis_file):
+                    logger.info(f"Analysis file found: {analysis_file}")
+                    with open(analysis_file, 'r') as f:
+                        lines = f.readlines()
+                    if lines:
+                        logger.debug(f"Content of analysis file for {repo.repo_name}:\n{''.join(lines)}")
+                    else:
+                        logger.warning(f"Analysis file is empty for {repo.repo_name}")
+                    results = [line.strip().split(',') for line in lines if line.strip()]
+                    logger.debug(f"Parsed go-enry results: {results}")
+
+                    # Upsert results into the database
+                    for language, percent_usage in results:
+                        stmt = insert(LanguageAnalysis).values(
+                            repo_id=repo.repo_id,
+                            language=language,
+                            percent_usage=float(percent_usage),
+                        ).on_conflict_do_update(
+                            index_elements=['repo_id', 'language'],
+                            set_={'percent_usage': float(percent_usage), 'analysis_date': datetime.utcnow()},
+                        )
+                        session.execute(stmt)
+                    session.commit()
+                    logger.info(f"Language analysis results saved for repository {repo.repo_name}")
                 else:
-                    logger.warning(f"Analysis file is empty for {repo.repo_name}")
-                results = [line.strip().split(',') for line in lines if line.strip()]
-                logger.debug(f"Parsed go-enry results: {results}")
-
-                # Upsert results into the database
-                for language, percent_usage in results:
-                    stmt = insert(LanguageAnalysis).values(
-                        repo_id=repo.repo_id,
-                        language=language,
-                        percent_usage=float(percent_usage),
-                    ).on_conflict_do_update(
-                        index_elements=['repo_id', 'language'],
-                        set_={'percent_usage': float(percent_usage), 'analysis_date': datetime.utcnow()},
-                    )
-                    session.execute(stmt)
-                session.commit()
-                logger.info(f"Language analysis results saved for repository {repo.repo_name}")
-            else:
-                logger.error(f"Analysis file not found for repository {repo.repo_name}")
+                    logger.error(f"Analysis file not found for repository {repo.repo_name}")
+            finally:
+                # Reset working directory
+                logger.info(f"Resetting working directory to {original_dir}")
+                os.chdir(original_dir)
 
             # Cleanup
             logger.info(f"Deleting cloned repository directory: {repo_dir}")
