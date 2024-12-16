@@ -4,7 +4,7 @@ import re
 import subprocess
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-from sqlalchemy import create_engine, Column, String, Float, DateTime, UniqueConstraint
+from sqlalchemy import create_engine, Column, String, Float, Integer, DateTime, UniqueConstraint
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.dialects.postgresql import insert
