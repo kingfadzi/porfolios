@@ -95,16 +95,23 @@ def analyze_repositories(batch):
 
             # Run go-enry
             analysis_file = f"{repo_dir}_analysis.txt"
-            logger.info(f"Running go-enry analysis on {repo_dir}")
-            subprocess.run(f"go-enry {repo_dir} > {analysis_file}", shell=True, check=True)
+            go_enry_command = f"go-enry {repo_dir} > {analysis_file}"
+            logger.info(f"Running go-enry analysis: {go_enry_command}")
+            subprocess.run(go_enry_command, shell=True, check=True)
 
-            # Parse and upsert results
+            # Parse and log results
             if os.path.exists(analysis_file):
+                logger.info(f"Analysis file found: {analysis_file}")
                 with open(analysis_file, 'r') as f:
                     lines = f.readlines()
+                if lines:
+                    logger.debug(f"Content of analysis file for {repo.repo_name}:\n{''.join(lines)}")
+                else:
+                    logger.warning(f"Analysis file is empty for {repo.repo_name}")
                 results = [line.strip().split(',') for line in lines if line.strip()]
-                logger.debug(f"Parsed go-enry results for {repo.repo_name}: {results}")
+                logger.debug(f"Parsed go-enry results: {results}")
 
+                # Upsert results into the database
                 for language, percent_usage in results:
                     stmt = insert(LanguageAnalysis).values(
                         repo_id=repo.repo_id,
@@ -121,9 +128,14 @@ def analyze_repositories(batch):
                 logger.error(f"Analysis file not found for repository {repo.repo_name}")
 
             # Cleanup
-            logger.info(f"Cleaning up cloned repository: {repo_dir}")
-            os.system(f"rm -rf {repo_dir}")
+            logger.info(f"Deleting cloned repository directory: {repo_dir}")
+            if os.system(f"rm -rf {repo_dir}") == 0:
+                logger.info(f"Successfully deleted {repo_dir}")
+            else:
+                logger.error(f"Failed to delete {repo_dir}")
 
+        except subprocess.CalledProcessError as e:
+            logger.error(f"Subprocess error: {e}")
         except Exception as e:
             logger.error(f"Error processing repository {repo.repo_name if repo else 'unknown'}: {e}")
             session.rollback()
