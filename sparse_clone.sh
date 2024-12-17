@@ -15,6 +15,8 @@ echo $(( ($(date -d "$last_commit" +%s) - $(date -d "$first_commit" +%s)) / 8640
 git branch -r | wc -l                        # Active branch count
 
 # Step 3: Temporary checkout for go-enry
-git checkout HEAD -- .
+git sparse-checkout init --cone
+git sparse-checkout set '**/*.java' '**/*.py' '**/*.js' '**/*.go' '**/*.c' '**/*.cpp' '**/*.cs' '**/*.ts' '**/*.xml' '**/*.rb' '**/*.php' '**/*.html' '**/*.css'
+git checkout
 go-enry -json . > languages.json
 git clean -fd  # Clean up
