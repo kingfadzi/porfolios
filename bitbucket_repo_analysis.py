@@ -11,6 +11,7 @@ from sqlalchemy.dialects.postgresql import insert
 from datetime import datetime
 from git import Repo, InvalidGitRepositoryError, GitCommandError
 import pytz
+import shutil
 
 # Set up logging
 logging.basicConfig(level=logging.DEBUG)
@@ -232,8 +233,13 @@ def analyze_repositories(batch):
         finally:
             # Cleanup
             if os.path.exists(repo_dir):
-                subprocess.run(f"rm -rf {repo_dir}", shell=True)
-                update_repository_status(session, repo.repo_id, repo.status, "Repository directory cleaned up.", "DEBUG")
+                # subprocess.run(f"rm -rf {repo_dir}", shell=True)
+                # update_repository_status(session, repo.repo_id, repo.status, "Repository directory cleaned up.", "DEBUG")
+                try:
+                    shutil.rmtree(repo_dir)  # Safer and cross-platform
+                    print(f"Successfully deleted {repo_dir}")
+                except Exception as e:
+                    print(f"Failed to delete {repo_dir}: {e}")
     session.close()
 
 
