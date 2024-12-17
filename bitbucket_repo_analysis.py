@@ -233,13 +233,9 @@ def analyze_repositories(batch):
         finally:
             # Cleanup
             if os.path.exists(repo_dir):
-                # subprocess.run(f"rm -rf {repo_dir}", shell=True)
-                # update_repository_status(session, repo.repo_id, repo.status, "Repository directory cleaned up.", "DEBUG")
-                try:
-                    shutil.rmtree(repo_dir)  # Safer and cross-platform
-                    print(f"Successfully deleted {repo_dir}")
-                except Exception as e:
-                    print(f"Failed to delete {repo_dir}: {e}")
+                subprocess.run(f"rm -rf {repo_dir}", shell=True)
+                update_repository_status(session, repo.repo_id, repo.status, "Repository directory cleaned up.", "DEBUG")
+
     session.close()
 
 
