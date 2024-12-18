@@ -29,7 +29,7 @@ RUN mkdir -p ${AIRFLOW_HOME}
 WORKDIR ${AIRFLOW_HOME}
 
 # Expose port for Airflow Webserver
-EXPOSE 8080
+EXPOSE 8088
 
 # Set entrypoint for CLI access
 ENTRYPOINT ["/bin/bash"]
