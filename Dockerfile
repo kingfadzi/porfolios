@@ -8,6 +8,10 @@ ENV global.index-url=https://pypi.org/simple
 ENV http_proxy=${HTTP_PROXY}
 ENV https_proxy=${HTTPS_PROXY}
 
+
+# Copy self-signed certificate into the image
+COPY self-signed-cert.pem /etc/pip/certs/self-signed-cert.pem
+
 # Install system dependencies
 RUN dnf update -y && \
     dnf install -y \
@@ -23,9 +27,8 @@ RUN dnf update -y && \
     dnf clean all
 
 # Configure self-signed certificate for pip
-RUN mkdir -p /etc/pip/certs && \
-    cp /path/to/self-signed-cert.pem /etc/pip/certs/ && \
-    echo -e "[global]\ncert = /etc/pip/certs/self-signed-cert.pem\nindex-url = https://pypi.org/simple" > /etc/pip.conf
+RUN echo -e "[global]\ncert = /etc/pip/certs/self-signed-cert.pem\nindex-url = https://pypi.org/simple" > /etc/pip.conf
+
 
 # Upgrade pip and install Python dependencies
 RUN pip3 install --no-cache-dir --upgrade pip && \
