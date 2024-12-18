@@ -3,19 +3,19 @@ FROM registry.access.redhat.com/ubi8/ubi:latest
 # Set environment variables
 ENV AIRFLOW_HOME=/usr/local/airflow
 
-# Install system dependencies and PostgreSQL
-RUN yum update -y && \
-    yum install -y \
+# Install system dependencies
+RUN dnf update -y && \
+    dnf install -y \
         python3 \
         python3-pip \
         python3-devel \
-        postgresql \
-        postgresql-server \
         git \
-        wget && \
-    yum module enable -y go-toolset && \
-    yum install -y go-toolset && \
-    yum clean all
+        wget \
+        postgresql-server \
+        postgresql && \
+    dnf module enable -y go-toolset && \
+    dnf install -y go-toolset && \
+    dnf clean all
 
 # Upgrade pip and install Python dependencies
 RUN pip3 install --no-cache-dir --upgrade pip && \
