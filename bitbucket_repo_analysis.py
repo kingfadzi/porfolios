@@ -155,6 +155,11 @@ def analyze_repositories(batch):
             repo.status = "PROCESSING"
             repo.comment = "Starting processing."
             repo.updated_on = datetime.utcnow()
+
+            # Add the repo to the session for tracking changes
+            session.add(repo)
+            session.commit()
+
             logger.info(f"Updated repository {repo.repo_name} (ID: {repo.repo_id}) to PROCESSING. Comment: {repo.comment}")
 
             # Clone the repository
@@ -170,17 +175,29 @@ def analyze_repositories(batch):
             repo.status = "COMPLETED"
             repo.comment = "Processing completed successfully."
             repo.updated_on = datetime.utcnow()
+
+            # Commit changes
+            session.add(repo)
+            session.commit()
+
             logger.info(f"Updated repository {repo.repo_name} (ID: {repo.repo_id}) to COMPLETED. Comment: {repo.comment}")
         except Exception as e:
             logger.error(f"Error processing repository {repo.repo_name} (ID: {repo.repo_id}): {e}")
             repo.status = "ERROR"
             repo.comment = str(e)
             repo.updated_on = datetime.utcnow()
+
+            # Commit changes
+            session.add(repo)
+            session.commit()
+
             logger.info(f"Updated repository {repo.repo_name} (ID: {repo.repo_id}) to ERROR. Comment: {repo.comment}")
         finally:
             cleanup_repository_directory(repo_dir)
-    session.commit()
+
+    # Close the session after processing the batch
     session.close()
+
 
 # Fetch Repositories
 def fetch_repositories(batch_size=1000):
