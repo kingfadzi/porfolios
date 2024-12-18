@@ -2,7 +2,7 @@ FROM registry.access.redhat.com/ubi8/ubi:latest
 
 # Set environment variables
 ENV AIRFLOW_HOME=/usr/local/airflow
-ENV global.cert=/path/to/cert.pem
+ENV global.cert=/etc/pip/certs/self-signed-cert.pem
 ENV global.index=https://pypi.org/simple
 ENV global.index-url=https://pypi.org/simple
 ENV http_proxy=${HTTP_PROXY}
