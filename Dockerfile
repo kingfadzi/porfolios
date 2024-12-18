@@ -2,6 +2,9 @@ FROM registry.access.redhat.com/ubi8/ubi:latest
 
 # Set environment variables
 ENV AIRFLOW_HOME=/usr/local/airflow
+ENV global.cert=/path/to/cert.pem
+ENV global.index=https://pypi.org/simple
+ENV global.index-url=https://pypi.org/simple
 
 # Install system dependencies
 RUN dnf update -y && \
