@@ -5,6 +5,11 @@ ENV AIRFLOW_HOME=/usr/local/airflow
 ENV global.cert=/path/to/cert.pem
 ENV global.index=https://pypi.org/simple
 ENV global.index-url=https://pypi.org/simple
+# Build-time argument for proxy configuration
+ARG HTTP_PROXY
+ARG HTTPS_PROXY
+ENV HTTP_PROXY=${HTTP_PROXY}
+ENV HTTPS_PROXY=${HTTPS_PROXY}
 
 # Install system dependencies
 RUN dnf update -y && \
