@@ -54,31 +54,35 @@ class RepoMetrics(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
 # Utility Functions
-def set_repo_status(session, repo, status, comment):
-    """Update repository status and comment."""
-    repo.status = status
-    repo.comment = comment
-    repo.updated_on = datetime.utcnow()
-    session.commit()
-    logger.info(f"Repo {repo.repo_name}: status updated to {status}")
+def ensure_ssh_url(clone_url):
+    """Convert HTTPS clone URLs to SSH format."""
+    if clone_url.startswith("https://"):
+        match = re.match(r"https://(.*?)/scm/(.*?)/(.*?\.git)", clone_url)
+        if match:
+            domain, project_key, repo_slug = match.groups()
+            return f"ssh://git@{domain}:7999/{project_key}/{repo_slug}"
+    elif clone_url.startswith("ssh://"):
+        return clone_url
+    raise ValueError(f"Unsupported URL format: {clone_url}")
 
 def clone_repository(repo):
-    """Clone repository into a temporary directory."""
+    """Ensure SSH URL format and clone the repository."""
     logger.info(f"Cloning repository {repo.repo_name}...")
     base_dir = "/mnt/tmpfs/cloned_repositories"
     repo_dir = f"{base_dir}/{repo.repo_slug}"
     os.makedirs(base_dir, exist_ok=True)
-    subprocess.run(f"rm -rf {repo_dir} && git clone {repo.clone_url_ssh} {repo_dir}", shell=True, check=True)
-    logger.debug(f"Repository cloned into {repo_dir}")
+    clone_url = ensure_ssh_url(repo.clone_url_ssh)
+    subprocess.run(f"rm -rf {repo_dir} && git clone {clone_url} {repo_dir}", shell=True, check=True)
+    logger.info(f"Repository cloned successfully into {repo_dir}.")
     return repo_dir
 
 def perform_language_analysis(repo_dir, repo, session):
     """Run go-enry for language analysis."""
-    logger.info(f"Performing language analysis for {repo.repo_name}")
+    logger.info(f"Starting language analysis for repository {repo.repo_name}.")
     analysis_file = f"{repo_dir}/analysis.txt"
     subprocess.run(f"go-enry > {analysis_file}", shell=True, check=True)
     if not os.path.exists(analysis_file):
-        raise FileNotFoundError("Language analysis file not found")
+        raise FileNotFoundError("Language analysis file not found.")
     with open(analysis_file, 'r') as f:
         for line in f:
             parts = line.strip().split(maxsplit=1)
@@ -95,32 +99,77 @@ def perform_language_analysis(repo_dir, repo, session):
                     )
                 )
     session.commit()
-    logger.debug(f"Language analysis completed for {repo.repo_name}")
+    logger.info(f"Language analysis completed successfully for repository {repo.repo_name}.")
+
+def calculate_and_persist_repo_metrics(repo_dir, repo, session):
+    """Calculate and persist repository metrics."""
+    logger.info(f"Calculating repository metrics for {repo.repo_name}.")
+    repo_obj = Repo(repo_dir)
+    default_branch = repo_obj.active_branch.name
+
+    total_size = sum(blob.size for blob in repo_obj.tree(default_branch).traverse() if blob.type == 'blob')
+    file_count = sum(1 for blob in repo_obj.tree(default_branch).traverse() if blob.type == 'blob')
+    total_commits = sum(1 for _ in repo_obj.iter_commits(default_branch))
+    contributors = set(commit.author.email for commit in repo_obj.iter_commits(default_branch))
+    last_commit_date = max(commit.committed_datetime for commit in repo_obj.iter_commits(default_branch))
+    first_commit_date = min(commit.committed_datetime for commit in repo_obj.iter_commits(default_branch))
+    repo_age_days = (datetime.utcnow().replace(tzinfo=pytz.utc) - first_commit_date).days
+
+    session.execute(
+        insert(RepoMetrics).values(
+            repo_id=repo.repo_id,
+            repo_size_bytes=total_size,
+            file_count=file_count,
+            total_commits=total_commits,
+            number_of_contributors=len(contributors),
+            last_commit_date=last_commit_date,
+            repo_age_days=repo_age_days,
+            active_branch_count=len(repo_obj.branches)
+        ).on_conflict_do_update(
+            index_elements=['repo_id'],
+            set_={"repo_size_bytes": total_size, "file_count": file_count, "updated_at": datetime.utcnow()}
+        )
+    )
+    session.commit()
+    logger.info(f"Metrics saved for repository {repo.repo_name}.")
 
 def cleanup_repository_directory(repo_dir):
-    """Clean up repository directory."""
+    """Remove the repository directory."""
     if os.path.exists(repo_dir):
         subprocess.run(f"rm -rf {repo_dir}", shell=True, check=True)
-        logger.debug(f"Cleaned up repository directory: {repo_dir}")
+        logger.info(f"Cleaned up repository directory: {repo_dir}.")
 
 def analyze_repositories(batch):
     """Process a batch of repositories."""
     session = Session()
     for repo in batch:
         try:
-            set_repo_status(session, repo, "PROCESSING", "Starting processing")
+            logger.info(f"Processing repository: {repo.repo_name} (ID: {repo.repo_id}).")
+            repo.status = "PROCESSING"
+            repo.comment = "Starting processing."
+            repo.updated_on = datetime.utcnow()
+
             repo_dir = clone_repository(repo)
             perform_language_analysis(repo_dir, repo, session)
-            set_repo_status(session, repo, "COMPLETED", "Processing completed successfully")
+            calculate_and_persist_repo_metrics(repo_dir, repo, session)
+
+            repo.status = "COMPLETED"
+            repo.comment = "Processing completed successfully."
+            repo.updated_on = datetime.utcnow()
+            logger.info(f"Repository {repo.repo_name} processing completed.")
         except Exception as e:
-            logger.error(f"Error processing repository {repo.repo_name}: {e}")
-            set_repo_status(session, repo, "ERROR", str(e))
+            logger.error(f"Error processing {repo.repo_name}: {e}")
+            repo.status = "ERROR"
+            repo.comment = str(e)
+            repo.updated_on = datetime.utcnow()
         finally:
             cleanup_repository_directory(repo_dir)
+    session.commit()
     session.close()
 
 # Fetch Repositories
 def fetch_repositories(batch_size=1000):
+    """Fetch repositories in batches of a given size."""
     session = Session()
     offset = 0
     while True:
@@ -145,15 +194,17 @@ with DAG(
     def create_batches():
         batch_size = 1000
         num_tasks = 10
+        logger.info("Fetching repositories and creating batches.")
         all_repositories = [repo for batch in fetch_repositories(batch_size) for repo in batch]
         task_batches = [all_repositories[i::num_tasks] for i in range(num_tasks)]
+        logger.info(f"Created {len(task_batches)} batches for processing.")
         return task_batches
 
     batches = create_batches()
 
-    for task_id, task_batch in enumerate(batches):
+    for task_id, batch in enumerate(batches):
         PythonOperator(
             task_id=f"process_batch_{task_id}",
             python_callable=analyze_repositories,
-            op_args=[task_batch],
+            op_args=[batch],
         )
