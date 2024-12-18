@@ -4,9 +4,10 @@ import re
 import subprocess
 from airflow import DAG
 from airflow.operators.python import PythonOperator
-from sqlalchemy import create_engine, Column, String, Float, Integer, DateTime, UniqueConstraint, insert
+from sqlalchemy import create_engine, Column, String, Float, Integer, DateTime, UniqueConstraint
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.dialects.postgresql import insert
 from datetime import datetime
 from git import Repo
 import pytz
@@ -72,6 +73,7 @@ def clone_repository(repo):
     repo_dir = f"{base_dir}/{repo.repo_slug}"
     os.makedirs(base_dir, exist_ok=True)
     clone_url = ensure_ssh_url(repo.clone_url_ssh)
+    logger.debug(f"Using clone URL: {clone_url}")
     subprocess.run(f"rm -rf {repo_dir} && git clone {clone_url} {repo_dir}", shell=True, check=True)
     logger.info(f"Repository cloned successfully into {repo_dir}.")
     return repo_dir
@@ -82,6 +84,7 @@ def perform_language_analysis(repo_dir, repo, session):
     analysis_file = f"{repo_dir}/analysis.txt"
     subprocess.run(f"go-enry > {analysis_file}", shell=True, check=True)
     if not os.path.exists(analysis_file):
+        logger.error("Language analysis file not found.")
         raise FileNotFoundError("Language analysis file not found.")
     with open(analysis_file, 'r') as f:
         for line in f:
@@ -106,6 +109,7 @@ def calculate_and_persist_repo_metrics(repo_dir, repo, session):
     logger.info(f"Calculating repository metrics for {repo.repo_name}.")
     repo_obj = Repo(repo_dir)
     default_branch = repo_obj.active_branch.name
+    logger.debug(f"Default branch detected: {default_branch}")
 
     total_size = sum(blob.size for blob in repo_obj.tree(default_branch).traverse() if blob.type == 'blob')
     file_count = sum(1 for blob in repo_obj.tree(default_branch).traverse() if blob.type == 'blob')
@@ -115,6 +119,7 @@ def calculate_and_persist_repo_metrics(repo_dir, repo, session):
     first_commit_date = min(commit.committed_datetime for commit in repo_obj.iter_commits(default_branch))
     repo_age_days = (datetime.utcnow().replace(tzinfo=pytz.utc) - first_commit_date).days
 
+    logger.debug(f"Metrics calculated: size={total_size}, file_count={file_count}, commits={total_commits}, contributors={len(contributors)}.")
     session.execute(
         insert(RepoMetrics).values(
             repo_id=repo.repo_id,
@@ -144,24 +149,34 @@ def analyze_repositories(batch):
     session = Session()
     for repo in batch:
         try:
-            logger.info(f"Processing repository: {repo.repo_name} (ID: {repo.repo_id}).")
+            logger.info(f"Starting processing for repository {repo.repo_name} (ID: {repo.repo_id}). Current status: {repo.status}")
+
+            # Set status to PROCESSING
             repo.status = "PROCESSING"
             repo.comment = "Starting processing."
             repo.updated_on = datetime.utcnow()
+            logger.info(f"Updated repository {repo.repo_name} (ID: {repo.repo_id}) to PROCESSING. Comment: {repo.comment}")
 
+            # Clone the repository
             repo_dir = clone_repository(repo)
+
+            # Perform language analysis
             perform_language_analysis(repo_dir, repo, session)
+
+            # Calculate repository metrics
             calculate_and_persist_repo_metrics(repo_dir, repo, session)
 
+            # Set status to COMPLETED
             repo.status = "COMPLETED"
             repo.comment = "Processing completed successfully."
             repo.updated_on = datetime.utcnow()
-            logger.info(f"Repository {repo.repo_name} processing completed.")
+            logger.info(f"Updated repository {repo.repo_name} (ID: {repo.repo_id}) to COMPLETED. Comment: {repo.comment}")
         except Exception as e:
-            logger.error(f"Error processing {repo.repo_name}: {e}")
+            logger.error(f"Error processing repository {repo.repo_name} (ID: {repo.repo_id}): {e}")
             repo.status = "ERROR"
             repo.comment = str(e)
             repo.updated_on = datetime.utcnow()
+            logger.info(f"Updated repository {repo.repo_name} (ID: {repo.repo_id}) to ERROR. Comment: {repo.comment}")
         finally:
             cleanup_repository_directory(repo_dir)
     session.commit()
