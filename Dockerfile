@@ -35,6 +35,7 @@ RUN echo -e "[global]\ncert = /etc/pip/certs/self-signed-cert.pem\nindex-url = h
 # Ensure pip is installed and upgraded for Python 3.11
 RUN python3.11 -m ensurepip && \
     python3.11 -m pip install --upgrade pip && \
+    rm -f /usr/bin/pip3 && \
     ln -s /usr/local/bin/pip3 /usr/bin/pip3
 
 # Set Python 3.11 as default
