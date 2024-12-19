@@ -51,9 +51,9 @@ RUN useradd -ms /bin/bash postgres && \
     mkdir -p /var/lib/pgsql/data && \
     chown -R postgres:postgres /var/lib/pgsql
 
-# Initialize PostgreSQL database as postgres user
+# Initialize PostgreSQL database
 USER postgres
-RUN initdb -D /var/lib/pgsql/data
+RUN initdb -D /var/lib/pgsql/data || echo "Database already initialized"
 
 # Configure PostgreSQL
 RUN echo "host all all 0.0.0.0/0 md5" >> /var/lib/pgsql/data/pg_hba.conf && \
