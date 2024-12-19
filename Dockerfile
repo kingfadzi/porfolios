@@ -46,11 +46,6 @@ RUN pip3 install --no-cache-dir \
     numpy \
     sqlalchemy
 
-# Create postgres user and set permissions
-RUN useradd -ms /bin/bash postgres && \
-    mkdir -p /var/lib/pgsql/data && \
-    chown -R postgres:postgres /var/lib/pgsql
-
 # Initialize PostgreSQL database
 USER postgres
 RUN initdb -D /var/lib/pgsql/data || echo "Database already initialized"
@@ -65,9 +60,12 @@ RUN mkdir -p ${AIRFLOW_DAGS_FOLDER} && \
     chown -R postgres:postgres ${AIRFLOW_DAGS_FOLDER}
 COPY ./dags ${AIRFLOW_DAGS_FOLDER}
 
-# Start PostgreSQL and Airflow
-USER postgres
-CMD ["postgres", "-D", "/var/lib/pgsql/data"]
+# Script to start both services
+COPY start_services.sh /usr/local/bin/start_services.sh
+RUN chmod +x /usr/local/bin/start_services.sh
+
+# Use the script to start PostgreSQL and Airflow
+CMD ["/usr/local/bin/start_services.sh"]
 
 WORKDIR ${AIRFLOW_HOME}
 EXPOSE 8088 5432
