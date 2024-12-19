@@ -36,6 +36,15 @@ RUN pip3 install --no-cache-dir --upgrade pip && \
         apache-airflow \
         gitpython
 
+# Install Airflow provider and other Python dependencies
+RUN pip3 install --no-cache-dir \
+    apache-airflow-providers-postgres \
+    psycopg2-binary \
+    requests \
+    pandas \
+    numpy \
+    sqlalchemy
+
 # Create Airflow home directory
 RUN mkdir -p ${AIRFLOW_HOME}
 
