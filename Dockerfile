@@ -17,8 +17,10 @@ COPY self-signed-cert.pem /etc/pip/certs/self-signed-cert.pem
 # Install system dependencies
 RUN dnf update -y && \
     dnf module enable -y postgresql:13 && \
+    dnf module reset -y python36 && \
+    dnf module enable -y python39 && \
     dnf install -y \
-        python3 \
+        python3.11 \
         python3-pip \
         python3-devel \
         git \
@@ -26,6 +28,11 @@ RUN dnf update -y && \
         postgresql-server \
         postgresql && \
     dnf clean all
+
+    # Set Python 3.11 as default
+RUN alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1 && \
+    alternatives --set python3 /usr/bin/python3.11 && \
+    python3 --version
 
 # Configure self-signed certificate for pip
 RUN echo -e "[global]\ncert = /etc/pip/certs/self-signed-cert.pem\nindex-url = https://pypi.org/simple" > /etc/pip.conf
