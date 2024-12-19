@@ -206,7 +206,7 @@ def analyze_repositories(batch):
             session.commit()
 
             logger.info(f"Updated repository {repo.repo_name} (ID: {repo.repo_id}) to COMPLETED. Comment: {repo.comment}")
-        except RuntimeError as e:
+        except Exception as e:
             logger.error(f"Error processing repository {repo.repo_name} (ID: {repo.repo_id}): {e}")
             repo.status = "ERROR"
             repo.comment = str(e)
