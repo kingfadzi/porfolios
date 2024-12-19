@@ -2,6 +2,7 @@ FROM registry.access.redhat.com/ubi8/ubi:latest
 
 # Set environment variables
 ENV AIRFLOW_HOME=/usr/local/airflow
+ENV AIRFLOW_DAGS_FOLDER=/usr/local/airflow/dags
 ENV global.cert=/etc/pip/certs/self-signed-cert.pem
 ENV global.index=https://pypi.org/simple
 ENV global.index-url=https://pypi.org/simple
@@ -44,6 +45,20 @@ RUN pip3 install --no-cache-dir \
     pandas \
     numpy \
     sqlalchemy
+
+# Create Airflow home and dags directory
+RUN mkdir -p ${AIRFLOW_DAGS_FOLDER}
+
+# Copy DAG files from local filesystem to the container
+COPY ./dags ${AIRFLOW_DAGS_FOLDER}
+
+# Initialize and start PostgreSQL and Airflow
+RUN /usr/pgsql-13/bin/postgresql-13-setup initdb && \
+    echo "host all  all    0.0.0.0/0  md5" >> /var/lib/pgsql/13/data/pg_hba.conf && \
+    echo "listen_addresses='*'" >> /var/lib/pgsql/13/data/postgresql.conf
+
+# Start PostgreSQL and Airflow
+CMD bash -c "service postgresql-13 start && airflow db init && airflow webserver & airflow scheduler"
 
 # Create Airflow home directory
 RUN mkdir -p ${AIRFLOW_HOME}
