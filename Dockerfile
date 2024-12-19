@@ -37,6 +37,9 @@ RUN pip3 install --no-cache-dir --upgrade pip && \
         apache-airflow \
         gitpython
 
+# Generate airflow.cfg
+RUN airflow db init
+
 # Configure Airflow for parallelism
 RUN sed -i 's/^executor = SequentialExecutor/executor = LocalExecutor/' ${AIRFLOW_HOME}/airflow.cfg && \
     sed -i 's/^parallelism = .*/parallelism = 16/' ${AIRFLOW_HOME}/airflow.cfg && \
