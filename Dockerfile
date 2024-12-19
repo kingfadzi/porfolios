@@ -16,16 +16,15 @@ COPY self-signed-cert.pem /etc/pip/certs/self-signed-cert.pem
 
 # Install system dependencies
 RUN dnf update -y && \
+    dnf module enable -y postgresql:13 && \
     dnf install -y \
         python3 \
         python3-pip \
         python3-devel \
         git \
-        wget && \
-    dnf module disable -y postgresql &&    
-    dnf install -y postgresql13 postgresql13-server postgresql13-libs && \
-    dnf module enable -y go-toolset && \
-    dnf install -y go-toolset && \
+        wget \
+        postgresql-server \
+        postgresql && \
     dnf clean all
 
 # Configure self-signed certificate for pip
