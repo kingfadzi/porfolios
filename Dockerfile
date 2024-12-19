@@ -53,9 +53,9 @@ RUN mkdir -p ${AIRFLOW_DAGS_FOLDER}
 COPY ./dags ${AIRFLOW_DAGS_FOLDER}
 
 # Initialize and start PostgreSQL and Airflow
-RUN /usr/pgsql-13/bin/postgresql-13-setup initdb && \
-    echo "host all  all    0.0.0.0/0  md5" >> /var/lib/pgsql/13/data/pg_hba.conf && \
-    echo "listen_addresses='*'" >> /var/lib/pgsql/13/data/postgresql.conf
+RUN initdb -D /var/lib/pgsql/data && \
+    echo "host all  all    0.0.0.0/0  md5" >> /var/lib/pgsql/data/pg_hba.conf && \
+    echo "listen_addresses='*'" >> /var/lib/pgsql/data/postgresql.conf
 
 # Start PostgreSQL and Airflow
 CMD bash -c "service postgresql-13 start && airflow db init && airflow webserver & airflow scheduler"
