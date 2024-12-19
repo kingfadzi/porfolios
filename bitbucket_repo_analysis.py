@@ -11,10 +11,14 @@ from sqlalchemy.dialects.postgresql import insert
 from datetime import datetime
 from git import Repo
 import pytz
+import threading
 
 # Logging setup
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
+
+# Semaphore to limit concurrent clones
+clone_semaphore = threading.Semaphore(10)
 
 # Database setup
 DB_URL = "postgresql+psycopg2://postgres:postgres@localhost/gitlab-usage"
@@ -69,7 +73,7 @@ def ensure_ssh_url(clone_url):
 def clone_repository(repo, timeout_seconds=120):
     """
     Ensure SSH URL format and clone the repository with a timeout.
-    If the cloning takes longer than the specified timeout, mark the repository as too large to clone.
+    Use a semaphore to restrict concurrent cloning operations.
     """
     logger.info(f"Cloning repository {repo.repo_name}...")
     base_dir = "/mnt/tmpfs/cloned_repositories"
@@ -78,22 +82,29 @@ def clone_repository(repo, timeout_seconds=120):
     clone_url = ensure_ssh_url(repo.clone_url_ssh)
     logger.debug(f"Using clone URL: {clone_url}")
 
+    # Acquire the semaphore before cloning
+    with clone_semaphore:
+        try:
+            subprocess.run(f"rm -rf {repo_dir} && git clone {clone_url} {repo_dir}",
+                           shell=True, check=True, timeout=timeout_seconds)
+            logger.info(f"Repository cloned successfully into {repo_dir}.")
+            return repo_dir
+        except subprocess.TimeoutExpired:
+            error_message = f"Cloning repository {repo.repo_name} took longer than {timeout_seconds} seconds. Likely too large to clone."
+            logger.error(error_message)
+            raise RuntimeError(error_message)
+        except subprocess.CalledProcessError as e:
+            error_message = f"Error occurred during cloning of {repo.repo_name}: {e}"
+            logger.error(error_message)
+            raise RuntimeError(error_message)
+
+def log_active_directories(base_dir="/mnt/tmpfs/cloned_repositories"):
+    """Log the number of currently active directories."""
     try:
-        # Attempt to clone the repository with a timeout
-        subprocess.run(f"rm -rf {repo_dir} && git clone {clone_url} {repo_dir}",
-                       shell=True, check=True, timeout=timeout_seconds)
-        logger.info(f"Repository cloned successfully into {repo_dir}.")
-        return repo_dir
-    except subprocess.TimeoutExpired:
-        # Handle timeout: mark the repository as too large to clone
-        error_message = f"Cloning repository {repo.repo_name} took longer than {timeout_seconds} seconds. Likely too large to clone."
-        logger.error(error_message)
-        raise RuntimeError(error_message)
-    except subprocess.CalledProcessError as e:
-        # Handle other cloning errors
-        error_message = f"Error occurred during cloning of {repo.repo_name}: {e}"
-        logger.error(error_message)
-        raise RuntimeError(error_message)
+        active_dirs = len([name for name in os.listdir(base_dir) if os.path.isdir(os.path.join(base_dir, name))])
+        logger.info(f"Currently active cloned repositories: {active_dirs}")
+    except Exception as e:
+        logger.error(f"Error counting active directories: {e}")
 
 def perform_language_analysis(repo_dir, repo, session):
     """Run go-enry for language analysis."""
@@ -172,8 +183,6 @@ def analyze_repositories(batch):
             repo.status = "PROCESSING"
             repo.comment = "Starting processing."
             repo.updated_on = datetime.utcnow()
-
-            # Add the repo to the session for tracking changes
             session.add(repo)
             session.commit()
 
@@ -181,6 +190,7 @@ def analyze_repositories(batch):
 
             # Clone the repository
             repo_dir = clone_repository(repo, timeout_seconds=120)
+            log_active_directories()
 
             # Perform language analysis
             perform_language_analysis(repo_dir, repo, session)
@@ -192,27 +202,23 @@ def analyze_repositories(batch):
             repo.status = "COMPLETED"
             repo.comment = "Processing completed successfully."
             repo.updated_on = datetime.utcnow()
-
-            # Commit changes
             session.add(repo)
             session.commit()
 
             logger.info(f"Updated repository {repo.repo_name} (ID: {repo.repo_id}) to COMPLETED. Comment: {repo.comment}")
-        except Exception as e:
+        except RuntimeError as e:
             logger.error(f"Error processing repository {repo.repo_name} (ID: {repo.repo_id}): {e}")
             repo.status = "ERROR"
             repo.comment = str(e)
             repo.updated_on = datetime.utcnow()
-
-            # Commit changes
             session.add(repo)
             session.commit()
 
             logger.info(f"Updated repository {repo.repo_name} (ID: {repo.repo_id}) to ERROR. Comment: {repo.comment}")
         finally:
             cleanup_repository_directory(repo_dir)
+            log_active_directories()
 
-    # Close the session after processing the batch
     session.close()
 
 
