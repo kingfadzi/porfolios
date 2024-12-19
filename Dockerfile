@@ -21,7 +21,8 @@ RUN dnf update -y && \
         python3-pip \
         python3-devel \
         git \
-        wget \
+        wget && \
+    dnf module disable -y postgresql &&    
     dnf install -y postgresql13 postgresql13-server postgresql13-libs && \
     dnf module enable -y go-toolset && \
     dnf install -y go-toolset && \
