@@ -46,27 +46,31 @@ RUN pip3 install --no-cache-dir \
     numpy \
     sqlalchemy
 
-# Create Airflow home and dags directory
-RUN mkdir -p ${AIRFLOW_DAGS_FOLDER}
+# Create postgres user and set permissions
+RUN useradd -ms /bin/bash postgres && \
+    mkdir -p /var/lib/pgsql/data && \
+    chown -R postgres:postgres /var/lib/pgsql
 
-# Copy DAG files from local filesystem to the container
-COPY ./dags ${AIRFLOW_DAGS_FOLDER}
+# Initialize PostgreSQL database as postgres user
+USER postgres
+RUN initdb -D /var/lib/pgsql/data
 
-# Initialize and start PostgreSQL and Airflow
-RUN initdb -D /var/lib/pgsql/data && \
-    echo "host all  all    0.0.0.0/0  md5" >> /var/lib/pgsql/data/pg_hba.conf && \
+# Configure PostgreSQL
+RUN echo "host all all 0.0.0.0/0 md5" >> /var/lib/pgsql/data/pg_hba.conf && \
     echo "listen_addresses='*'" >> /var/lib/pgsql/data/postgresql.conf
 
-# Start PostgreSQL and Airflow
-CMD bash -c "service postgresql-13 start && airflow db init && airflow webserver & airflow scheduler"
+# Switch back to root to copy DAGs and set permissions
+USER root
+RUN mkdir -p ${AIRFLOW_DAGS_FOLDER} && \
+    chown -R postgres:postgres ${AIRFLOW_DAGS_FOLDER}
+COPY ./dags ${AIRFLOW_DAGS_FOLDER}
 
-# Create Airflow home directory
-RUN mkdir -p ${AIRFLOW_HOME}
+# Start PostgreSQL and Airflow
+USER postgres
+CMD ["postgres", "-D", "/var/lib/pgsql/data"]
 
 WORKDIR ${AIRFLOW_HOME}
-
-# Expose port for Airflow Webserver
-EXPOSE 8088
+EXPOSE 8088 5432
 
 # Set entrypoint for CLI access
 ENTRYPOINT ["/bin/bash"]
