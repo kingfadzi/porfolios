@@ -66,17 +66,34 @@ def ensure_ssh_url(clone_url):
         return clone_url
     raise ValueError(f"Unsupported URL format: {clone_url}")
 
-def clone_repository(repo):
-    """Ensure SSH URL format and clone the repository."""
+def clone_repository(repo, timeout_seconds=120):
+    """
+    Ensure SSH URL format and clone the repository with a timeout.
+    If the cloning takes longer than the specified timeout, mark the repository as too large to clone.
+    """
     logger.info(f"Cloning repository {repo.repo_name}...")
     base_dir = "/mnt/tmpfs/cloned_repositories"
     repo_dir = f"{base_dir}/{repo.repo_slug}"
     os.makedirs(base_dir, exist_ok=True)
     clone_url = ensure_ssh_url(repo.clone_url_ssh)
     logger.debug(f"Using clone URL: {clone_url}")
-    subprocess.run(f"rm -rf {repo_dir} && git clone {clone_url} {repo_dir}", shell=True, check=True)
-    logger.info(f"Repository cloned successfully into {repo_dir}.")
-    return repo_dir
+
+    try:
+        # Attempt to clone the repository with a timeout
+        subprocess.run(f"rm -rf {repo_dir} && git clone {clone_url} {repo_dir}",
+                       shell=True, check=True, timeout=timeout_seconds)
+        logger.info(f"Repository cloned successfully into {repo_dir}.")
+        return repo_dir
+    except subprocess.TimeoutExpired:
+        # Handle timeout: mark the repository as too large to clone
+        error_message = f"Cloning repository {repo.repo_name} took longer than {timeout_seconds} seconds. Likely too large to clone."
+        logger.error(error_message)
+        raise RuntimeError(error_message)
+    except subprocess.CalledProcessError as e:
+        # Handle other cloning errors
+        error_message = f"Error occurred during cloning of {repo.repo_name}: {e}"
+        logger.error(error_message)
+        raise RuntimeError(error_message)
 
 def perform_language_analysis(repo_dir, repo, session):
     """Run go-enry for language analysis."""
@@ -163,7 +180,7 @@ def analyze_repositories(batch):
             logger.info(f"Updated repository {repo.repo_name} (ID: {repo.repo_id}) to PROCESSING. Comment: {repo.comment}")
 
             # Clone the repository
-            repo_dir = clone_repository(repo)
+            repo_dir = clone_repository(repo, timeout_seconds=120)
 
             # Perform language analysis
             perform_language_analysis(repo_dir, repo, session)
