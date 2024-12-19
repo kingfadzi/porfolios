@@ -107,18 +107,31 @@ def log_active_directories(base_dir="/mnt/tmpfs/cloned_repositories"):
         logger.error(f"Error counting active directories: {e}")
 
 def perform_language_analysis(repo_dir, repo, session):
-    """Run go-enry for language analysis."""
+    """Run go-enry for language analysis inside the cloned repository directory and log results."""
     logger.info(f"Starting language analysis for repository {repo.repo_name}.")
     analysis_file = f"{repo_dir}/analysis.txt"
-    subprocess.run(f"go-enry > {analysis_file}", shell=True, check=True)
+
+    try:
+        # Run go-enry inside the repository directory
+        subprocess.run(f"go-enry > {analysis_file}", shell=True, check=True, cwd=repo_dir)
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Error running go-enry for repository {repo.repo_name}: {e}")
+        raise RuntimeError(f"Language analysis failed for {repo.repo_name}: {e}")
+
+    # Check if analysis file was created
     if not os.path.exists(analysis_file):
-        logger.error("Language analysis file not found.")
+        logger.error(f"Language analysis file not found for repository {repo.repo_name}.")
         raise FileNotFoundError("Language analysis file not found.")
+
+    # Parse the analysis file and log results
+    logger.info(f"Parsing language analysis results for repository {repo.repo_name}.")
     with open(analysis_file, 'r') as f:
+        analysis_results = []
         for line in f:
             parts = line.strip().split(maxsplit=1)
             if len(parts) == 2:
                 percent_usage, language = parts
+                analysis_results.append((language.strip(), float(percent_usage.strip('%'))))
                 session.execute(
                     insert(LanguageAnalysis).values(
                         repo_id=repo.repo_id,
@@ -129,6 +142,12 @@ def perform_language_analysis(repo_dir, repo, session):
                         set_={'percent_usage': float(percent_usage.strip('%')), 'analysis_date': datetime.utcnow()}
                     )
                 )
+    
+    # Log the parsed results
+    for language, percent_usage in analysis_results:
+        logger.debug(f"Repository {repo.repo_name} - Language: {language}, Usage: {percent_usage}%")
+
+    # Commit changes to the database
     session.commit()
     logger.info(f"Language analysis completed successfully for repository {repo.repo_name}.")
 
