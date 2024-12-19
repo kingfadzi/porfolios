@@ -13,9 +13,6 @@ sleep 5
 su - postgres -c "psql -tAc \"SELECT 1 FROM pg_database WHERE datname='airflow'\"" | grep -q 1 || \
     su - postgres -c "psql -c 'CREATE DATABASE airflow;'"
 
-# Initialize Airflow database (idempotent)
-airflow db init
-
 # Start Airflow webserver and scheduler
 airflow webserver --port 8088 &
 airflow scheduler
