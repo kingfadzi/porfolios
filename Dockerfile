@@ -37,6 +37,12 @@ RUN pip3 install --no-cache-dir --upgrade pip && \
         apache-airflow \
         gitpython
 
+# Configure Airflow for parallelism
+RUN sed -i 's/^executor = SequentialExecutor/executor = LocalExecutor/' ${AIRFLOW_HOME}/airflow.cfg && \
+    sed -i 's/^parallelism = .*/parallelism = 16/' ${AIRFLOW_HOME}/airflow.cfg && \
+    sed -i 's/^dag_concurrency = .*/dag_concurrency = 8/' ${AIRFLOW_HOME}/airflow.cfg && \
+    sed -i 's/^worker_concurrency = .*/worker_concurrency = 8/' ${AIRFLOW_HOME}/airflow.cfg
+
 # Install Airflow provider and other Python dependencies
 RUN pip3 install --no-cache-dir \
     apache-airflow-providers-postgres \
