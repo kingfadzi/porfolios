@@ -66,7 +66,7 @@ RUN echo "host all all 0.0.0.0/0 md5" >> /var/lib/pgsql/data/pg_hba.conf && \
     echo "listen_addresses='*'" >> /var/lib/pgsql/data/postgresql.conf
 
 # Switch back to root to copy DAGs and set permissions
-
+USER root
 COPY ./dags ${AIRFLOW_DAGS_FOLDER}
 
 # Copy airflow.cfg into the container
