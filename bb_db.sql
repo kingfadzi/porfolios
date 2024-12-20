@@ -67,3 +67,12 @@ WHEN size BETWEEN 600001 AND 1000000 THEN '600k-1000k'
 WHEN size BETWEEN 1000001 AND 2000000000 THEN '1000k-2g'
 WHEN size > 2000000001 THEN '>2g'
 END
+
+CASE
+    WHEN last_commit_date >= NOW() - INTERVAL '1 month' THEN 'Active (<1 month)'
+    WHEN last_commit_date >= NOW() - INTERVAL '3 months' THEN '1-3 months'
+    WHEN last_commit_date >= NOW() - INTERVAL '6 months' THEN '3-6 months'
+    WHEN last_commit_date >= NOW() - INTERVAL '1 year' THEN '6-12 months'
+    WHEN last_commit_date >= NOW() - INTERVAL '2 years' THEN '1-2 years'
+    ELSE 'Over 2 years'
+END
