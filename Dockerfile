@@ -9,6 +9,9 @@ ENV global.index-url=https://pypi.org/simple
 ENV http_proxy=${HTTP_PROXY}
 ENV https_proxy=${HTTPS_PROXY}
 
+ENV PYTHONIOENCODING=utf-8
+ENV LANG=C.UTF-8
+
 ENV AIRFLOW__DATABASE__SQL_ALCHEMY_CONN="postgresql+psycopg2://postgres:postgres@localhost:5432/airflow"
 
 # Copy self-signed certificate into the image
@@ -26,6 +29,7 @@ RUN dnf update -y && \
         git \
         wget \
         postgresql-server \
+        postgresql-libs \
         postgresql && \
     dnf clean all
 
