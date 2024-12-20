@@ -44,15 +44,6 @@ RUN python3 -m pip install --no-cache-dir \
     psycopg2-binary \
     gitpython
 
-# Generate airflow.cfg
-RUN airflow db init
-
-# Configure Airflow for parallelism
-RUN sed -i 's/^executor = SequentialExecutor/executor = LocalExecutor/' ${AIRFLOW_HOME}/airflow.cfg && \
-    sed -i 's/^parallelism = .*/parallelism = 16/' ${AIRFLOW_HOME}/airflow.cfg && \
-    sed -i 's/^dag_concurrency = .*/dag_concurrency = 8/' ${AIRFLOW_HOME}/airflow.cfg && \
-    sed -i 's/^worker_concurrency = .*/worker_concurrency = 8/' ${AIRFLOW_HOME}/airflow.cfg
-
 # Install Airflow provider and other Python dependencies
 RUN pip3 install --no-cache-dir \
     apache-airflow-providers-postgres \
@@ -75,6 +66,9 @@ USER root
 RUN mkdir -p ${AIRFLOW_DAGS_FOLDER} && \
     chown -R postgres:postgres ${AIRFLOW_DAGS_FOLDER}
 COPY ./dags ${AIRFLOW_DAGS_FOLDER}
+
+# Copy airflow.cfg into the container
+COPY ./airflow.cfg ${AIRFLOW_HOME}/airflow.cfg
 
 # Script to start both services
 COPY start_services.sh /usr/local/bin/start_services.sh
