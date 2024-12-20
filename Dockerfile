@@ -79,6 +79,13 @@ RUN chmod +x /usr/local/bin/start_services.sh
 # Use the script to start PostgreSQL and Airflow
 CMD ["/usr/local/bin/start_services.sh"]
 
+# Copy SSH keys into the container
+COPY .ssh/id_rsa /root/.ssh/id_rsa
+COPY .ssh/id_rsa.pub /root/.ssh/id_rsa.pub
+
+RUN chmod 600 /root/.ssh/id_rsa && \
+    chmod 644 /root/.ssh/id_rsa.pub 
+
 WORKDIR ${AIRFLOW_HOME}
 EXPOSE 8088 5432
 
