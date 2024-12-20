@@ -1,8 +1,8 @@
 FROM registry.access.redhat.com/ubi8/ubi:latest
 
 # Set environment variables
-ENV AIRFLOW_HOME=/usr/local/airflow
-ENV AIRFLOW_DAGS_FOLDER=/usr/local/airflow/dags
+ENV AIRFLOW_HOME=/root/airflow
+ENV AIRFLOW_DAGS_FOLDER=/root/airflow/dags
 ENV global.cert=/etc/pip/certs/self-signed-cert.pem
 ENV global.index=https://pypi.org/simple
 ENV global.index-url=https://pypi.org/simple
@@ -66,9 +66,7 @@ RUN echo "host all all 0.0.0.0/0 md5" >> /var/lib/pgsql/data/pg_hba.conf && \
     echo "listen_addresses='*'" >> /var/lib/pgsql/data/postgresql.conf
 
 # Switch back to root to copy DAGs and set permissions
-USER root
-RUN mkdir -p ${AIRFLOW_DAGS_FOLDER} && \
-    chown -R postgres:postgres ${AIRFLOW_DAGS_FOLDER}
+
 COPY ./dags ${AIRFLOW_DAGS_FOLDER}
 
 # Copy airflow.cfg into the container
