@@ -14,6 +14,17 @@ su - postgres -c "psql -tAc \"SELECT 1 FROM pg_database WHERE datname='airflow'\
     su - postgres -c "psql -c 'CREATE DATABASE airflow;'"
     echo "Initializing Airflow database..."
     airflow db init
+
+    # Set PostgreSQL password and add Airflow admin user
+    echo "Setting PostgreSQL password and creating Airflow admin user..."
+    su - postgres -c "psql -d airflow -c \"ALTER USER postgres WITH PASSWORD 'postgres';\""
+    airflow users create \
+        --username admin \
+        --firstname Admin \
+        --lastname User \
+        --role Admin \
+        --email admin@example.com \
+        --password password
 }
 
 # Start Airflow webserver and scheduler
