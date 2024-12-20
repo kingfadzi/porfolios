@@ -76,3 +76,39 @@ CASE
     WHEN last_commit_date >= NOW() - INTERVAL '2 years' THEN '1-2 years'
     ELSE 'Over 2 years'
 END
+
+CASE
+WHEN contributors BETWEEN 0 AND 0 THEN '0 contributors'
+WHEN contributors BETWEEN 1 AND 1 THEN '1 contributor'
+WHEN contributors BETWEEN 2 AND 5 THEN '2-5 contributors'
+WHEN contributors BETWEEN 6 AND 10 THEN '6-10 contributors'
+WHEN contributors BETWEEN 11 AND 20 THEN '11-20 contributors'
+WHEN contributors BETWEEN 21 AND 50 THEN '21-50 contributors'
+WHEN contributors BETWEEN 51 AND 100 THEN '51-100 contributors'
+WHEN contributors BETWEEN 101 AND 500 THEN '101-500 contributors'
+WHEN contributors > 501 THEN '501+ contributors'
+END
+
+CASE
+WHEN total_commits BETWEEN 0 AND 0 THEN '0 commits'
+WHEN total_commits BETWEEN 1 AND 10 THEN '1-10 commits'
+WHEN total_commits BETWEEN 11 AND 50 THEN '11-50 commits'
+WHEN total_commits BETWEEN 51 AND 100 THEN '51-100 commits'
+WHEN total_commits BETWEEN 101 AND 500 THEN '101-500 commits'
+WHEN total_commits BETWEEN 501 AND 1000 THEN '501-1000 commits'
+WHEN total_commits BETWEEN 1001 AND 5000 THEN '1001-5000 commits'
+WHEN total_commits BETWEEN 5001 AND 10000 THEN '5001-10000 commits'
+WHEN total_commits > 10001 THEN '10001+ commits'
+END
+
+CASE
+WHEN file_count BETWEEN 0 AND 0 THEN '0 files'
+WHEN file_count BETWEEN 1 AND 10 THEN '1-10 files'
+WHEN file_count BETWEEN 11 AND 50 THEN '11-50 files'
+WHEN file_count BETWEEN 51 AND 100 THEN '51-100 files'
+WHEN file_count BETWEEN 101 AND 500 THEN '101-500 files'
+WHEN file_count BETWEEN 501 AND 1000 THEN '501-1000 files'
+WHEN file_count BETWEEN 1001 AND 5000 THEN '1001-5000 files'
+WHEN file_count BETWEEN 5001 AND 10000 THEN '5001-10000 files'
+WHEN file_count > 10001 THEN '10001+ files'
+END
