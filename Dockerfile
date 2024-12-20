@@ -72,6 +72,10 @@ COPY ./dags ${AIRFLOW_DAGS_FOLDER}
 # Copy airflow.cfg into the container
 COPY ./airflow.cfg ${AIRFLOW_HOME}/airflow.cfg
 
+# Copy go-enry binary into the container
+COPY ./go-enry /usr/local/bin/go-enry && \
+    chmod +x /usr/local/bin/go-enry
+
 # Script to start both services
 COPY start_services.sh /usr/local/bin/start_services.sh
 RUN chmod +x /usr/local/bin/start_services.sh
