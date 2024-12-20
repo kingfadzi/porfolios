@@ -10,8 +10,11 @@ su - postgres -c "pg_ctl -D /var/lib/pgsql/data -l /var/lib/pgsql/data/logfile s
 sleep 5
 
 # Check if the Airflow database exists and create it if not
-su - postgres -c "psql -tAc \"SELECT 1 FROM pg_database WHERE datname='airflow'\"" | grep -q 1 || \
+su - postgres -c "psql -tAc \"SELECT 1 FROM pg_database WHERE datname='airflow'\"" | grep -q 1 || {
     su - postgres -c "psql -c 'CREATE DATABASE airflow;'"
+    echo "Initializing Airflow database..."
+    airflow db init
+}
 
 # Start Airflow webserver and scheduler
 airflow webserver --port 8088 &
