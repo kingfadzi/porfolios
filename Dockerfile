@@ -32,22 +32,17 @@ RUN dnf update -y && \
 # Configure self-signed certificate for pip
 RUN echo -e "[global]\ncert = /etc/pip/certs/self-signed-cert.pem\nindex-url = https://pypi.org/simple" > /etc/pip.conf
 
-# Ensure pip is installed and upgraded for Python 3.11
-RUN python3.11 -m ensurepip && \
-    python3.11 -m pip install --upgrade pip && \
-    rm -f /usr/bin/pip3 && \
-    ln -s /usr/local/bin/pip3 /usr/bin/pip3
-
-# Set Python 3.11 as default
+# Set Python 3.11 as default and ensure pip is installed
 RUN alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1 && \
     alternatives --set python3 /usr/bin/python3.11 && \
-    python3 --version
+    python3 -m ensurepip && \
+    python3 -m pip install --no-cache-dir --upgrade pip
 
-# Upgrade pip and install Python dependencies
-RUN pip3 install --no-cache-dir --upgrade pip && \
-    pip3 install --no-cache-dir \
-        apache-airflow \
-        gitpython
+# Install Python dependencies
+RUN python3 -m pip install --no-cache-dir \
+    apache-airflow[postgres] \
+    psycopg2-binary \
+    gitpython
 
 # Generate airflow.cfg
 RUN airflow db init
