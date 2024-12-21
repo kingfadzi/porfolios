@@ -112,3 +112,40 @@ WHEN file_count BETWEEN 1001 AND 5000 THEN '1001-5000 files'
 WHEN file_count BETWEEN 5001 AND 10000 THEN '5001-10000 files'
 WHEN file_count > 10001 THEN '10001+ files'
 END
+
+WITH ranked_repos AS (
+    SELECT
+        repo_name,
+        size_in_bytes,
+        number_of_contributors,
+        total_commits,
+        MAX(commit_date) AS latest_commit_date,  -- Ensure this field exists
+        language_percent_usage,
+        RANK() OVER (
+            ORDER BY
+                size_in_bytes DESC,
+                number_of_contributors DESC,
+                total_commits DESC,
+                MAX(commit_date) DESC,
+                language_percent_usage DESC
+        ) AS rank
+    FROM your_table_name
+    WHERE language_name = 'Java'  -- Replace 'Java' with the desired language
+    GROUP BY
+        repo_name,
+        size_in_bytes,
+        number_of_contributors,
+        total_commits,
+        language_percent_usage
+)
+
+SELECT
+    repo_name,
+    size_in_bytes,
+    number_of_contributors,
+    total_commits,
+    latest_commit_date,
+    language_percent_usage
+FROM ranked_repos
+WHERE rank <= 5  -- Adjust to show top N repositories
+ORDER BY rank;
