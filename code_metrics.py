@@ -13,16 +13,16 @@ class LizardMetric(Base):
     __tablename__ = "lizard_metrics"
     id = Column(Integer, primary_key=True, autoincrement=True)
     repo_id = Column(Integer, nullable=False)
-    file = Column(Text)
+    file_name = Column(Text)  # Updated from 'file'
     function_name = Column(Text)
     long_name = Column(Text)
     nloc = Column(Integer)
     ccn = Column(Integer)  # Cyclomatic complexity
     token_count = Column(Integer)
     param = Column(Integer)
-    length = Column(Integer)
-    start = Column(Integer)
-    end = Column(Integer)
+    function_length = Column(Integer)  # Updated from 'length'
+    start_line = Column(Integer)  # Updated from 'start'
+    end_line = Column(Integer)  # Updated from 'end'
 
 class ClocMetric(Base):
     __tablename__ = "cloc_metrics"
@@ -62,8 +62,8 @@ def run_lizard(repo_path):
     # Parse CSV output
     csv_data = result.stdout.splitlines()
     reader = csv.DictReader(csv_data, fieldnames=[
-        "nloc", "ccn", "token_count", "param", "length", "location",
-        "file", "function_name", "long_name", "start", "end"
+        "nloc", "ccn", "token_count", "param", "function_length", "location",
+        "file_name", "function_name", "long_name", "start_line", "end_line"
     ])
     parsed_results = []
     for row in reader:
@@ -73,16 +73,16 @@ def run_lizard(repo_path):
 
         # Parse the row into a structured format
         parsed_results.append({
-            "file": row["file"],
+            "file_name": row["file_name"],
             "function_name": row["function_name"],
             "long_name": row["long_name"],
             "nloc": int(row["nloc"]),
             "ccn": int(row["ccn"]),
             "token_count": int(row["token_count"]),
             "param": int(row["param"]),
-            "length": int(row["length"]),
-            "start": int(row["start"]),
-            "end": int(row["end"]),
+            "function_length": int(row["function_length"]),
+            "start_line": int(row["start_line"]),
+            "end_line": int(row["end_line"]),
         })
     return parsed_results
 
@@ -92,27 +92,27 @@ def save_lizard_results(session, repo_id, results):
         session.execute(
             insert(LizardMetric).values(
                 repo_id=repo_id,
-                file=record["file"],
+                file_name=record["file_name"],
                 function_name=record["function_name"],
                 long_name=record["long_name"],
                 nloc=record["nloc"],
                 ccn=record["ccn"],
                 token_count=record["token_count"],
                 param=record["param"],
-                length=record["length"],
-                start=record["start"],
-                end=record["end"]
+                function_length=record["function_length"],
+                start_line=record["start_line"],
+                end_line=record["end_line"]
             ).on_conflict_do_update(
-                index_elements=["repo_id", "file", "function_name"],
+                index_elements=["repo_id", "file_name", "function_name"],
                 set_={
                     "long_name": record["long_name"],
                     "nloc": record["nloc"],
                     "ccn": record["ccn"],
                     "token_count": record["token_count"],
                     "param": record["param"],
-                    "length": record["length"],
-                    "start": record["start"],
-                    "end": record["end"]
+                    "function_length": record["function_length"],
+                    "start_line": record["start_line"],
+                    "end_line": record["end_line"]
                 }
             )
         )

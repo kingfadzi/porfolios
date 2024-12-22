@@ -48,19 +48,18 @@ DROP TABLE IF EXISTS lizard_metrics;
 CREATE TABLE lizard_metrics (
     id SERIAL PRIMARY KEY,
     repo_id INTEGER NOT NULL,
-    file TEXT,
+    file_name TEXT,  -- Updated
     function_name TEXT,
     long_name TEXT,
     nloc INTEGER,
     ccn INTEGER,
     token_count INTEGER,
     param INTEGER,
-    length INTEGER,
-    start INTEGER,
-    end INTEGER,
-    CONSTRAINT lizard_metrics_unique UNIQUE (repo_id, file, function_name)
+    function_length INTEGER,  -- Updated
+    start_line INTEGER,  -- Updated
+    end_line INTEGER,  -- Updated
+    CONSTRAINT lizard_metrics_unique UNIQUE (repo_id, file_name, function_name)
 );
-
 
 -- Create cloc_metrics table
 CREATE TABLE cloc_metrics (
