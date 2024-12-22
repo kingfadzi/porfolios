@@ -1,7 +1,7 @@
 from sqlalchemy import create_engine, Column, Integer, String, Text, Float, ForeignKey, insert
 from sqlalchemy.orm import declarative_base, sessionmaker
 import subprocess
-import json
+import csv
 from pathlib import Path
 
 Base = declarative_base()
@@ -43,16 +43,46 @@ def setup_database(db_url):
     Session = sessionmaker(bind=engine, future=True)
     return Session()
 
-# Run Lizard analysis
+# Run Lizard analysis and parse CSV
 def run_lizard(repo_path):
-    result = subprocess.run(["lizard", "-ojson", str(repo_path)], capture_output=True, text=True)
+    result = subprocess.run(["lizard", "--csv", str(repo_path)], capture_output=True, text=True)
     if result.returncode != 0 or not result.stdout.strip():
         raise RuntimeError(f"Lizard analysis failed: {result.stderr.strip()}")
-    try:
-        return json.loads(result.stdout)
-    except json.JSONDecodeError as e:
-        raise ValueError(f"Invalid JSON output from Lizard: {result.stdout.strip()}") from e
 
+    # Parse CSV output
+    csv_data = result.stdout.splitlines()
+    reader = csv.DictReader(csv_data)
+    parsed_results = []
+    for row in reader:
+        parsed_results.append({
+            "file": row.get("filename", ""),
+            "function": row.get("function_name", ""),
+            "nloc": int(row.get("nloc", 0)),
+            "complexity": int(row.get("cyclomatic_complexity", 0)),
+            "tokens": int(row.get("token_count", 0))
+        })
+    return parsed_results
+
+# Save Lizard results to database with upsert
+def save_lizard_results(session, repo_id, results):
+    for record in results:
+        stmt = insert(LizardMetric).values(
+            repo_id=repo_id,
+            file=record["file"],
+            function=record["function"],
+            nloc=record["nloc"],
+            complexity=record["complexity"],
+            tokens=record["tokens"]
+        ).on_conflict_do_update(
+            index_elements=["repo_id", "file", "function"],
+            set_={
+                "nloc": stmt.excluded.nloc,
+                "complexity": stmt.excluded.complexity,
+                "tokens": stmt.excluded.tokens
+            }
+        )
+        session.execute(stmt)
+    session.commit()
 
 # Run cloc analysis
 def run_cloc(repo_path):
@@ -63,28 +93,6 @@ def run_cloc(repo_path):
 def run_checkov(repo_path):
     result = subprocess.run(["checkov", "--directory", str(repo_path), "--quiet", "--output", "json"], capture_output=True, text=True)
     return json.loads(result.stdout)
-
-# Save Lizard results to database with upsert
-def save_lizard_results(session, repo_id, results):
-    for file in results['files']:
-        for function in file['functions']:
-            stmt = insert(LizardMetric).values(
-                repo_id=repo_id,
-                file=file['filename'],
-                function=function['name'],
-                nloc=function['nloc'],
-                complexity=function['cyclomatic_complexity'],
-                tokens=function['token_count']
-            ).on_conflict_do_update(
-                index_elements=["repo_id", "file", "function"],
-                set_={
-                    "nloc": stmt.excluded.nloc,
-                    "complexity": stmt.excluded.complexity,
-                    "tokens": stmt.excluded.tokens
-                }
-            )
-            session.execute(stmt)
-    session.commit()
 
 # Save cloc results to database with upsert
 def save_cloc_results(session, repo_id, results):
@@ -130,7 +138,7 @@ def save_checkov_results(session, repo_id, results):
     session.commit()
 
 if __name__ == "__main__":
-    repo_path = Path("/tmp/halo")  # Replace with the path to your repo
+    repo_path = Path("/tmp/repo")  # Replace with the path to your repo
     db_url = "postgresql://postgres:postgres@localhost:5432/gitlab-usage"  # Replace with your PostgreSQL connection details
 
     session = setup_database(db_url)
