@@ -10,7 +10,7 @@ SELECT
     r.number_of_contributors,
     r.total_commits,
     r.last_commit_date,
-    l.language_name,
+    l.language,
     l.percent_usage,
     RANK() OVER (
     ORDER BY
@@ -20,11 +20,11 @@ SELECT
     r.repo_size_bytes DESC       -- Larger size
     ) AS rank
 FROM repo_metrics r
-    JOIN language_analysis l
+    JOIN languages_analysis l
 ON r.repo_id = l.repo_id
     CROSS JOIN size_threshold t
-WHERE l.language_name = 'Java'           -- Focus on Java repositories
-  AND l.percent_usage >= 50              -- Java must be dominant
+WHERE l.language = 'Java'              -- Focus on Java repositories
+  AND l.percent_usage >= 50            -- Java must be dominant
   AND r.repo_size_bytes >= t.top_10_percent_size -- Repository must be large
     )
 
@@ -34,7 +34,7 @@ SELECT
     number_of_contributors,
     total_commits,
     last_commit_date,
-    language_name,
+    language,
     percent_usage
 FROM ranked_java_apps
 WHERE rank <= 5  -- Return the top N repositories
