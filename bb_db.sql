@@ -71,4 +71,12 @@ CREATE TABLE checkov_results (
     severity TEXT
 );
 
+-- Lizard Metrics: Unique on (repo_id, file, function)
+ALTER TABLE lizard_metrics ADD CONSTRAINT lizard_metrics_unique UNIQUE (repo_id, file, function);
+
+-- Cloc Metrics: Unique on (repo_id, language)
+ALTER TABLE cloc_metrics ADD CONSTRAINT cloc_metrics_unique UNIQUE (repo_id, language);
+
+-- Checkov Results: Unique on (repo_id, resource, check_name)
+ALTER TABLE checkov_results ADD CONSTRAINT checkov_results_unique UNIQUE (repo_id, resource, check_name);
 
