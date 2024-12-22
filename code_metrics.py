@@ -78,9 +78,9 @@ def save_lizard_results(session, repo_id, results):
         ).on_conflict_do_update(
             index_elements=["repo_id", "file", "function"],
             set_={
-                "nloc": insert.excluded.nloc,
-                "complexity": insert.excluded.complexity,
-                "tokens": insert.excluded.tokens
+                "nloc": getattr(stmt.excluded, "nloc"),
+                "complexity": getattr(stmt.excluded, "complexity"),
+                "tokens": getattr(stmt.excluded, "tokens")
             }
         )
         session.execute(stmt)
@@ -108,10 +108,10 @@ def save_cloc_results(session, repo_id, results):
         ).on_conflict_do_update(
             index_elements=["repo_id", "language"],
             set_={
-                "files": insert.excluded.files,
-                "blank": insert.excluded.blank,
-                "comment": insert.excluded.comment,
-                "code": insert.excluded.code
+                "files": getattr(stmt.excluded, "files"),
+                "blank": getattr(stmt.excluded, "blank"),
+                "comment": getattr(stmt.excluded, "comment"),
+                "code": getattr(stmt.excluded, "code")
             }
         )
         session.execute(stmt)
@@ -136,15 +136,15 @@ def save_checkov_results(session, repo_id, results):
         ).on_conflict_do_update(
             index_elements=["repo_id", "resource", "check_name"],
             set_={
-                "check_result": insert.excluded.check_result,
-                "severity": insert.excluded.severity
+                "check_result": getattr(stmt.excluded, "check_result"),
+                "severity": getattr(stmt.excluded, "severity")
             }
         )
         session.execute(stmt)
     session.commit()
 
 if __name__ == "__main__":
-    repo_path = Path("/tmp/halo")  # Replace with the path to your repo
+    repo_path = Path("/path/to/repo")  # Replace with the path to your repo
     db_url = "postgresql://postgres:postgres@localhost:5432/gitlab-usage"  # Replace with your PostgreSQL connection details
 
     session = setup_database(db_url)
