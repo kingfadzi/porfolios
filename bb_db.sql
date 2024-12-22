@@ -42,16 +42,19 @@ CREATE TABLE repo_metrics (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
+-- Create lizard_metrics table
 CREATE TABLE lizard_metrics (
     id SERIAL PRIMARY KEY,
     repo_id INTEGER NOT NULL,
     file TEXT,
-    function TEXT,
+    function_name TEXT,
     nloc INTEGER,
     complexity INTEGER,
-    tokens INTEGER
+    tokens INTEGER,
+    CONSTRAINT lizard_metrics_unique UNIQUE (repo_id, file, function_name)
 );
 
+-- Create cloc_metrics table
 CREATE TABLE cloc_metrics (
     id SERIAL PRIMARY KEY,
     repo_id INTEGER NOT NULL,
@@ -59,17 +62,21 @@ CREATE TABLE cloc_metrics (
     files INTEGER,
     blank INTEGER,
     comment INTEGER,
-    code INTEGER
+    code INTEGER,
+    CONSTRAINT cloc_metrics_unique UNIQUE (repo_id, language)
 );
 
+-- Create checkov_results table
 CREATE TABLE checkov_results (
     id SERIAL PRIMARY KEY,
     repo_id INTEGER NOT NULL,
     resource TEXT,
     check_name TEXT,
     check_result TEXT,
-    severity TEXT
+    severity TEXT,
+    CONSTRAINT checkov_results_unique UNIQUE (repo_id, resource, check_name)
 );
+
 
 -- Lizard Metrics: Unique on (repo_id, file, function)
 ALTER TABLE lizard_metrics ADD CONSTRAINT lizard_metrics_unique UNIQUE (repo_id, file, function);
