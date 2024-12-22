@@ -46,7 +46,13 @@ def setup_database(db_url):
 # Run Lizard analysis
 def run_lizard(repo_path):
     result = subprocess.run(["lizard", "-ojson", str(repo_path)], capture_output=True, text=True)
-    return json.loads(result.stdout)
+    if result.returncode != 0 or not result.stdout.strip():
+        raise RuntimeError(f"Lizard analysis failed: {result.stderr.strip()}")
+    try:
+        return json.loads(result.stdout)
+    except json.JSONDecodeError as e:
+        raise ValueError(f"Invalid JSON output from Lizard: {result.stdout.strip()}") from e
+
 
 # Run cloc analysis
 def run_cloc(repo_path):
