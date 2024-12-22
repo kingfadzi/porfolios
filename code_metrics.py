@@ -77,7 +77,7 @@ def save_lizard_results(session, repo_id, results):
                 complexity=record["complexity"],
                 tokens=record["tokens"]
             ).on_conflict_do_update(
-                index_elements=["repo_id", "file", "function"],
+                index_elements=["repo_id", "file", "function"],  # Matches the unique constraint
                 set_={
                     "nloc": record["nloc"],
                     "complexity": record["complexity"],
@@ -108,7 +108,7 @@ def save_cloc_results(session, repo_id, results):
                 comment=metrics['comment'],
                 code=metrics['code']
             ).on_conflict_do_update(
-                index_elements=["repo_id", "language"],
+                index_elements=["repo_id", "language"],  # Matches the unique constraint
                 set_={
                     "files": metrics['nFiles'],
                     "blank": metrics['blank'],
@@ -137,7 +137,7 @@ def save_checkov_results(session, repo_id, results):
                 check_result=check['check_result'],
                 severity=check['severity']
             ).on_conflict_do_update(
-                index_elements=["repo_id", "resource", "check_name"],
+                index_elements=["repo_id", "resource", "check_name"],  # Matches the unique constraint
                 set_={
                     "check_result": check['check_result'],
                     "severity": check['severity']
