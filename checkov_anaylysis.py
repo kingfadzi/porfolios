@@ -24,19 +24,21 @@ def setup_database(db_url):
     Session = sessionmaker(bind=engine, future=True)
     return Session()
 
-# Run Checkov analysis with enhanced debugging
+# Run Checkov analysis with verbose output
 def run_checkov(repo_path):
     result = subprocess.run(
-        ["checkov", "--skip-download", "--directory", str(repo_path), "--quiet", "--output", "json"],
+        ["checkov", "--skip-download", "--directory", str(repo_path), "--output", "json"],
         capture_output=True,
         text=True
     )
 
+    # Log all outputs for debugging
+    print(f"Checkov stdout:\n{result.stdout}")  # Debug: Print raw stdout
+    print(f"Checkov stderr:\n{result.stderr}")  # Debug: Print raw stderr
+
     if result.returncode != 0:
         print(f"Checkov failed with return code: {result.returncode}")
-        print(f"Checkov stderr: {result.stderr.strip()}")
-        print(f"Checkov stdout: {result.stdout.strip()}")
-        raise RuntimeError(f"Checkov analysis failed: {result.stderr.strip()}")
+        raise RuntimeError(f"Checkov analysis failed with errors: {result.stderr.strip()}")
 
     if not result.stdout.strip():
         print("Checkov output is empty.")
@@ -46,7 +48,7 @@ def run_checkov(repo_path):
     try:
         checkov_output = json.loads(result.stdout)
         summary = checkov_output.get("summary", {})
-        print(f"Checkov Summary: {summary}")  # Debugging: Print summary
+        print(f"Checkov Summary: {summary}")  # Debug: Print summary
 
         if summary.get("failed", 0) > 0:
             print(f"Checkov found {summary['failed']} failed checks.")
