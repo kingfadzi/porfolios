@@ -6,19 +6,13 @@ import sys
 
 def run_semgrep(target_directory, ruleset, output_json):
     """
-    Runs Semgrep on the target directory and saves results as a JSON file.
+    Runs Semgrep on the target directory and pipes results to a JSON file.
     """
     try:
-        # Run Semgrep command
-        command = [
-            "semgrep",
-            "--config", ruleset,
-            target_directory,
-            "--json",
-            "--output", output_json
-        ]
-        print(f"Running Semgrep: {' '.join(command)}")
-        subprocess.run(command, check=True)
+        # Simplified command with piping
+        command = f"semgrep --config {ruleset} {target_directory} --json > {output_json}"
+        print(f"Running Semgrep: {command}")
+        subprocess.run(command, shell=True, check=True)
         print(f"Semgrep results saved to {output_json}")
     except subprocess.CalledProcessError as e:
         print(f"Error running Semgrep: {e}")
