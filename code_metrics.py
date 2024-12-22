@@ -68,22 +68,23 @@ def run_lizard(repo_path):
 # Save Lizard results to database with upsert
 def save_lizard_results(session, repo_id, results):
     for record in results:
-        stmt = insert(LizardMetric).values(
-            repo_id=repo_id,
-            file=record["file"],
-            function=record["function"],
-            nloc=record["nloc"],
-            complexity=record["complexity"],
-            tokens=record["tokens"]
-        ).on_conflict_do_update(
-            index_elements=["repo_id", "file", "function"],
-            set_={
-                "nloc": insert.excluded.nloc,
-                "complexity": insert.excluded.complexity,
-                "tokens": insert.excluded.tokens
-            }
+        session.execute(
+            insert(LizardMetric).values(
+                repo_id=repo_id,
+                file=record["file"],
+                function=record["function"],
+                nloc=record["nloc"],
+                complexity=record["complexity"],
+                tokens=record["tokens"]
+            ).on_conflict_do_update(
+                index_elements=["repo_id", "file", "function"],
+                set_={
+                    "nloc": record["nloc"],
+                    "complexity": record["complexity"],
+                    "tokens": record["tokens"]
+                }
+            )
         )
-        session.execute(stmt)
     session.commit()
 
 # Run cloc analysis
@@ -98,23 +99,24 @@ def save_cloc_results(session, repo_id, results):
     for language, metrics in results.items():
         if language == "header":
             continue
-        stmt = insert(ClocMetric).values(
-            repo_id=repo_id,
-            language=language,
-            files=metrics['nFiles'],
-            blank=metrics['blank'],
-            comment=metrics['comment'],
-            code=metrics['code']
-        ).on_conflict_do_update(
-            index_elements=["repo_id", "language"],
-            set_={
-                "files": insert.excluded.files,
-                "blank": insert.excluded.blank,
-                "comment": insert.excluded.comment,
-                "code": insert.excluded.code
-            }
+        session.execute(
+            insert(ClocMetric).values(
+                repo_id=repo_id,
+                language=language,
+                files=metrics['nFiles'],
+                blank=metrics['blank'],
+                comment=metrics['comment'],
+                code=metrics['code']
+            ).on_conflict_do_update(
+                index_elements=["repo_id", "language"],
+                set_={
+                    "files": metrics['nFiles'],
+                    "blank": metrics['blank'],
+                    "comment": metrics['comment'],
+                    "code": metrics['code']
+                }
+            )
         )
-        session.execute(stmt)
     session.commit()
 
 # Run Checkov analysis
@@ -127,20 +129,21 @@ def run_checkov(repo_path):
 # Save Checkov results to database with upsert
 def save_checkov_results(session, repo_id, results):
     for check in results['results']['failed_checks']:
-        stmt = insert(CheckovResult).values(
-            repo_id=repo_id,
-            resource=check['resource'],
-            check_name=check['check_name'],
-            check_result=check['check_result'],
-            severity=check['severity']
-        ).on_conflict_do_update(
-            index_elements=["repo_id", "resource", "check_name"],
-            set_={
-                "check_result": insert.excluded.check_result,
-                "severity": insert.excluded.severity
-            }
+        session.execute(
+            insert(CheckovResult).values(
+                repo_id=repo_id,
+                resource=check['resource'],
+                check_name=check['check_name'],
+                check_result=check['check_result'],
+                severity=check['severity']
+            ).on_conflict_do_update(
+                index_elements=["repo_id", "resource", "check_name"],
+                set_={
+                    "check_result": check['check_result'],
+                    "severity": check['severity']
+                }
+            )
         )
-        session.execute(stmt)
     session.commit()
 
 if __name__ == "__main__":
