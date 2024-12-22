@@ -14,7 +14,7 @@ class LizardMetric(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     repo_id = Column(Integer, nullable=False)
     file = Column(Text)
-    function = Column(Text)
+    function_name = Column(Text)  # Updated column name
     nloc = Column(Integer)
     complexity = Column(Integer)
     tokens = Column(Integer)
@@ -58,7 +58,7 @@ def run_lizard(repo_path):
     for row in reader:
         parsed_results.append({
             "file": row.get("filename", ""),
-            "function": row.get("function_name", ""),
+            "function_name": row.get("function_name", ""),  # Updated to match new column
             "nloc": int(row.get("nloc", 0)),
             "complexity": int(row.get("cyclomatic_complexity", 0)),
             "tokens": int(row.get("token_count", 0))
@@ -72,12 +72,12 @@ def save_lizard_results(session, repo_id, results):
             insert(LizardMetric).values(
                 repo_id=repo_id,
                 file=record["file"],
-                function=record["function"],
+                function_name=record["function_name"],  # Updated to match new column
                 nloc=record["nloc"],
                 complexity=record["complexity"],
                 tokens=record["tokens"]
             ).on_conflict_do_update(
-                index_elements=["repo_id", "file", "function"],  # Matches the unique constraint
+                index_elements=["repo_id", "file", "function_name"],  # Updated to match new column
                 set_={
                     "nloc": record["nloc"],
                     "complexity": record["complexity"],
