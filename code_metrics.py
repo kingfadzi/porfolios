@@ -24,6 +24,14 @@ class LizardMetric(Base):
     start_line = Column(Integer)  # Updated from 'start'
     end_line = Column(Integer)  # Updated from 'end'
 
+class LizardSummary(Base):
+    __tablename__ = "lizard_summary"
+    repo_id = Column(Integer, primary_key=True)  # repo_id as primary key
+    total_nloc = Column(Integer)
+    avg_ccn = Column(Float)
+    total_token_count = Column(Integer)
+    function_count = Column(Integer)
+
 class ClocMetric(Base):
     __tablename__ = "cloc_metrics"
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -56,9 +64,6 @@ def run_lizard(repo_path):
     if result.returncode != 0 or not result.stdout.strip():
         raise RuntimeError(f"Lizard analysis failed: {result.stderr.strip()}")
 
-    print("Raw Lizard CSV output:")
-    print(result.stdout)  # Debug: Print the raw CSV output
-
     # Parse CSV output
     csv_data = result.stdout.splitlines()
     reader = csv.DictReader(csv_data, fieldnames=[
@@ -66,10 +71,18 @@ def run_lizard(repo_path):
         "file_name", "function_name", "long_name", "start_line", "end_line"
     ])
     parsed_results = []
+    total_nloc = total_ccn = total_token_count = function_count = 0
+
     for row in reader:
         # Skip the header row if present
         if row["nloc"] == "NLOC":
             continue
+
+        # Aggregate metrics for summary
+        total_nloc += int(row["nloc"])
+        total_ccn += int(row["ccn"])
+        total_token_count += int(row["token_count"])
+        function_count += 1
 
         # Parse the row into a structured format
         parsed_results.append({
@@ -84,7 +97,16 @@ def run_lizard(repo_path):
             "start_line": int(row["start_line"]),
             "end_line": int(row["end_line"]),
         })
-    return parsed_results
+
+    # Compute average CCN
+    avg_ccn = total_ccn / function_count if function_count > 0 else 0
+
+    return parsed_results, {
+        "total_nloc": total_nloc,
+        "avg_ccn": avg_ccn,
+        "total_token_count": total_token_count,
+        "function_count": function_count
+    }
 
 # Save Lizard results to database with upsert
 def save_lizard_results(session, repo_id, results):
@@ -116,6 +138,27 @@ def save_lizard_results(session, repo_id, results):
                 }
             )
         )
+    session.commit()
+
+# Save Lizard summary to database with upsert
+def save_lizard_summary(session, repo_id, summary):
+    session.execute(
+        insert(LizardSummary).values(
+            repo_id=repo_id,
+            total_nloc=summary["total_nloc"],
+            avg_ccn=summary["avg_ccn"],
+            total_token_count=summary["total_token_count"],
+            function_count=summary["function_count"]
+        ).on_conflict_do_update(
+            index_elements=["repo_id"],  # Primary key ensures upsert behavior
+            set_={
+                "total_nloc": summary["total_nloc"],
+                "avg_ccn": summary["avg_ccn"],
+                "total_token_count": summary["total_token_count"],
+                "function_count": summary["function_count"]
+            }
+        )
+    )
     session.commit()
 
 # Run cloc analysis
@@ -150,11 +193,23 @@ def save_cloc_results(session, repo_id, results):
         )
     session.commit()
 
-# Run Checkov analysis
+# Run Checkov analysis with improved debugging
 def run_checkov(repo_path):
-    result = subprocess.run(["checkov", "--skip-download", "--directory", str(repo_path), "--quiet", "--output", "json"], capture_output=True, text=True)
-    if result.returncode != 0 or not result.stdout.strip():
+    result = subprocess.run(
+        ["checkov", "--skip-download", "--directory", str(repo_path), "--quiet", "--output", "json"],
+        capture_output=True,
+        text=True
+    )
+    if result.returncode != 0:
+        print(f"Checkov failed with return code: {result.returncode}")
+        print(f"Checkov stderr: {result.stderr.strip()}")
+        print(f"Checkov stdout: {result.stdout.strip()}")
         raise RuntimeError(f"Checkov analysis failed: {result.stderr.strip()}")
+
+    if not result.stdout.strip():
+        print("Checkov output is empty.")
+        raise RuntimeError("Checkov returned no data.")
+
     return json.loads(result.stdout)
 
 # Save Checkov results to database with upsert
@@ -188,8 +243,9 @@ if __name__ == "__main__":
 
     # Run analyses
     print("Running Lizard...")
-    lizard_results = run_lizard(repo_path)
-    save_lizard_results(session, repo_id, lizard_results)
+    lizard_results, lizard_summary = run_lizard(repo_path)
+    save_lizard_results(session, repo_id, lizard_results)  # Save detailed results
+    save_lizard_summary(session, repo_id, lizard_summary)  # Save summary
 
     print("Running cloc...")
     cloc_results = run_cloc(repo_path)

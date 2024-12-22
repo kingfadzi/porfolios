@@ -84,6 +84,13 @@ CREATE TABLE checkov_results (
     CONSTRAINT checkov_results_unique UNIQUE (repo_id, resource, check_name)
 );
 
+CREATE TABLE lizard_summary (
+    repo_id INTEGER PRIMARY KEY,  -- repo_id as the primary key
+    total_nloc INTEGER,
+    avg_ccn FLOAT,
+    total_token_count INTEGER,
+    function_count INTEGER
+);
 
 -- Lizard Metrics: Unique on (repo_id, file, function)
 ALTER TABLE lizard_metrics ADD CONSTRAINT lizard_metrics_unique UNIQUE (repo_id, file, function);
