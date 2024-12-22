@@ -14,10 +14,15 @@ class LizardMetric(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
     repo_id = Column(Integer, nullable=False)
     file = Column(Text)
-    function_name = Column(Text)  # Updated column name
+    function_name = Column(Text)
+    long_name = Column(Text)
     nloc = Column(Integer)
-    complexity = Column(Integer)
-    tokens = Column(Integer)
+    ccn = Column(Integer)  # Cyclomatic complexity
+    token_count = Column(Integer)
+    param = Column(Integer)
+    length = Column(Integer)
+    start = Column(Integer)
+    end = Column(Integer)
 
 class ClocMetric(Base):
     __tablename__ = "cloc_metrics"
@@ -51,17 +56,33 @@ def run_lizard(repo_path):
     if result.returncode != 0 or not result.stdout.strip():
         raise RuntimeError(f"Lizard analysis failed: {result.stderr.strip()}")
 
+    print("Raw Lizard CSV output:")
+    print(result.stdout)  # Debug: Print the raw CSV output
+
     # Parse CSV output
     csv_data = result.stdout.splitlines()
-    reader = csv.DictReader(csv_data)
+    reader = csv.DictReader(csv_data, fieldnames=[
+        "nloc", "ccn", "token_count", "param", "length", "location",
+        "file", "function_name", "long_name", "start", "end"
+    ])
     parsed_results = []
     for row in reader:
+        # Skip the header row if present
+        if row["nloc"] == "NLOC":
+            continue
+
+        # Parse the row into a structured format
         parsed_results.append({
-            "file": row.get("filename", ""),
-            "function_name": row.get("function_name", ""),  # Updated to match new column
-            "nloc": int(row.get("nloc", 0)),
-            "complexity": int(row.get("cyclomatic_complexity", 0)),
-            "tokens": int(row.get("token_count", 0))
+            "file": row["file"],
+            "function_name": row["function_name"],
+            "long_name": row["long_name"],
+            "nloc": int(row["nloc"]),
+            "ccn": int(row["ccn"]),
+            "token_count": int(row["token_count"]),
+            "param": int(row["param"]),
+            "length": int(row["length"]),
+            "start": int(row["start"]),
+            "end": int(row["end"]),
         })
     return parsed_results
 
@@ -72,16 +93,26 @@ def save_lizard_results(session, repo_id, results):
             insert(LizardMetric).values(
                 repo_id=repo_id,
                 file=record["file"],
-                function_name=record["function_name"],  # Updated to match new column
+                function_name=record["function_name"],
+                long_name=record["long_name"],
                 nloc=record["nloc"],
-                complexity=record["complexity"],
-                tokens=record["tokens"]
+                ccn=record["ccn"],
+                token_count=record["token_count"],
+                param=record["param"],
+                length=record["length"],
+                start=record["start"],
+                end=record["end"]
             ).on_conflict_do_update(
-                index_elements=["repo_id", "file", "function_name"],  # Updated to match new column
+                index_elements=["repo_id", "file", "function_name"],
                 set_={
+                    "long_name": record["long_name"],
                     "nloc": record["nloc"],
-                    "complexity": record["complexity"],
-                    "tokens": record["tokens"]
+                    "ccn": record["ccn"],
+                    "token_count": record["token_count"],
+                    "param": record["param"],
+                    "length": record["length"],
+                    "start": record["start"],
+                    "end": record["end"]
                 }
             )
         )
@@ -121,7 +152,7 @@ def save_cloc_results(session, repo_id, results):
 
 # Run Checkov analysis
 def run_checkov(repo_path):
-    result = subprocess.run(["checkov", "--directory", str(repo_path), "--quiet", "--output", "json"], capture_output=True, text=True)
+    result = subprocess.run(["checkov", "--skip-download", "--directory", str(repo_path), "--quiet", "--output", "json"], capture_output=True, text=True)
     if result.returncode != 0 or not result.stdout.strip():
         raise RuntimeError(f"Checkov analysis failed: {result.stderr.strip()}")
     return json.loads(result.stdout)

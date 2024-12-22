@@ -43,16 +43,24 @@ CREATE TABLE repo_metrics (
 );
 
 -- Create lizard_metrics table
+DROP TABLE IF EXISTS lizard_metrics;
+
 CREATE TABLE lizard_metrics (
     id SERIAL PRIMARY KEY,
     repo_id INTEGER NOT NULL,
     file TEXT,
     function_name TEXT,
+    long_name TEXT,
     nloc INTEGER,
-    complexity INTEGER,
-    tokens INTEGER,
+    ccn INTEGER,
+    token_count INTEGER,
+    param INTEGER,
+    length INTEGER,
+    start INTEGER,
+    end INTEGER,
     CONSTRAINT lizard_metrics_unique UNIQUE (repo_id, file, function_name)
 );
+
 
 -- Create cloc_metrics table
 CREATE TABLE cloc_metrics (
