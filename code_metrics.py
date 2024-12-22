@@ -78,9 +78,9 @@ def save_lizard_results(session, repo_id, results):
         ).on_conflict_do_update(
             index_elements=["repo_id", "file", "function"],
             set_={
-                "nloc": getattr(stmt.excluded, "nloc"),
-                "complexity": getattr(stmt.excluded, "complexity"),
-                "tokens": getattr(stmt.excluded, "tokens")
+                "nloc": insert.excluded.nloc,
+                "complexity": insert.excluded.complexity,
+                "tokens": insert.excluded.tokens
             }
         )
         session.execute(stmt)
@@ -108,10 +108,10 @@ def save_cloc_results(session, repo_id, results):
         ).on_conflict_do_update(
             index_elements=["repo_id", "language"],
             set_={
-                "files": getattr(stmt.excluded, "files"),
-                "blank": getattr(stmt.excluded, "blank"),
-                "comment": getattr(stmt.excluded, "comment"),
-                "code": getattr(stmt.excluded, "code")
+                "files": insert.excluded.files,
+                "blank": insert.excluded.blank,
+                "comment": insert.excluded.comment,
+                "code": insert.excluded.code
             }
         )
         session.execute(stmt)
@@ -136,21 +136,21 @@ def save_checkov_results(session, repo_id, results):
         ).on_conflict_do_update(
             index_elements=["repo_id", "resource", "check_name"],
             set_={
-                "check_result": getattr(stmt.excluded, "check_result"),
-                "severity": getattr(stmt.excluded, "severity")
+                "check_result": insert.excluded.check_result,
+                "severity": insert.excluded.severity
             }
         )
         session.execute(stmt)
     session.commit()
 
 if __name__ == "__main__":
-    repo_path = Path("/path/to/repo")  # Replace with the path to your repo
-    db_url = "postgresql://postgres:postgres@localhost:5432/gitlab-usage"  # Replace with your PostgreSQL connection details
+    repo_path = Path("/tmp/halo")  # Path to your repository
+    db_url = "postgresql://postgres:postgres@localhost:5432/gitlab-usage"  # PostgreSQL connection details
 
     session = setup_database(db_url)
 
     # Assume repo_id is retrieved or assigned for the repository being analyzed
-    repo_id = 1  # Replace with actual repo_id
+    repo_id = 1  # Replace with the actual repo_id
 
     # Run analyses
     print("Running Lizard...")
