@@ -1,8 +1,10 @@
-from sqlalchemy import create_engine, Column, Integer, String, Text, Float, ForeignKey, insert
+from sqlalchemy import create_engine, Column, Integer, String, Text, Float, ForeignKey
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import declarative_base, sessionmaker
 import subprocess
 import csv
 from pathlib import Path
+import json
 
 Base = declarative_base()
 
@@ -76,9 +78,9 @@ def save_lizard_results(session, repo_id, results):
         ).on_conflict_do_update(
             index_elements=["repo_id", "file", "function"],
             set_={
-                "nloc": stmt.excluded.nloc,
-                "complexity": stmt.excluded.complexity,
-                "tokens": stmt.excluded.tokens
+                "nloc": insert.excluded.nloc,
+                "complexity": insert.excluded.complexity,
+                "tokens": insert.excluded.tokens
             }
         )
         session.execute(stmt)
@@ -87,11 +89,8 @@ def save_lizard_results(session, repo_id, results):
 # Run cloc analysis
 def run_cloc(repo_path):
     result = subprocess.run(["cloc", "--json", str(repo_path)], capture_output=True, text=True)
-    return json.loads(result.stdout)
-
-# Run Checkov analysis
-def run_checkov(repo_path):
-    result = subprocess.run(["checkov", "--directory", str(repo_path), "--quiet", "--output", "json"], capture_output=True, text=True)
+    if result.returncode != 0 or not result.stdout.strip():
+        raise RuntimeError(f"cloc analysis failed: {result.stderr.strip()}")
     return json.loads(result.stdout)
 
 # Save cloc results to database with upsert
@@ -109,14 +108,21 @@ def save_cloc_results(session, repo_id, results):
         ).on_conflict_do_update(
             index_elements=["repo_id", "language"],
             set_={
-                "files": stmt.excluded.files,
-                "blank": stmt.excluded.blank,
-                "comment": stmt.excluded.comment,
-                "code": stmt.excluded.code
+                "files": insert.excluded.files,
+                "blank": insert.excluded.blank,
+                "comment": insert.excluded.comment,
+                "code": insert.excluded.code
             }
         )
         session.execute(stmt)
     session.commit()
+
+# Run Checkov analysis
+def run_checkov(repo_path):
+    result = subprocess.run(["checkov", "--directory", str(repo_path), "--quiet", "--output", "json"], capture_output=True, text=True)
+    if result.returncode != 0 or not result.stdout.strip():
+        raise RuntimeError(f"Checkov analysis failed: {result.stderr.strip()}")
+    return json.loads(result.stdout)
 
 # Save Checkov results to database with upsert
 def save_checkov_results(session, repo_id, results):
@@ -130,15 +136,15 @@ def save_checkov_results(session, repo_id, results):
         ).on_conflict_do_update(
             index_elements=["repo_id", "resource", "check_name"],
             set_={
-                "check_result": stmt.excluded.check_result,
-                "severity": stmt.excluded.severity
+                "check_result": insert.excluded.check_result,
+                "severity": insert.excluded.severity
             }
         )
         session.execute(stmt)
     session.commit()
 
 if __name__ == "__main__":
-    repo_path = Path("/tmp/repo")  # Replace with the path to your repo
+    repo_path = Path("/tmp/halo")  # Replace with the path to your repo
     db_url = "postgresql://postgres:postgres@localhost:5432/gitlab-usage"  # Replace with your PostgreSQL connection details
 
     session = setup_database(db_url)
