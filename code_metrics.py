@@ -1,6 +1,5 @@
 from sqlalchemy import create_engine, Column, Integer, String, Text, Float, ForeignKey, insert
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import declarative_base, sessionmaker
 import subprocess
 import json
 from pathlib import Path
@@ -39,9 +38,9 @@ class CheckovResult(Base):
 
 # Database setup
 def setup_database(db_url):
-    engine = create_engine(db_url)
+    engine = create_engine(db_url, future=True)
     Base.metadata.create_all(engine)
-    Session = sessionmaker(bind=engine)
+    Session = sessionmaker(bind=engine, future=True)
     return Session()
 
 # Run Lizard analysis
@@ -125,7 +124,7 @@ def save_checkov_results(session, repo_id, results):
     session.commit()
 
 if __name__ == "__main__":
-    repo_path = Path("/path/to/repo")  # Replace with the path to your repo
+    repo_path = Path("/tmp/halo")  # Replace with the path to your repo
     db_url = "postgresql://postgres:postgres@localhost:5432/gitlab-usage"  # Replace with your PostgreSQL connection details
 
     session = setup_database(db_url)
