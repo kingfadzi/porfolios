@@ -12,6 +12,7 @@ SELECT
     r.last_commit_date,
     l.language,
     l.percent_usage,
+    p.repo_url,
     RANK() OVER (
     PARTITION BY l.language               -- Rank repositories within each language
     ORDER BY
@@ -23,6 +24,8 @@ SELECT
 FROM repo_metrics r
     JOIN languages_analysis l
 ON r.repo_id = l.repo_id
+    JOIN repos p
+    ON r.repo_id = p.repo_id                -- Join with the repos table to get the URL
     CROSS JOIN size_threshold t
 WHERE l.percent_usage >= 50                  -- Language must be dominant
   AND r.repo_size_bytes >= t.top_10_percent_size -- Repository must be large
@@ -30,6 +33,7 @@ WHERE l.percent_usage >= 50                  -- Language must be dominant
 
 SELECT
     repo_id,
+    repo_url,
     repo_size_bytes,
     number_of_contributors,
     total_commits,
