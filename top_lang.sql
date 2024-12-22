@@ -14,10 +14,10 @@ SELECT
     l.percent_usage,
     RANK() OVER (
     ORDER BY
-    r.total_commits DESC,        -- Most commits
-    r.number_of_contributors DESC, -- Most contributors
-    r.last_commit_date DESC,     -- Latest commit date
-    r.repo_size_bytes DESC       -- Larger size
+    r.last_commit_date DESC,     -- Most recent activity first
+    r.total_commits DESC,        -- Most commits next
+    r.number_of_contributors DESC, -- More contributors after that
+    r.repo_size_bytes DESC       -- Larger repositories last
     ) AS rank
 FROM repo_metrics r
     JOIN languages_analysis l
