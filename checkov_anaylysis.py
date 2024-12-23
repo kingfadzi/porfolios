@@ -5,6 +5,7 @@ from sarif_om import SarifLog
 from sqlalchemy import create_engine, Column, Integer, String, Text
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import declarative_base, sessionmaker
+from sarif_om import SarifLog, Run
 
 Base = declarative_base()
 
@@ -85,10 +86,7 @@ def parse_sarif_file(sarif_file):
         print(f"Error while processing SARIF file: {e}")
         raise
 
-
 # Save SARIF results to the database
-from sarif_om import SarifLog, Run
-
 def save_sarif_results(session, repo_id, sarif_log):
     try:
         print(f"Saving SARIF results for repo_id: {repo_id} to the database.")
@@ -137,8 +135,6 @@ def save_sarif_results(session, repo_id, sarif_log):
     except Exception as e:
         print(f"Error while saving SARIF results to the database: {e}")
         raise
-
-
 
 if __name__ == "__main__":
     repo_path = Path("/tmp/halo")  # Path to your repository
