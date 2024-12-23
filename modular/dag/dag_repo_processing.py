@@ -4,6 +4,8 @@ from datetime import datetime
 from modular.main.cloning import clone_repository, cleanup_repository_directory
 from modular.main.metrics import calculate_and_persist_repo_metrics
 from modular.main.language_analysis import perform_language_analysis
+from modular.main.lizard_analysis import run_lizard_analysis
+from modular.main.cloc_analysis import run_cloc_analysis
 from modular.main.models import Session, Repository
 
 # Analyze a single batch of repositories
@@ -13,6 +15,11 @@ def analyze_repositories(batch):
         try:
             # Clone repository
             repo_dir = clone_repository(repo)
+
+            run_lizard_analysis(repo_dir, repo, session)
+
+            # Run Cloc analysis
+            run_cloc_analysis(repo_dir, repo, session)
 
             # Perform language analysis
             perform_language_analysis(repo_dir, repo, session)
