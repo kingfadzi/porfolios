@@ -4,7 +4,7 @@ from pathlib import Path
 from sqlalchemy import create_engine, Column, Integer, String, Text
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import declarative_base, sessionmaker
-from sarif_om import SarifFile
+from sarif_om.sarif_file import SarifFile
 
 Base = declarative_base()
 
