@@ -33,7 +33,7 @@ def run_checkov_sarif(repo_dir, repo, session):
             logger.warning(f"Checkov stderr: {result.stderr.strip()}")
 
         # Define SARIF file path
-        sarif_file_path = Path(repo_dir) / "results_sarif.sarif"
+        sarif_file_path = Path(repo_dir)
 
         # Check if the SARIF file was produced
         if not sarif_file_path.exists():
