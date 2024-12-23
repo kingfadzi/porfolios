@@ -28,31 +28,43 @@ def setup_database(db_url):
 
 # Run Checkov analysis
 def run_checkov(repo_path):
+    # Run Checkov command
     result = subprocess.run(
         ["checkov", "--skip-download", "--directory", str(repo_path), "--output", "json"],
         capture_output=True,
         text=True
     )
 
+    # Print debugging information
     print("Raw stdout:", result.stdout)  # Debugging: Check JSON output
     print("Raw stderr:", result.stderr)  # Debugging: Check error output
 
-    if result.returncode != 0:
-        raise RuntimeError(f"Checkov failed: {result.stderr.strip()}")
-
+    # Handle JSON output
     try:
+        # Attempt to parse the JSON output
         checkov_output = json.loads(result.stdout)
+
+        # Check summary for failed checks or parsing issues
         summary = checkov_output.get("summary", {})
         print("Checkov Summary:", summary)  # Debugging: Print summary
 
+        # Log if there are parsing errors or failed checks
         if summary.get("failed", 0) > 0:
             print(f"Checkov found {summary['failed']} failed checks.")
-        elif summary.get("passed", 0) == 0:
-            print("No checks passed in Checkov. Please verify the configuration.")
+        if summary.get("parsing_errors", 0) > 0:
+            print(f"Checkov encountered {summary['parsing_errors']} parsing errors.")
 
         return checkov_output
-    except json.JSONDecodeError as e:
-        raise RuntimeError(f"Failed to parse JSON: {e}")
+
+    except json.JSONDecodeError:
+        # If JSON parsing fails, log and raise an error
+        print("Failed to parse Checkov JSON output.")
+        print(f"Raw stdout: {result.stdout}")
+        raise RuntimeError("Checkov produced invalid JSON output.")
+
+    # Handle critical failures
+    if result.returncode != 0:
+        raise RuntimeError(f"Checkov command failed with return code {result.returncode}: {result.stderr.strip()}")
 
 # Save Checkov results to the database
 def save_checkov_results(session, repo_id, results):
