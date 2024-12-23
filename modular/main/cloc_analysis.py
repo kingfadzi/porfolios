@@ -1,69 +1,61 @@
 import subprocess
-import os
-import logging
-from datetime import datetime
-from models import Session, RepoMetrics
+import json
 from sqlalchemy.dialects.postgresql import insert
+import logging
+from models import Session, ClocMetric
 
-# Configure logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 def run_cloc_analysis(repo_dir, repo, session):
-    """Run cloc to calculate lines of code and persist the results."""
-    logger.info(f"Starting cloc analysis for repository: {repo.repo_name} (ID: {repo.repo_id})")
-    cloc_output_file = f"{repo_dir}/cloc_output.json"
-
+    """Run cloc analysis and persist results."""
+    logger.info(f"Running cloc analysis for repo_id: {repo.repo_id}")
     try:
-        subprocess.run(
-            f"cloc --json {repo_dir} > {cloc_output_file}",
-            shell=True,
-            check=True
-        )
-        logger.info(f"cloc analysis completed successfully. Output file: {cloc_output_file}")
+        result = subprocess.run(["cloc", "--json", str(repo_dir)], capture_output=True, text=True, check=True)
     except subprocess.CalledProcessError as e:
-        logger.error(f"Error running cloc for repository {repo.repo_name}: {e}")
-        raise RuntimeError(f"cloc analysis failed for {repo.repo_name}: {e}")
+        logger.error(f"cloc analysis failed for repo_id {repo.repo_id}: {e.stderr.strip()}")
+        raise RuntimeError("cloc analysis failed.")
 
-    if os.path.exists(cloc_output_file):
-        with open(cloc_output_file, 'r') as f:
-            import json
-            data = json.load(f)
-            for language, stats in data.items():
-                if language != "header":
-                    for key, value in stats.items():
-                        logger.debug(f"cloc result - Language: {language}, Metric: {key}, Value: {value}")
-                        session.execute(
-                            insert(RepoMetrics).values(
-                                repo_id=repo.repo_id,
-                                metric_type="cloc",
-                                metric_key=f"{language}_{key}",
-                                metric_value=value
-                            ).on_conflict_do_update(
-                                index_elements=["repo_id", "metric_type", "metric_key"],
-                                set_={"metric_value": value, "updated_at": datetime.utcnow()}
-                            )
-                        )
-            session.commit()
-    else:
-        raise FileNotFoundError(f"cloc output file not found: {cloc_output_file}")
+    cloc_data = json.loads(result.stdout)
+    save_cloc_results(session, repo.repo_id, cloc_data)
+
+def save_cloc_results(session, repo_id, results):
+    for language, metrics in results.items():
+        if language == "header":
+            continue
+        session.execute(
+            insert(ClocMetric).values(
+                repo_id=repo_id,
+                language=language,
+                files=metrics["nFiles"],
+                blank=metrics["blank"],
+                comment=metrics["comment"],
+                code=metrics["code"]
+            ).on_conflict_do_update(
+                index_elements=["repo_id", "language"],
+                set_={
+                    "files": metrics["nFiles"],
+                    "blank": metrics["blank"],
+                    "comment": metrics["comment"],
+                    "code": metrics["code"],
+                }
+            )
+        )
+    session.commit()
 
 if __name__ == "__main__":
-    repo_slug = "example-repo"
-    repo_id = "example-repo-id"
-
     class MockRepo:
         def __init__(self, repo_id, repo_slug):
             self.repo_id = repo_id
             self.repo_slug = repo_slug
             self.repo_name = repo_slug
 
-    repo = MockRepo(repo_id, repo_slug)
-    repo_dir = f"/mnt/tmpfs/cloned_repositories/{repo.repo_slug}"
+    mock_repo = MockRepo(repo_id=1, repo_slug="mock-repo")
+    repo_dir = "/path/to/repo"
 
     session = Session()
     try:
-        run_cloc_analysis(repo_dir, repo, session)
+        run_cloc_analysis(repo_dir, mock_repo, session)
     except Exception as e:
         logger.error(f"Error during cloc analysis: {e}")
     finally:

@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, String, Float, Integer, DateTime, UniqueConstraint
+from sqlalchemy import create_engine, Column, Integer, String, Text, Float, DateTime, UniqueConstraint
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
@@ -38,3 +38,57 @@ class RepoMetrics(Base):
     repo_age_days = Column(Integer, nullable=False)
     active_branch_count = Column(Integer, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+# Lizard Metrics Model
+class LizardMetric(Base):
+    __tablename__ = "lizard_metrics"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    repo_id = Column(Integer, nullable=False)
+    file_name = Column(Text)
+    function_name = Column(Text)
+    long_name = Column(Text)
+    nloc = Column(Integer)
+    ccn = Column(Integer)
+    token_count = Column(Integer)
+    param = Column(Integer)
+    function_length = Column(Integer)
+    start_line = Column(Integer)
+    end_line = Column(Integer)
+    __table_args__ = (
+        UniqueConstraint("repo_id", "file_name", "function_name", name="lizard_metric_uc"),
+    )
+
+# Lizard Summary Model
+class LizardSummary(Base):
+    __tablename__ = "lizard_summary"
+    repo_id = Column(Integer, primary_key=True)
+    total_nloc = Column(Integer)
+    avg_ccn = Column(Float)
+    total_token_count = Column(Integer)
+    function_count = Column(Integer)
+
+# Cloc Metrics Model
+class ClocMetric(Base):
+    __tablename__ = "cloc_metrics"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    repo_id = Column(Integer, nullable=False)
+    language = Column(Text)
+    files = Column(Integer)
+    blank = Column(Integer)
+    comment = Column(Integer)
+    code = Column(Integer)
+    __table_args__ = (
+        UniqueConstraint("repo_id", "language", name="cloc_metric_uc"),
+    )
+
+# Checkov Results Model
+class CheckovResult(Base):
+    __tablename__ = "checkov_results"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    repo_id = Column(Integer, nullable=False)
+    resource = Column(Text)
+    check_name = Column(Text)
+    check_result = Column(Text)
+    severity = Column(Text)
+    __table_args__ = (
+        UniqueConstraint("repo_id", "resource", "check_name", name="checkov_result_uc"),
+    )
