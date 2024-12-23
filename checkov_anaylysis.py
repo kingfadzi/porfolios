@@ -87,10 +87,16 @@ def parse_sarif_file(sarif_file):
 
 
 # Save SARIF results to the database
+from sarif_om import SarifLog, Run
+
 def save_sarif_results(session, repo_id, sarif_log):
     try:
         print(f"Saving SARIF results for repo_id: {repo_id} to the database.")
-        for run in sarif_log.runs:
+
+        # Ensure each run is wrapped in a SarifRun object
+        runs = [Run(**run) if isinstance(run, dict) else run for run in sarif_log.runs]
+
+        for run in runs:
             tool = run.tool.driver
             rules = {rule.id: rule for rule in tool.rules}
 
@@ -132,6 +138,7 @@ def save_sarif_results(session, repo_id, sarif_log):
     except Exception as e:
         print(f"Error while saving SARIF results to the database: {e}")
         raise
+
 
 if __name__ == "__main__":
     repo_path = Path("/tmp/halo")  # Path to your repository
