@@ -34,6 +34,7 @@ cve.startyear=2002
 cve.validForHours=99999
 cveUrlModified=file:$NVD_PATH/nvdcve-1.1-Modified.json.gz
 cveUrlBase=file:$NVD_PATH/nvdcve-1.1-
+logging.level.org.owasp.dependencycheck=DEBUG
 EOL
 
 echo "Dependency-Check properties file created at $DC_PROPERTIES"
@@ -47,10 +48,11 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
-# Run Dependency-Check in offline mode
+# Run Dependency-Check in offline mode with no updates
 echo "Running Dependency-Check in offline mode..."
 "$DC_HOME/bin/dependency-check.sh" --scan "$SCAN_PATH" \
     --propertyfile "$DC_PROPERTIES" \
+    --noupdate \
     --format JSON \
     --log "$LOG_FILE" \
     --out "$OUTPUT_DIR"
