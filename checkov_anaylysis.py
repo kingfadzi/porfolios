@@ -30,21 +30,22 @@ def setup_database(db_url):
 
 # Run Checkov analysis and save SARIF output to a file
 def run_checkov_sarif(repo_path, output_file):
+    # Run Checkov and write output directly to file
     result = subprocess.run(
-        ["checkov", "--skip-download", "--directory", str(repo_path), "--output", "sarif"],
+        ["checkov", "--skip-download", "--directory", str(repo_path), "--output", "sarif", "--output-file", str(output_file)],
         capture_output=True,
         text=True
     )
 
-    # Save raw output to a file for further processing
-    with open(output_file, "w") as sarif_file:
-        sarif_file.write(result.stdout)
-
-    # Log any errors for debugging
+    # Log stderr for debugging
     if result.stderr.strip():
         print(f"stderr: {result.stderr.strip()}")
 
-    # Return path to the saved SARIF file
+    # Ensure the output file exists
+    if not Path(output_file).exists():
+        raise RuntimeError(f"Checkov did not produce an output file: {output_file}")
+
+    print(f"SARIF output written to {output_file}")
     return output_file
 
 # Read SARIF JSON from file and parse
@@ -88,4 +89,46 @@ def save_sarif_results(session, repo_id, sarif_log):
                 start_line = region.start_line if region else -1
                 end_line = region.end_line if region else -1
 
-                # Insert i
+                # Insert into database
+                session.execute(
+                    insert(CheckovSarifResult).values(
+                        repo_id=repo_id,
+                        rule_id=rule_id,
+                        rule_name=rule.name if rule else "No name",
+                        severity=severity,
+                        file_path=file_path,
+                        start_line=start_line,
+                        end_line=end_line,
+                        message=message
+                    ).on_conflict_do_update(
+                        index_elements=["repo_id", "rule_id", "file_path", "start_line", "end_line"],
+                        set_={
+                            "rule_name": rule.name if rule else "No name",
+                            "severity": severity,
+                            "message": message
+                        }
+                    )
+                )
+    session.commit()
+
+if __name__ == "__main__":
+    repo_path = Path("/tmp/halo")  # Path to your repository
+    output_file = "checkov_output.sarif"  # File to save SARIF output
+    db_url = "postgresql://postgres:postgres@localhost:5432/gitlab-usage"  # PostgreSQL connection details
+
+    session = setup_database(db_url)
+
+    # Assume repo_id is retrieved or assigned for the repository being analyzed
+    repo_id = 1  # Replace with the actual repo_id
+
+    # Run Checkov with SARIF output
+    print("Running Checkov...")
+    sarif_file = run_checkov_sarif(repo_path, output_file)
+
+    # Parse SARIF from file
+    sarif_log = parse_sarif_file(sarif_file)
+
+    # Save results to the database
+    save_sarif_results(session, repo_id, sarif_log)
+
+    print("Analysis complete. Results saved to database.")
