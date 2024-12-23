@@ -28,15 +28,18 @@ def setup_database(db_url):
     Session = sessionmaker(bind=engine, future=True)
     return Session()
 
-# Run Checkov analysis and save SARIF output to a file
-def run_checkov_sarif(repo_path, output_file):
+# Run Checkov analysis and save SARIF output to a directory
+def run_checkov_sarif(repo_path, output_dir):
     try:
         print(f"Running Checkov on directory: {repo_path}")
-        print(f"SARIF output will be written to: {output_file}")
+        print(f"SARIF output will be written to directory: {output_dir}")
 
-        # Run Checkov and write output directly to file
+        # Ensure the output directory exists
+        Path(output_dir).mkdir(parents=True, exist_ok=True)
+
+        # Run Checkov and write output to the directory
         result = subprocess.run(
-            ["checkov", "--skip-download", "--directory", str(repo_path), "--output", "sarif", "--output-file", str(output_file)],
+            ["checkov", "--skip-download", "--directory", str(repo_path), "--output", "sarif", "--output-file", str(output_dir)],
             capture_output=True,
             text=True
         )
@@ -45,22 +48,23 @@ def run_checkov_sarif(repo_path, output_file):
         if result.stderr.strip():
             print(f"Checkov stderr: {result.stderr.strip()}")
 
-        # Ensure the output file exists
-        if not Path(output_file).exists():
-            raise RuntimeError(f"Checkov did not produce an output file: {output_file}")
+        # Check for the expected SARIF file inside the directory
+        sarif_file = Path(output_dir) / "results_sarif.sarif"
+        if not sarif_file.exists():
+            raise RuntimeError(f"Checkov did not produce the expected SARIF file: {sarif_file}")
 
-        print(f"Checkov completed successfully. SARIF output written to: {output_file}")
-        return output_file
+        print(f"Checkov completed successfully. SARIF output written to: {sarif_file}")
+        return sarif_file
     except Exception as e:
         print(f"Error during Checkov execution: {e}")
         raise
 
 # Read SARIF JSON from file and parse
-def parse_sarif_file(output_file):
+def parse_sarif_file(sarif_file):
     try:
-        print(f"Reading SARIF file from: {output_file}")
-        with open(output_file, "r") as sarif_file:
-            sarif_json = json.load(sarif_file)
+        print(f"Reading SARIF file from: {sarif_file}")
+        with open(sarif_file, "r") as file:
+            sarif_json = json.load(file)
 
         # Parse the SARIF file into a SarifLog object
         sarif_log = SarifLog(**sarif_json)
@@ -69,11 +73,11 @@ def parse_sarif_file(output_file):
         if not sarif_log.runs:
             raise ValueError("SARIF JSON is valid but contains no 'runs'.")
 
-        print(f"SARIF file successfully parsed from: {output_file}")
+        print(f"SARIF file successfully parsed from: {sarif_file}")
         return sarif_log
     except json.JSONDecodeError:
-        print(f"Failed to decode SARIF JSON from file: {output_file}")
-        raise RuntimeError(f"Invalid JSON in file: {output_file}")
+        print(f"Failed to decode SARIF JSON from file: {sarif_file}")
+        raise RuntimeError(f"Invalid JSON in file: {sarif_file}")
     except Exception as e:
         print(f"Error while processing SARIF file: {e}")
         raise
@@ -127,7 +131,7 @@ def save_sarif_results(session, repo_id, sarif_log):
 
 if __name__ == "__main__":
     repo_path = Path("/tmp/halo")  # Path to your repository
-    output_file = "checkov_output.sarif"  # File to save SARIF output
+    output_dir = "checkov_output"  # Directory to save SARIF output
     db_url = "postgresql://postgres:postgres@localhost:5432/gitlab-usage"  # PostgreSQL connection details
 
     session = setup_database(db_url)
@@ -137,7 +141,7 @@ if __name__ == "__main__":
 
     # Run Checkov with SARIF output
     print("Starting Checkov analysis...")
-    sarif_file = run_checkov_sarif(repo_path, output_file)
+    sarif_file = run_checkov_sarif(repo_path, output_dir)
 
     # Parse SARIF from file
     sarif_log = parse_sarif_file(sarif_file)
