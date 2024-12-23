@@ -33,7 +33,7 @@ def run_checkov_sarif(repo_dir, repo, session):
             logger.warning(f"Checkov stderr: {result.stderr.strip()}")
 
         # Define SARIF file path
-        sarif_file_path = Path(repo_dir)
+        sarif_file_path = Path(repo_dir) / "results_sarif.sarif"
 
         # Check if the SARIF file was produced
         if not sarif_file_path.exists():
@@ -45,9 +45,12 @@ def run_checkov_sarif(repo_dir, repo, session):
         logger.error(f"Error during Checkov execution for repo_id {repo.repo_id}: {e}")
         raise
 
-def parse_sarif_file(sarif_file):
+def parse_sarif_file(sarif_file_dir):
     """Read and parse the SARIF file."""
     try:
+        # Append the file name to the directory path
+        sarif_file = Path(sarif_file_dir) / "results_sarif.sarif"
+
         logger.info(f"Reading SARIF file from: {sarif_file}")
         with open(sarif_file, "r") as file:
             sarif_json = json.load(file)
@@ -68,6 +71,7 @@ def parse_sarif_file(sarif_file):
     except Exception as e:
         logger.error(f"Error processing SARIF file: {e}")
         raise
+
 
 def save_sarif_results(session, repo_id, sarif_log):
     """Save SARIF results to the database."""
