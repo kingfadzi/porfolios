@@ -146,8 +146,8 @@ if __name__ == "__main__":
     try:
         logger.info(f"Starting standalone Checkov analysis for mock repo_id: {repo.repo_id}")
         sarif_file_dir = run_checkov_sarif(repo_dir, repo, session)
-        sarif_log = parse_sarif_file(sarif_file_dir)
-        save_sarif_results(session, repo.repo_id, sarif_log)
+        sarif_data = parse_sarif_file(sarif_file_dir)  # Parsed as a dictionary
+        save_sarif_results(session, repo.repo_id, sarif_data)
         logger.info(f"Standalone Checkov analysis completed successfully for repo_id: {repo.repo_id}")
     except Exception as e:
         logger.error(f"Error during standalone Checkov analysis: {e}")
