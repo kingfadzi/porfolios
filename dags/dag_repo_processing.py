@@ -1,12 +1,12 @@
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime
-from modular.main.cloning import clone_repository, cleanup_repository_directory
-from modular.main.metrics import calculate_and_persist_repo_metrics
-from modular.main.language_analysis import perform_language_analysis
-from modular.main.lizard_analysis import run_lizard_analysis
-from modular.main.cloc_analysis import run_cloc_analysis
-from modular.main.models import Session, Repository
+from modular.cloning import clone_repository, cleanup_repository_directory
+from modular.metrics import calculate_and_persist_repo_metrics
+from modular.language_analysis import perform_language_analysis
+from modular.lizard_analysis import run_lizard_analysis
+from modular.cloc_analysis import run_cloc_analysis
+from modular.models import Session, Repository
 
 # Analyze a single batch of repositories
 def analyze_repositories(batch):
