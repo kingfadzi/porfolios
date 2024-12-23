@@ -72,13 +72,11 @@ def parse_sarif_file(sarif_file_dir):
         logger.error(f"Error processing SARIF file: {e}")
         raise
 
-
 def save_sarif_results(session, repo_id, sarif_log):
     """Save SARIF results to the database."""
     try:
         logger.info(f"Saving SARIF results for repo_id: {repo_id} to the database.")
 
-        # Iterate through runs in the SARIF log
         for run in sarif_log.runs:
             tool = run.tool.driver
             rules = {rule.id: rule for rule in (tool.rules or [])}
@@ -91,8 +89,8 @@ def save_sarif_results(session, repo_id, sarif_log):
 
                 for location in result.locations or []:
                     physical_location = location.physical_location
-                    artifact_location = physical_location.artifact_location
-                    region = physical_location.region
+                    artifact_location = physical_location.artifact_location if physical_location else None
+                    region = physical_location.region if physical_location else None
                     file_path = artifact_location.uri if artifact_location else "N/A"
                     start_line = region.start_line if region else -1
                     end_line = region.end_line if region else -1
