@@ -36,18 +36,28 @@ def run_checkov_sarif(repo_path):
         text=True
     )
 
-    if result.returncode != 0:
-        print(f"Checkov failed with return code {result.returncode}.")
-        print(f"stderr: {result.stderr.strip()}")
-        raise RuntimeError("Checkov failed.")
+    # Log raw output for debugging
+    print(f"Raw stdout:\n{result.stdout[:500]}...")  # Truncate for readability
+    print(f"Raw stderr:\n{result.stderr.strip()}")
 
     try:
-        # Parse SARIF output
-        return SarifLog.from_dict(json.loads(result.stdout))
+        # Attempt to parse SARIF JSON
+        sarif_log = SarifLog.from_dict(json.loads(result.stdout))
+
+        # Validate SARIF structure
+        if not sarif_log.runs:
+            raise ValueError("SARIF JSON is valid but contains no 'runs'.")
+
+        print("SARIF Output successfully parsed and validated.")
+        return sarif_log
+    except json.JSONDecodeError:
+        print("Failed to decode SARIF JSON from Checkov.")
+        print(f"Raw stdout:\n{result.stdout}")
+        raise RuntimeError("Invalid JSON returned by Checkov.")
     except Exception as e:
-        print("Failed to parse SARIF JSON output.")
-        print(f"Raw stdout: {result.stdout}")
+        print("An error occurred while processing SARIF output.")
         raise e
+
 
 # Parse SARIF and save results into the database
 def save_sarif_results(session, repo_id, sarif_log):
