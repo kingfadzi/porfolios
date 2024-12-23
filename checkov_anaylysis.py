@@ -1,10 +1,10 @@
 import json
 import subprocess
 from pathlib import Path
+from sarif_om import SarifLog
 from sqlalchemy import create_engine, Column, Integer, String, Text
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import declarative_base, sessionmaker
-from sarif_om import SarifLog
 
 Base = declarative_base()
 
@@ -13,13 +13,13 @@ class CheckovSarifResult(Base):
     __tablename__ = "checkov_sarif_results"
     id = Column(Integer, primary_key=True, autoincrement=True)
     repo_id = Column(Integer, nullable=False)
-    rule_id = Column(Text)  # Rule identifier (e.g., CKV_AWS_21)
-    rule_name = Column(Text)  # Rule name or short description
-    severity = Column(Text)  # Severity of the issue
-    file_path = Column(Text)  # Path to the file
-    start_line = Column(Integer)  # Start line of the issue
-    end_line = Column(Integer)  # End line of the issue
-    message = Column(Text)  # Detailed message from the rule
+    rule_id = Column(Text)
+    rule_name = Column(Text)
+    severity = Column(Text)
+    file_path = Column(Text)
+    start_line = Column(Integer)
+    end_line = Column(Integer)
+    message = Column(Text)
 
 # Database setup
 def setup_database(db_url):
@@ -28,7 +28,7 @@ def setup_database(db_url):
     Session = sessionmaker(bind=engine, future=True)
     return Session()
 
-# Run Checkov analysis and get SARIF output
+# Run Checkov analysis and parse SARIF output
 def run_checkov_sarif(repo_path):
     result = subprocess.run(
         ["checkov", "--skip-download", "--directory", str(repo_path), "--output", "sarif"],
@@ -41,32 +41,26 @@ def run_checkov_sarif(repo_path):
     print(f"Raw stderr:\n{result.stderr.strip()}")
 
     try:
-        # Load SARIF JSON
         sarif_json = json.loads(result.stdout)
-
-        # Create SarifLog object
         sarif_log = SarifLog(**sarif_json)
 
-        # Validate SARIF structure
         if not sarif_log.runs:
             raise ValueError("SARIF JSON is valid but contains no 'runs'.")
 
-        print("SARIF Output successfully parsed and validated.")
+        print("SARIF Output successfully parsed.")
         return sarif_log
     except json.JSONDecodeError:
         print("Failed to decode SARIF JSON from Checkov.")
-        print(f"Raw stdout:\n{result.stdout}")
         raise RuntimeError("Invalid JSON returned by Checkov.")
     except Exception as e:
         print(f"An error occurred while processing SARIF output: {e}")
         raise
 
-
-# Parse SARIF and save results into the database
+# Save SARIF results to the database
 def save_sarif_results(session, repo_id, sarif_log):
     for run in sarif_log.runs:
         tool = run.tool.driver
-        rules = {rule.id: rule for rule in tool.rules}  # Map rules by ID
+        rules = {rule.id: rule for rule in tool.rules}
 
         for result in run.results:
             rule_id = result.rule_id
