@@ -62,3 +62,33 @@ def perform_language_analysis(repo_dir, repo, session):
         session.commit()
         logger.info(f"Language analysis results saved to the database for repo_id: {repo.repo_id}")
     except Exception as e:
+        logger.error(f"Error while parsing or saving analysis results for repository {repo.repo_name}: {e}")
+        raise RuntimeError(f"Failed to persist language analysis for {repo.repo_name}: {e}")
+
+if __name__ == "__main__":
+    # Hardcoded values for independent execution
+    repo_slug = "example-repo"
+    repo_id = "example-repo-id"
+
+    # Mock repo object
+    class MockRepo:
+        def __init__(self, repo_id, repo_slug):
+            self.repo_id = repo_id
+            self.repo_slug = repo_slug
+            self.repo_name = repo_slug  # Mock additional attributes if needed
+
+    repo = MockRepo(repo_id, repo_slug)
+
+    # Define the path to the cloned repository
+    repo_dir = f"/mnt/tmpfs/cloned_repositories/{repo.repo_slug}"
+
+    # Create a session and run language analysis
+    session = Session()
+    try:
+        logger.info(f"Running language analysis for hardcoded repo_id: {repo.repo_id}, repo_slug: {repo.repo_slug}")
+        perform_language_analysis(repo_dir, repo, session)
+    except Exception as e:
+        logger.error(f"Error during standalone language analysis execution: {e}")
+    finally:
+        session.close()
+        logger.info("Session closed.")
