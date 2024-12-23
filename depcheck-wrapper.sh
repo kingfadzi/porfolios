@@ -1,15 +1,13 @@
 #!/bin/bash
 
-# Script to run OWASP Dependency-Check in offline mode with manually downloaded NVD files
+# Script to run OWASP Dependency-Check in offline mode with a pre-configured properties file
 
 # Configurable variables
-JAVA_HOME="/usr/lib/jvm/java-11-openjdk-amd64"  # Path to Java installation
+JAVA_HOME="/usr/lib/jvm/jdk-21-oracle-x64"      # Path to Java installation
 DC_HOME="/opt/dependency-check"                # Path to Dependency-Check installation
 DC_PROPERTIES="$DC_HOME/dependency-check.properties" # Path to Dependency-Check properties file
-SCAN_PATH="/path/to/project"                   # Path to the project to scan
-OUTPUT_DIR="/path/to/output"                   # Directory to save the Dependency-Check report
-NVD_PATH="/path/to/nvd"                        # Directory containing manually downloaded NVD files
-DB_PATH="/path/to/database"                    # Directory to store the Dependency-Check database
+SCAN_PATH="/tmp/sonar-metrics"                 # Path to the project to scan
+OUTPUT_DIR="/tmp"                              # Directory to save the Dependency-Check report
 LOG_FILE="$OUTPUT_DIR/dependency-check.log"    # Path to the log file
 
 # Ensure JAVA_HOME is set
@@ -22,22 +20,14 @@ if [[ ! -d "$DC_HOME" ]]; then
     exit 1
 fi
 
-# Ensure the output and database directories exist
+# Ensure the output directory exists
 mkdir -p "$OUTPUT_DIR"
-mkdir -p "$DB_PATH"
 
-# Create the properties file for offline mode
-cat > "$DC_PROPERTIES" <<EOL
-# Dependency-Check properties for offline mode
-data.directory=$DB_PATH
-cve.startyear=2002
-cve.validForHours=99999
-cveUrlModified=file:$NVD_PATH/nvdcve-1.1-Modified.json.gz
-cveUrlBase=file:$NVD_PATH/nvdcve-1.1-
-logging.level.org.owasp.dependencycheck=DEBUG
-EOL
-
-echo "Dependency-Check properties file created at $DC_PROPERTIES"
+# Check if the properties file exists
+if [[ ! -f "$DC_PROPERTIES" ]]; then
+    echo "Error: Properties file not found at $DC_PROPERTIES"
+    exit 1
+fi
 
 # Preload the NVD data into the database
 echo "Preloading NVD data into the database..."
