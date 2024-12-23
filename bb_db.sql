@@ -75,13 +75,15 @@ CREATE TABLE cloc_metrics (
 
 -- Create checkov_results table
 CREATE TABLE checkov_results (
-    id SERIAL PRIMARY KEY,
-    repo_id INTEGER NOT NULL,
-    resource TEXT,
-    check_name TEXT,
-    check_result TEXT,
-    severity TEXT,
-    CONSTRAINT checkov_results_unique UNIQUE (repo_id, resource, check_name)
+    id SERIAL PRIMARY KEY,                        -- Auto-incrementing primary key
+    repo_id INTEGER NOT NULL,                    -- Repository ID (foreign key, not enforced here)
+    resource TEXT,                               -- The resource being checked (e.g., S3 bucket, IAM role)
+    check_name TEXT,                             -- Name/description of the check
+    check_result TEXT,                           -- Result of the check (e.g., PASSED, FAILED)
+    severity TEXT,                               -- Severity of the issue (e.g., LOW, MEDIUM, HIGH)
+    file_path TEXT,                              -- Path to the file containing the resource
+    line_range TEXT,                             -- Range of lines in the file affected by the issue
+    CONSTRAINT checkov_results_unique UNIQUE (repo_id, resource, check_name)  -- Ensure no duplicates for the same check
 );
 
 CREATE TABLE lizard_summary (
