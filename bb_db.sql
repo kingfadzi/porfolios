@@ -91,7 +91,8 @@ CREATE TABLE lizard_summary (
     total_nloc INTEGER,
     avg_ccn FLOAT,
     total_token_count INTEGER,
-    function_count INTEGER
+    function_count INTEGER,
+    total_ccn INTEGER
 );
 
 CREATE TABLE checkov_sarif_results (

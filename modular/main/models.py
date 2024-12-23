@@ -65,6 +65,7 @@ class LizardSummary(Base):
     avg_ccn = Column(Float)
     total_token_count = Column(Integer)
     function_count = Column(Integer)
+    total_ccn = Column(Integer)
 
 # Cloc Metrics Model
 class ClocMetric(Base):
