@@ -3,14 +3,14 @@ import csv
 import logging
 import os
 from sqlalchemy.dialects.postgresql import insert
-from models import Session, LizardMetric, LizardSummary
+from models import Session, LizardSummary
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 def run_lizard_analysis(repo_dir, repo, session):
-    """Run lizard analysis and persist results."""
+    """Run lizard analysis and persist only the summary results."""
     logger.info(f"Starting lizard analysis for repo_id: {repo.repo_id} (repo_slug: {repo.repo_slug})")
 
     # Validate repository directory
@@ -40,7 +40,6 @@ def run_lizard_analysis(repo_dir, repo, session):
         "nloc", "ccn", "token_count", "param", "function_length", "location",
         "file_name", "function_name", "long_name", "start_line", "end_line"
     ])
-    detailed_results = []
     summary = {"total_nloc": 0, "total_ccn": 0, "total_token_count": 0, "function_count": 0}
 
     # Process each row of the CSV output
@@ -59,20 +58,6 @@ def run_lizard_analysis(repo_dir, repo, session):
             logger.warning(f"Value conversion error in row: {row} - {ve}")
             continue
 
-        # Add the detailed result to the list
-        detailed_results.append({
-            "file_name": row["file_name"],
-            "function_name": row["function_name"],
-            "long_name": row["long_name"],
-            "nloc": int(row["nloc"]),
-            "ccn": int(row["ccn"]),
-            "token_count": int(row["token_count"]),
-            "param": int(row["param"]),
-            "function_length": int(row["function_length"]),
-            "start_line": int(row["start_line"]),
-            "end_line": int(row["end_line"]),
-        })
-
     # Calculate average CCN
     avg_ccn = summary["total_ccn"] / summary["function_count"] if summary["function_count"] > 0 else 0
     summary["avg_ccn"] = avg_ccn
@@ -81,22 +66,8 @@ def run_lizard_analysis(repo_dir, repo, session):
                 f"Total NLOC: {summary['total_nloc']}, Avg CCN: {summary['avg_ccn']}, "
                 f"Total Tokens: {summary['total_token_count']}, Function Count: {summary['function_count']}")
 
-    # Save detailed results and summary to the database
-    save_lizard_results(session, repo.repo_id, detailed_results)
+    # Save summary results to the database
     save_lizard_summary(session, repo.repo_id, summary)
-
-def save_lizard_results(session, repo_id, results):
-    """Persist detailed lizard analysis results."""
-    logger.debug(f"Saving detailed lizard metrics for repo_id: {repo_id}")
-    for record in results:
-        session.execute(
-            insert(LizardMetric).values(repo_id=repo_id, **record).on_conflict_do_update(
-                index_elements=["repo_id", "file_name", "function_name"],
-                set_={key: record[key] for key in record if key != "repo_id"}
-            )
-        )
-    session.commit()
-    logger.debug(f"Detailed lizard metrics committed to the database for repo_id: {repo_id}")
 
 def save_lizard_summary(session, repo_id, summary):
     """Persist lizard summary metrics."""
