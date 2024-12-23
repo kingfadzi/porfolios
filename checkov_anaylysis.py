@@ -35,36 +35,38 @@ def run_checkov(repo_path):
         text=True
     )
 
-    # Print debugging information
     print("Raw stdout:", result.stdout)  # Debugging: Check JSON output
     print("Raw stderr:", result.stderr)  # Debugging: Check error output
 
-    # Handle JSON output
     try:
-        # Attempt to parse the JSON output
+        # Attempt to parse JSON output
         checkov_output = json.loads(result.stdout)
 
-        # Check summary for failed checks or parsing issues
-        summary = checkov_output.get("summary", {})
-        print("Checkov Summary:", summary)  # Debugging: Print summary
+        # Handle cases where JSON is a list
+        if isinstance(checkov_output, list):
+            for item in checkov_output:
+                print("Checkov Item:", item)  # Debugging: Print each item
+                if "summary" in item:
+                    summary = item["summary"]
+                    print("Checkov Summary:", summary)  # Print summary for debugging
 
-        # Log if there are parsing errors or failed checks
-        if summary.get("failed", 0) > 0:
-            print(f"Checkov found {summary['failed']} failed checks.")
-        if summary.get("parsing_errors", 0) > 0:
-            print(f"Checkov encountered {summary['parsing_errors']} parsing errors.")
+            # Return the entire parsed list for further processing
+            return checkov_output
 
-        return checkov_output
+        # Handle cases where JSON is a dictionary
+        elif isinstance(checkov_output, dict):
+            summary = checkov_output.get("summary", {})
+            print("Checkov Summary:", summary)  # Debugging: Print summary
+            return checkov_output
 
-    except json.JSONDecodeError:
-        # If JSON parsing fails, log and raise an error
+        # Handle unexpected JSON formats
+        else:
+            raise ValueError("Unexpected JSON format returned by Checkov.")
+
+    except json.JSONDecodeError as e:
         print("Failed to parse Checkov JSON output.")
         print(f"Raw stdout: {result.stdout}")
-        raise RuntimeError("Checkov produced invalid JSON output.")
-
-    # Handle critical failures
-    if result.returncode != 0:
-        raise RuntimeError(f"Checkov command failed with return code {result.returncode}: {result.stderr.strip()}")
+        raise RuntimeError("Checkov produced invalid JSON output.") from e
 
 # Save Checkov results to the database
 def save_checkov_results(session, repo_id, results):
