@@ -4,7 +4,7 @@ from pathlib import Path
 from sqlalchemy import create_engine, Column, Integer, String, Text
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import declarative_base, sessionmaker
-from sarif_om.sarif_file import SarifFile
+from sarif_om import SarifLog
 
 Base = declarative_base()
 
@@ -43,15 +43,15 @@ def run_checkov_sarif(repo_path):
 
     try:
         # Parse SARIF output
-        return SarifFile.from_json_string(result.stdout)
+        return SarifLog.from_dict(json.loads(result.stdout))
     except Exception as e:
         print("Failed to parse SARIF JSON output.")
         print(f"Raw stdout: {result.stdout}")
         raise e
 
 # Parse SARIF and save results into the database
-def save_sarif_results(session, repo_id, sarif_data):
-    for run in sarif_data.runs:
+def save_sarif_results(session, repo_id, sarif_log):
+    for run in sarif_log.runs:
         tool = run.tool.driver
         rules = {rule.id: rule for rule in tool.rules}  # Map rules by ID
 
@@ -101,7 +101,7 @@ if __name__ == "__main__":
 
     # Run Checkov with SARIF output
     print("Running Checkov...")
-    sarif_data = run_checkov_sarif(repo_path)
-    save_sarif_results(session, repo_id, sarif_data)
+    sarif_log = run_checkov_sarif(repo_path)
+    save_sarif_results(session, repo_id, sarif_log)
 
     print("Analysis complete. Results saved to database.")
