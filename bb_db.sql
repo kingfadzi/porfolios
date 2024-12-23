@@ -47,7 +47,7 @@ DROP TABLE IF EXISTS lizard_metrics;
 
 CREATE TABLE lizard_metrics (
     id SERIAL PRIMARY KEY,
-    repo_id INTEGER NOT NULL,
+    repo_id VARCHAR NOT NULL,
     file_name TEXT,  -- Updated
     function_name TEXT,
     long_name TEXT,
@@ -64,7 +64,7 @@ CREATE TABLE lizard_metrics (
 -- Create cloc_metrics table
 CREATE TABLE cloc_metrics (
     id SERIAL PRIMARY KEY,
-    repo_id INTEGER NOT NULL,
+    repo_id VARCHAR NOT NULL,
     language TEXT,
     files INTEGER,
     blank INTEGER,
@@ -76,7 +76,7 @@ CREATE TABLE cloc_metrics (
 -- Create checkov_results table
 CREATE TABLE checkov_results (
     id SERIAL PRIMARY KEY,                        -- Auto-incrementing primary key
-    repo_id INTEGER NOT NULL,                    -- Repository ID (foreign key, not enforced here)
+    repo_id VARCHAR NOT NULL,                    -- Repository ID (foreign key, not enforced here)
     resource TEXT,                               -- The resource being checked (e.g., S3 bucket, IAM role)
     check_name TEXT,                             -- Name/description of the check
     check_result TEXT,                           -- Result of the check (e.g., PASSED, FAILED)
@@ -87,7 +87,7 @@ CREATE TABLE checkov_results (
 );
 
 CREATE TABLE lizard_summary (
-    repo_id INTEGER PRIMARY KEY,  -- repo_id as the primary key
+    repo_id VARCHAR PRIMARY KEY,  -- repo_id as the primary key
     total_nloc INTEGER,
     avg_ccn FLOAT,
     total_token_count INTEGER,
@@ -96,7 +96,7 @@ CREATE TABLE lizard_summary (
 
 CREATE TABLE checkov_sarif_results (
     id SERIAL PRIMARY KEY,
-    repo_id INTEGER NOT NULL,
+    repo_id VARCHAR NOT NULL,
     rule_id TEXT NOT NULL,
     rule_name TEXT,
     severity TEXT,
