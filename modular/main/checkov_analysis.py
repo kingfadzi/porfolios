@@ -3,130 +3,132 @@ import json
 import logging
 from pathlib import Path
 from sqlalchemy.dialects.postgresql import insert
-from models import Session, CheckovSarifResult
+from models import CheckovSarifResult
+from sarif_om import SarifLog
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-def run_checkov_analysis(repo_dir, repo, session):
-    """Run Checkov analysis and persist SARIF results."""
-    logger.info(f"Starting Checkov analysis for repo_id: {repo.repo_id} (repo_slug: {repo.repo_slug})")
-
-    # Validate repository directory
-    if not Path(repo_dir).exists():
-        logger.error(f"Repository directory does not exist: {repo_dir}")
-        raise FileNotFoundError(f"Repository directory not found: {repo_dir}")
-
-    logger.debug(f"Repository directory found: {repo_dir}")
-
-    # Define output directory and SARIF file
-    output_dir = Path("checkov_output") / repo.repo_slug
-    sarif_file_path = output_dir / "results_sarif.sarif"
-
-    # Run Checkov analysis
+def run_checkov_sarif(repo_path, output_dir):
+    """Run Checkov analysis and save SARIF output to a specified directory."""
     try:
-        logger.info(f"Executing Checkov analysis in directory: {repo_dir}")
-        output_dir.mkdir(parents=True, exist_ok=True)
+        logger.info(f"Running Checkov on directory: {repo_path}")
+        logger.info(f"SARIF output will be written to directory: {output_dir}")
+
+        # Ensure the output directory exists
+        Path(output_dir).mkdir(parents=True, exist_ok=True)
+
+        # Define the SARIF file path
+        sarif_file_path = Path(output_dir) / "results_sarif.sarif"
+
+        # Run Checkov command
         result = subprocess.run(
             [
                 "checkov",
                 "--skip-download",
-                "--directory", str(repo_dir),
+                "--directory", str(repo_path),
                 "--output", "sarif",
                 "--output-file", str(sarif_file_path)
             ],
             capture_output=True,
-            text=True,
-            check=True
+            text=True
         )
-        logger.debug(f"Checkov command completed successfully for repo_id: {repo.repo_id}")
 
+        # Log stderr for debugging
         if result.stderr.strip():
             logger.warning(f"Checkov stderr: {result.stderr.strip()}")
 
+        # Check if the SARIF file was produced
         if not sarif_file_path.exists():
             raise RuntimeError(f"Checkov did not produce the expected SARIF file: {sarif_file_path}")
 
         logger.info(f"Checkov completed successfully. SARIF output written to: {sarif_file_path}")
-    except subprocess.CalledProcessError as e:
-        logger.error(f"Checkov command failed for repo_id {repo.repo_id}: {e.stderr.strip()}")
-        raise RuntimeError("Checkov analysis failed.")
+        return sarif_file_path
+    except Exception as e:
+        logger.error(f"Error during Checkov execution: {e}")
+        raise
 
-    # Parse the SARIF output
-    logger.info(f"Parsing SARIF file for repo_id: {repo.repo_id}")
+def parse_sarif_file(sarif_file):
+    """Read and parse the SARIF file."""
     try:
-        with open(sarif_file_path, "r") as file:
+        logger.info(f"Reading SARIF file from: {sarif_file}")
+        with open(sarif_file, "r") as file:
             sarif_json = json.load(file)
 
+        # Filter unsupported keys (e.g., $schema)
+        sarif_json_filtered = {k: v for k, v in sarif_json.items() if not k.startswith("$")}
+        sarif_log = SarifLog(**sarif_json_filtered)
+
         # Validate SARIF content
-        if "runs" not in sarif_json or not sarif_json["runs"]:
+        if not sarif_log.runs:
             raise ValueError("SARIF JSON contains no 'runs'.")
 
-        sarif_data = sarif_json["runs"][0]
-        logger.info(f"SARIF file parsed successfully for repo_id: {repo.repo_id}")
+        logger.info(f"SARIF file successfully parsed from: {sarif_file}")
+        return sarif_log
     except json.JSONDecodeError:
-        logger.error(f"Failed to decode SARIF JSON for repo_id: {repo.repo_id}")
+        logger.error(f"Failed to decode SARIF JSON from file: {sarif_file}")
         raise RuntimeError("Invalid JSON in SARIF file.")
     except Exception as e:
-        logger.error(f"Error parsing SARIF file for repo_id {repo.repo_id}: {e}")
-        raise RuntimeError("SARIF file processing failed.")
+        logger.error(f"Error processing SARIF file: {e}")
+        raise
 
-    # Save SARIF results to the database
-    save_checkov_results(session, repo.repo_id, sarif_data)
-
-def save_checkov_results(session, repo_id, sarif_data):
-    """Save Checkov SARIF results to the database."""
-    logger.info(f"Saving Checkov SARIF results for repo_id: {repo_id}")
+def save_sarif_results(session, repo_id, sarif_log):
+    """Save SARIF results to the database."""
+    logger.info(f"Saving SARIF results for repo_id: {repo_id}")
     try:
-        tool = sarif_data["tool"]["driver"]
-        rules = {rule["id"]: rule for rule in tool.get("rules", [])}
+        for run in sarif_log.runs:
+            tool = run.tool.driver
+            rules = {rule.id: rule for rule in tool.rules or []}
 
-        for result in sarif_data.get("results", []):
-            rule_id = result.get("ruleId")
-            rule = rules.get(rule_id, {})
-            severity = rule.get("properties", {}).get("severity", "UNKNOWN")
-            message = result.get("message", {}).get("text", "No message provided")
+            for result in run.results or []:
+                rule_id = result.rule_id
+                rule = rules.get(rule_id, {})
+                severity = rule.properties.get("severity", "UNKNOWN") if rule.properties else "UNKNOWN"
+                message = result.message.text if result.message else "No message provided"
 
-            for location in result.get("locations", []):
-                physical_location = location.get("physicalLocation", {})
-                artifact_location = physical_location.get("artifactLocation", {})
-                region = physical_location.get("region", {})
-                file_path = artifact_location.get("uri", "N/A")
-                start_line = region.get("startLine", -1)
-                end_line = region.get("endLine", -1)
+                for location in result.locations or []:
+                    physical_location = location.physical_location
+                    artifact_location = physical_location.artifact_location
+                    region = physical_location.region
+                    file_path = artifact_location.uri if artifact_location else "N/A"
+                    start_line = region.start_line if region else -1
+                    end_line = region.end_line if region else -1
 
-                session.execute(
-                    insert(CheckovSarifResult).values(
-                        repo_id=repo_id,
-                        rule_id=rule_id,
-                        rule_name=rule.get("name", "No name"),
-                        severity=severity,
-                        file_path=file_path,
-                        start_line=start_line,
-                        end_line=end_line,
-                        message=message
-                    ).on_conflict_do_update(
-                        index_elements=["repo_id", "rule_id", "file_path", "start_line", "end_line"],
-                        set_={
-                            "rule_name": rule.get("name", "No name"),
-                            "severity": severity,
-                            "message": message
-                        }
+                    session.execute(
+                        insert(CheckovSarifResult).values(
+                            repo_id=repo_id,
+                            rule_id=rule_id,
+                            rule_name=rule.name or "No name",
+                            severity=severity,
+                            file_path=file_path,
+                            start_line=start_line,
+                            end_line=end_line,
+                            message=message
+                        ).on_conflict_do_update(
+                            index_elements=["repo_id", "rule_id", "file_path", "start_line", "end_line"],
+                            set_={
+                                "rule_name": rule.name or "No name",
+                                "severity": severity,
+                                "message": message
+                            }
+                        )
                     )
-                )
         session.commit()
-        logger.info(f"Checkov SARIF results successfully saved for repo_id: {repo_id}")
+        logger.info(f"SARIF results successfully saved for repo_id: {repo_id}")
     except Exception as e:
-        logger.error(f"Error saving Checkov SARIF results for repo_id {repo_id}: {e}")
+        logger.error(f"Error saving SARIF results to the database for repo_id {repo_id}: {e}")
         raise
 
 if __name__ == "__main__":
     import os
+    from models import Session
 
     # Hardcoded values for standalone execution
     repo_slug = "halo"
     repo_id = "halo"
+    repo_dir = "/tmp/halo"
+    output_dir = "checkov_output"
 
     # Mock repo object
     class MockRepo:
@@ -135,14 +137,15 @@ if __name__ == "__main__":
             self.repo_slug = repo_slug
 
     repo = MockRepo(repo_id, repo_slug)
-    repo_dir = "/tmp/halo"
 
     # Initialize database session
     session = Session()
 
     try:
         logger.info(f"Starting standalone Checkov analysis for mock repo_id: {repo.repo_id}")
-        run_checkov_analysis(repo_dir, repo, session)
+        sarif_file = run_checkov_sarif(repo_dir, output_dir)
+        sarif_log = parse_sarif_file(sarif_file)
+        save_sarif_results(session, repo.repo_id, sarif_log)
         logger.info(f"Standalone Checkov analysis completed successfully for repo_id: {repo.repo_id}")
     except Exception as e:
         logger.error(f"Error during standalone Checkov analysis: {e}")
