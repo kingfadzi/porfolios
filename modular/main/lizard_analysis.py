@@ -55,11 +55,6 @@ def run_lizard_analysis(repo_dir, repo, session):
             logger.debug("Skipping header row in lizard results.")
             continue
 
-        logger.debug(
-            f"Processing function: {row['function_name']} in file: {row['file_name']} "
-            f"with NLOC: {row['nloc']}, CCN: {row['ccn']}, Tokens: {row['token_count']}"
-        )
-
         # Aggregate metrics for the summary
         try:
             summary["total_nloc"] += int(row["nloc"])
@@ -100,10 +95,6 @@ def save_lizard_results(session, repo_id, results):
     """Persist detailed lizard analysis results."""
     logger.debug(f"Saving detailed lizard metrics for repo_id: {repo_id}")
     for record in results:
-        logger.debug(
-            f"Saving metrics for function: {record['function_name']} in file: {record['file_name']} - "
-            f"NLOC: {record['nloc']}, CCN: {record['ccn']}, Tokens: {record['token_count']}"
-        )
         session.execute(
             insert(LizardMetric).values(repo_id=repo_id, **record).on_conflict_do_update(
                 index_elements=["repo_id", "file_name", "function_name"],
