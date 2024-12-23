@@ -1,18 +1,13 @@
 import subprocess
 import csv
 import logging
-from logging.handlers import RotatingFileHandler
+import os
 from sqlalchemy.dialects.postgresql import insert
 from models import Session, LizardMetric, LizardSummary
-import os
 
-# Configure logging with rotation
-log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-log_handler = RotatingFileHandler('lizard_analysis.log', maxBytes=5*1024*1024, backupCount=5)
-log_handler.setFormatter(log_formatter)
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-logger.addHandler(log_handler)
 
 def run_lizard_analysis(repo_dir, repo, session):
     """Run lizard analysis and persist results."""
@@ -27,9 +22,8 @@ def run_lizard_analysis(repo_dir, repo, session):
 
     # Run lizard analysis command
     try:
-        lizard_command = ["lizard", "--csv", str(repo_dir)]
-        logger.info(f"Executing lizard command: {' '.join(lizard_command)}")
-        result = subprocess.run(lizard_command, capture_output=True, text=True, check=True)
+        logger.info(f"Executing lizard command in directory: {repo_dir}")
+        result = subprocess.run(["lizard", "--csv", str(repo_dir)], capture_output=True, text=True, check=True)
         logger.debug(f"Lizard command completed successfully for repo_id: {repo.repo_id}")
     except subprocess.CalledProcessError as e:
         logger.error(f"Lizard command failed for repo_id {repo.repo_id}: {e.stderr.strip()}")
@@ -117,9 +111,8 @@ def save_lizard_summary(session, repo_id, summary):
 
 if __name__ == "__main__":
     # Hardcoded values for standalone execution
-    repo_dir = "/tmp/halo"
-    repo_id = "halo"
     repo_slug = "halo"
+    repo_id = "halo"
 
     # Mock repo object
     class MockRepo:
@@ -129,9 +122,16 @@ if __name__ == "__main__":
             self.repo_name = repo_slug  # Mock additional attributes if needed
 
     repo = MockRepo(repo_id, repo_slug)
+    repo_dir = "/tmp/halo"
 
-    # Initialize database session
+    # Create a session and run lizard analysis
     session = Session()
-
-    # Run lizard analysis
-    run_lizard_analysis(repo_dir, repo, session)
+    try:
+        logger.info(f"Starting standalone lizard analysis for mock repo_id: {repo.repo_id}")
+        run_lizard_analysis(repo_dir, repo, session)
+        logger.info(f"Standalone lizard analysis completed successfully for repo_id: {repo.repo_id}")
+    except Exception as e:
+        logger.error(f"Error during standalone lizard analysis: {e}")
+    finally:
+        session.close()
+        logger.info(f"Database session closed for repo_id: {repo.repo_id}")
