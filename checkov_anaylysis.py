@@ -41,8 +41,11 @@ def run_checkov_sarif(repo_path):
     print(f"Raw stderr:\n{result.stderr.strip()}")
 
     try:
-        # Attempt to parse SARIF JSON
-        sarif_log = SarifLog.from_dict(json.loads(result.stdout))
+        # Load SARIF JSON
+        sarif_json = json.loads(result.stdout)
+
+        # Create SarifLog object
+        sarif_log = SarifLog(**sarif_json)
 
         # Validate SARIF structure
         if not sarif_log.runs:
@@ -55,8 +58,8 @@ def run_checkov_sarif(repo_path):
         print(f"Raw stdout:\n{result.stdout}")
         raise RuntimeError("Invalid JSON returned by Checkov.")
     except Exception as e:
-        print("An error occurred while processing SARIF output.")
-        raise e
+        print(f"An error occurred while processing SARIF output: {e}")
+        raise
 
 
 # Parse SARIF and save results into the database
