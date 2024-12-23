@@ -1,12 +1,18 @@
 import subprocess
 import csv
 import logging
+from logging.handlers import RotatingFileHandler
 from sqlalchemy.dialects.postgresql import insert
 from models import Session, LizardMetric, LizardSummary
+import os
 
-# Configure logging
-logging.basicConfig(level=logging.DEBUG)
+# Configure logging with rotation
+log_formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+log_handler = RotatingFileHandler('lizard_analysis.log', maxBytes=5*1024*1024, backupCount=5)
+log_handler.setFormatter(log_formatter)
 logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+logger.addHandler(log_handler)
 
 def run_lizard_analysis(repo_dir, repo, session):
     """Run lizard analysis and persist results."""
@@ -25,8 +31,6 @@ def run_lizard_analysis(repo_dir, repo, session):
         logger.info(f"Executing lizard command: {' '.join(lizard_command)}")
         result = subprocess.run(lizard_command, capture_output=True, text=True, check=True)
         logger.debug(f"Lizard command completed successfully for repo_id: {repo.repo_id}")
-        logger.debug(f"Lizard stdout: {result.stdout}")
-        logger.debug(f"Lizard stderr: {result.stderr}")
     except subprocess.CalledProcessError as e:
         logger.error(f"Lizard command failed for repo_id {repo.repo_id}: {e.stderr.strip()}")
         raise RuntimeError("Lizard analysis failed.")
@@ -57,10 +61,14 @@ def run_lizard_analysis(repo_dir, repo, session):
         )
 
         # Aggregate metrics for the summary
-        summary["total_nloc"] += int(row["nloc"])
-        summary["total_ccn"] += int(row["ccn"])
-        summary["total_token_count"] += int(row["token_count"])
-        summary["function_count"] += 1
+        try:
+            summary["total_nloc"] += int(row["nloc"])
+            summary["total_ccn"] += int(row["ccn"])
+            summary["total_token_count"] += int(row["token_count"])
+            summary["function_count"] += 1
+        except ValueError as ve:
+            logger.warning(f"Value conversion error in row: {row} - {ve}")
+            continue
 
         # Add the detailed result to the list
         detailed_results.append({
@@ -117,8 +125,6 @@ def save_lizard_summary(session, repo_id, summary):
     logger.debug(f"Lizard summary metrics committed to the database for repo_id: {repo_id}")
 
 if __name__ == "__main__":
-    import os
-
     # Hardcoded values for standalone execution
     repo_dir = "/tmp/halo"
     repo_id = "halo"
