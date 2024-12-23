@@ -70,58 +70,63 @@ def run_checkov(repo_path):
 
 # Save Checkov results to the database
 def save_checkov_results(session, repo_id, results):
-    failed_checks = results.get("results", {}).get("failed_checks", [])
-    passed_checks = results.get("results", {}).get("passed_checks", [])
-    parsing_errors = results.get("results", {}).get("parsing_errors", [])
+    # Ensure results is a list
+    if not isinstance(results, list):
+        raise ValueError("Expected 'results' to be a list, but got a different type.")
 
-    # Insert failed checks
-    for check in failed_checks:
-        session.execute(
-            insert(CheckovResult).values(
-                repo_id=repo_id,
-                resource=check["resource"],
-                check_name=check["check_name"],
-                check_result="FAILED",
-                severity=check.get("severity", "UNKNOWN"),
-                file_path=check.get("file_path", "N/A"),
-                line_range=str(check.get("file_line_range", "N/A"))
-            ).on_conflict_do_update(
-                index_elements=["repo_id", "resource", "check_name"],  # Matches the unique constraint
-                set_={
-                    "check_result": "FAILED",
-                    "severity": check.get("severity", "UNKNOWN"),
-                    "file_path": check.get("file_path", "N/A"),
-                    "line_range": str(check.get("file_line_range", "N/A"))
-                }
+    for result in results:
+        # Check if the current result contains failed checks
+        failed_checks = result.get("failed_checks", [])
+        for check in failed_checks:
+            session.execute(
+                insert(CheckovResult).values(
+                    repo_id=repo_id,
+                    resource=check["resource"],
+                    check_name=check["check_name"],
+                    check_result="FAILED",
+                    severity=check.get("severity", "UNKNOWN"),
+                    file_path=check.get("file_path", "N/A"),
+                    line_range=str(check.get("file_line_range", "N/A"))
+                ).on_conflict_do_update(
+                    index_elements=["repo_id", "resource", "check_name"],
+                    set_={
+                        "check_result": "FAILED",
+                        "severity": check.get("severity", "UNKNOWN"),
+                        "file_path": check.get("file_path", "N/A"),
+                        "line_range": str(check.get("file_line_range", "N/A"))
+                    }
+                )
             )
-        )
 
-    # Insert passed checks (optional, depending on your needs)
-    for check in passed_checks:
-        session.execute(
-            insert(CheckovResult).values(
-                repo_id=repo_id,
-                resource=check["resource"],
-                check_name=check["check_name"],
-                check_result="PASSED",
-                severity="LOW",
-                file_path=check.get("file_path", "N/A"),
-                line_range=str(check.get("file_line_range", "N/A"))
-            ).on_conflict_do_update(
-                index_elements=["repo_id", "resource", "check_name"],  # Matches the unique constraint
-                set_={
-                    "check_result": "PASSED",
-                    "file_path": check.get("file_path", "N/A"),
-                    "line_range": str(check.get("file_line_range", "N/A"))
-                }
+        # Check if the current result contains passed checks
+        passed_checks = result.get("passed_checks", [])
+        for check in passed_checks:
+            session.execute(
+                insert(CheckovResult).values(
+                    repo_id=repo_id,
+                    resource=check["resource"],
+                    check_name=check["check_name"],
+                    check_result="PASSED",
+                    severity="LOW",
+                    file_path=check.get("file_path", "N/A"),
+                    line_range=str(check.get("file_line_range", "N/A"))
+                ).on_conflict_do_update(
+                    index_elements=["repo_id", "resource", "check_name"],
+                    set_={
+                        "check_result": "PASSED",
+                        "file_path": check.get("file_path", "N/A"),
+                        "line_range": str(check.get("file_line_range", "N/A"))
+                    }
+                )
             )
-        )
 
-    # Log parsing errors
-    for error in parsing_errors:
-        print(f"Parsing error: {error}")
+        # Log parsing errors if present
+        parsing_errors = result.get("parsing_errors", [])
+        for error in parsing_errors:
+            print(f"Parsing error: {error}")
 
     session.commit()
+
 
 if __name__ == "__main__":
     repo_path = Path("/tmp/halo")  # Path to your repository
