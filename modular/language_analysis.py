@@ -2,7 +2,7 @@ import subprocess
 import csv
 from sqlalchemy.dialects.postgresql import insert
 import logging
-from models import Session, LizardMetric, LizardSummary
+from modular.models import Session, LizardMetric, LizardSummary
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)

@@ -3,7 +3,7 @@ import re
 import subprocess
 import threading
 import logging
-from models import Session, Repository
+from modular.models import Session, Repository
 
 clone_semaphore = threading.Semaphore(10)
 logging.basicConfig(level=logging.DEBUG)

@@ -2,7 +2,7 @@ from git import Repo
 from datetime import datetime
 import pytz
 from sqlalchemy.dialects.postgresql import insert
-from models import Session, RepoMetrics
+from modular.models import Session, RepoMetrics
 
 def calculate_and_persist_repo_metrics(repo_dir, repo, session):
     """Calculate and persist repository metrics."""

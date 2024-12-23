@@ -1,3 +1,4 @@
+import logging
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime
@@ -7,6 +8,10 @@ from modular.language_analysis import perform_language_analysis
 from modular.lizard_analysis import run_lizard_analysis
 from modular.cloc_analysis import run_cloc_analysis
 from modular.models import Session, Repository
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 # Analyze a single batch of repositories
 def analyze_repositories(batch):
@@ -70,15 +75,15 @@ default_args = {'owner': 'airflow', 'start_date': datetime(2023, 12, 1), 'retrie
 
 # Define DAG
 with DAG(
-        'repo_processing_with_batches',
+        'modular_processing_with_batches',
         default_args=default_args,
         schedule_interval=None,
-        max_active_tasks=10,
+        max_active_tasks=1,
         catchup=False,
 ) as dag:
 
     # Fetch and divide repositories into batches
-    batches = create_batches(batch_size=1000, num_tasks=10)
+    batches = create_batches(batch_size=1000, num_tasks=1)
 
     # Create tasks for each batch
     for task_id, batch in enumerate(batches):

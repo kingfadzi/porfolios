@@ -121,8 +121,6 @@ def save_sarif_results(session, repo_id, sarif_data):
         logger.error(f"Error while saving SARIF results to the database for repo_id {repo_id}: {e}")
         raise
 
-
-
 if __name__ == "__main__":
     from modular.models import Session
 
