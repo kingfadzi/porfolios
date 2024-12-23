@@ -78,31 +78,31 @@ def save_sarif_results(session, repo_id, sarif_log):
     try:
         logger.info(f"Saving SARIF results for repo_id: {repo_id} to the database.")
 
-        for run in sarif_log.get("runs", []):
-            tool = run.get("tool", {})
-            driver = tool.get("driver", {})
-            rules = {rule["id"]: rule for rule in driver.get("rules", [])}
+        # Iterate through the runs in the SARIF log
+        for run in sarif_log.runs:
+            tool = run.tool.driver
+            rules = {rule.id: rule for rule in (tool.rules or [])}
 
-            for result in run.get("results", []):
-                rule_id = result.get("ruleId")
+            for result in run.results or []:
+                rule_id = result.rule_id
                 rule = rules.get(rule_id, {})
-                severity = rule.get("properties", {}).get("severity", "UNKNOWN")
-                message = result.get("message", {}).get("text", "No message provided")
+                severity = rule.properties.get("severity", "UNKNOWN") if rule.properties else "UNKNOWN"
+                message = result.message.text if result.message else "No message provided"
 
-                for location in result.get("locations", []):
-                    physical_location = location.get("physicalLocation", {})
-                    artifact_location = physical_location.get("artifactLocation", {})
-                    region = physical_location.get("region", {})
-                    file_path = artifact_location.get("uri", "N/A")
-                    start_line = region.get("startLine", -1)
-                    end_line = region.get("endLine", -1)
+                for location in result.locations or []:
+                    physical_location = location.physical_location
+                    artifact_location = physical_location.artifact_location
+                    region = physical_location.region
+                    file_path = artifact_location.uri if artifact_location else "N/A"
+                    start_line = region.start_line if region else -1
+                    end_line = region.end_line if region else -1
 
                     # Insert into database
                     session.execute(
                         insert(CheckovSarifResult).values(
                             repo_id=repo_id,
                             rule_id=rule_id,
-                            rule_name=rule.get("name", "No name"),
+                            rule_name=rule.name or "No name",
                             severity=severity,
                             file_path=file_path,
                             start_line=start_line,
@@ -111,7 +111,7 @@ def save_sarif_results(session, repo_id, sarif_log):
                         ).on_conflict_do_update(
                             index_elements=["repo_id", "rule_id", "file_path", "start_line", "end_line"],
                             set_={
-                                "rule_name": rule.get("name", "No name"),
+                                "rule_name": rule.name or "No name",
                                 "severity": severity,
                                 "message": message
                             }
