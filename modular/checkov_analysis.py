@@ -3,7 +3,7 @@ import json
 import logging
 from pathlib import Path
 from sqlalchemy.dialects.postgresql import insert
-from models import CheckovSarifResult
+from modular.models import CheckovSarifResult
 from sarif_om import SarifLog
 
 # Configure logging
@@ -124,7 +124,7 @@ def save_sarif_results(session, repo_id, sarif_data):
 
 
 if __name__ == "__main__":
-    from models import Session
+    from modular.models import Session
 
     # Hardcoded values for standalone execution
     repo_slug = "halo"
