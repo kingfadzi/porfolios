@@ -42,18 +42,31 @@ def save_checkov_results(session, repo_id, results):
     session.commit()
 
 if __name__ == "__main__":
+    import os
+    import logging
+
+    # Configure logging
+    logging.basicConfig(level=logging.DEBUG)
+    logger = logging.getLogger(__name__)
+
+    # Hardcoded values for standalone execution
+    repo_slug = "example-repo"
+    repo_id = "example-repo-id"
+
+    # Mock repo object
     class MockRepo:
         def __init__(self, repo_id, repo_slug):
             self.repo_id = repo_id
             self.repo_slug = repo_slug
-            self.repo_name = repo_slug
+            self.repo_name = repo_slug  # Mock additional attributes if needed
 
-    mock_repo = MockRepo(repo_id=1, repo_slug="mock-repo")
-    repo_dir = "/path/to/repo"
+    repo = MockRepo(repo_id, repo_slug)
+    repo_dir = f"/mnt/tmpfs/cloned_repositories/{repo.repo_slug}"
 
+    # Create a session and run Checkov analysis
     session = Session()
     try:
-        run_checkov_analysis(repo_dir, mock_repo, session)
+        run_checkov_analysis(repo_dir, repo, session)
     except Exception as e:
         logger.error(f"Error during Checkov analysis: {e}")
     finally:
