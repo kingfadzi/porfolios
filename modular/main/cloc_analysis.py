@@ -54,7 +54,13 @@ def save_cloc_results(session, repo_id, results):
         if language == "header":
             logger.debug(f"Skipping header in cloc results for repo_id: {repo_id}")
             continue
-        logger.debug(f"Saving metrics for language: {language} in repo_id: {repo_id}")
+
+        logger.debug(
+            f"Saving metrics for language: {language} - "
+            f"Files: {metrics['nFiles']}, Blank: {metrics['blank']}, "
+            f"Comment: {metrics['comment']}, Code: {metrics['code']}"
+        )
+
         session.execute(
             insert(ClocMetric).values(
                 repo_id=repo_id,
@@ -75,6 +81,7 @@ def save_cloc_results(session, repo_id, results):
         )
     session.commit()
     logger.debug(f"Cloc results committed to the database for repo_id: {repo_id}")
+
 
 if __name__ == "__main__":
     import os
