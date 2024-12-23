@@ -11,12 +11,12 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 def run_checkov_sarif(repo_path):
-    """Run Checkov analysis and save SARIF output to the default file `results_sarif.sarif`."""
+    """Run Checkov analysis and handle SARIF output."""
     try:
         logger.info(f"Running Checkov on directory: {repo_path}")
 
-        # Define the SARIF file path
-        sarif_file_path = Path(repo_path) / "results_sarif.sarif"
+        # Define the SARIF file path, which matches the directory name
+        sarif_file_path = Path(repo_path) / f"{Path(repo_path).name}.sarif"
 
         # Run Checkov command
         result = subprocess.run(
