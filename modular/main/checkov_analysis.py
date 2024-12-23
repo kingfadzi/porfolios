@@ -139,3 +139,10 @@ if __name__ == "__main__":
         logger.info(f"Starting standalone Checkov analysis for mock repo_id: {repo.repo_id}")
         sarif_file = run_checkov_sarif(repo_dir, repo, session)
         sarif_log = parse_sarif_file(sarif_file)
+        save_sarif_results(session, repo.repo_id, sarif_log)
+        logger.info(f"Standalone Checkov analysis completed successfully for repo_id: {repo.repo_id}")
+    except Exception as e:
+        logger.error(f"Error during standalone Checkov analysis: {e}")
+    finally:
+        session.close()
+        logger.info(f"Database session closed for repo_id: {repo.repo_id}")
