@@ -66,8 +66,11 @@ def parse_sarif_file(sarif_file):
         with open(sarif_file, "r") as file:
             sarif_json = json.load(file)
 
-        # Parse the SARIF file into a SarifLog object
-        sarif_log = SarifLog(**sarif_json)
+        # Remove unsupported keys (e.g., $schema)
+        sarif_json_filtered = {k: v for k, v in sarif_json.items() if not k.startswith("$")}
+
+        # Parse the filtered SARIF JSON into a SarifLog object
+        sarif_log = SarifLog(**sarif_json_filtered)
 
         # Validate that runs exist
         if not sarif_log.runs:
@@ -81,6 +84,7 @@ def parse_sarif_file(sarif_file):
     except Exception as e:
         print(f"Error while processing SARIF file: {e}")
         raise
+
 
 # Save SARIF results to the database
 def save_sarif_results(session, repo_id, sarif_log):
