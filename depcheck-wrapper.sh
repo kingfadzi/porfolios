@@ -1,17 +1,16 @@
 #!/bin/bash
 
-# Script to run OWASP Dependency-Check with proxy and JAVA_HOME configurations
+# Script to run OWASP Dependency-Check with hardcoded properties file and JAVA_HOME setup
 
 # Configurable variables
 JAVA_HOME="/usr/lib/jvm/java-11-openjdk-amd64"  # Path to Java installation
 DC_HOME="/opt/dependency-check"                # Path to Dependency-Check installation
 DC_PROPERTIES="$DC_HOME/dependency-check.properties" # Path to Dependency-Check properties file
-PROXY_SERVER="proxy.example.com"               # Proxy hostname
-PROXY_PORT="8080"                              # Proxy port
-PROXY_USERNAME="user"                          # Proxy username (optional)
-PROXY_PASSWORD="password"                      # Proxy password (optional)
 SCAN_PATH="/path/to/project"                   # Path to the project to scan
 OUTPUT_DIR="/path/to/output"                   # Directory to save the Dependency-Check report
+
+# Enable verbose logging
+VERBOSE_LOGGING=true
 
 # Ensure JAVA_HOME is set
 export JAVA_HOME="$JAVA_HOME"
@@ -26,39 +25,37 @@ fi
 # Ensure the output directory exists
 mkdir -p "$OUTPUT_DIR"
 
-# Create Dependency-Check properties file
-cat > "$DC_PROPERTIES" <<EOL
-# Dependency-Check properties
-proxy.server=$PROXY_SERVER
-proxy.port=$PROXY_PORT
-proxy.username=$PROXY_USERNAME
-proxy.password=$PROXY_PASSWORD
+# Check if properties file exists
+if [[ ! -f "$DC_PROPERTIES" ]]; then
+    echo "Error: Properties file not found at $DC_PROPERTIES"
+    exit 1
+fi
 
-# Bypass proxy for local connections
-proxy.nonProxyHosts=localhost|127.0.0.1
-
-# Data directory (H2 database)
-data.directory=$DC_HOME/data
-
-# Disable online updates for airgapped environments
-cve.startyear=2002
-cve.validForHours=99999
-EOL
-
-echo "Dependency-Check properties file created at $DC_PROPERTIES"
-
-# Run Dependency-Check
-echo "Starting Dependency-Check scan on: $SCAN_PATH"
-"$DC_HOME/bin/dependency-check.sh" --scan "$SCAN_PATH" \
-    --propertyfile "$DC_PROPERTIES" \
-    --format JSON \
-    --out "$OUTPUT_DIR"
+# Run Dependency-Check with verbose logging
+if [[ "$VERBOSE_LOGGING" == true ]]; then
+    echo "Running Dependency-Check with verbose logging..."
+    "$DC_HOME/bin/dependency-check.sh" --scan "$SCAN_PATH" \
+        --propertyfile "$DC_PROPERTIES" \
+        --format JSON \
+        --log "$OUTPUT_DIR/dependency-check.log" \
+        --out "$OUTPUT_DIR" \
+        --verbose
+else
+    echo "Running Dependency-Check..."
+    "$DC_HOME/bin/dependency-check.sh" --scan "$SCAN_PATH" \
+        --propertyfile "$DC_PROPERTIES" \
+        --format JSON \
+        --log "$OUTPUT_DIR/dependency-check.log" \
+        --out "$OUTPUT_DIR"
+fi
 
 # Check if the scan was successful
 if [[ $? -eq 0 ]]; then
     echo "Dependency-Check scan completed successfully."
     echo "Reports saved to: $OUTPUT_DIR"
+    echo "Log file: $OUTPUT_DIR/dependency-check.log"
 else
     echo "Error: Dependency-Check scan failed."
+    echo "Check log file for details: $OUTPUT_DIR/dependency-check.log"
     exit 1
 fi
