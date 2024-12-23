@@ -10,17 +10,13 @@ from sarif_om import SarifLog
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-def run_checkov_sarif(repo_path, output_dir):
-    """Run Checkov analysis and save SARIF output to a specified directory."""
+def run_checkov_sarif(repo_path):
+    """Run Checkov analysis and save SARIF output to the default file `results_sarif.sarif`."""
     try:
         logger.info(f"Running Checkov on directory: {repo_path}")
-        logger.info(f"SARIF output will be written to directory: {output_dir}")
-
-        # Ensure the output directory exists
-        Path(output_dir).mkdir(parents=True, exist_ok=True)
 
         # Define the SARIF file path
-        sarif_file_path = Path(output_dir) / "results_sarif.sarif"
+        sarif_file_path = Path(repo_path) / "results_sarif.sarif"
 
         # Run Checkov command
         result = subprocess.run(
@@ -128,7 +124,6 @@ if __name__ == "__main__":
     repo_slug = "halo"
     repo_id = "halo"
     repo_dir = "/tmp/halo"
-    output_dir = "checkov_output"
 
     # Mock repo object
     class MockRepo:
@@ -143,7 +138,7 @@ if __name__ == "__main__":
 
     try:
         logger.info(f"Starting standalone Checkov analysis for mock repo_id: {repo.repo_id}")
-        sarif_file = run_checkov_sarif(repo_dir, output_dir)
+        sarif_file = run_checkov_sarif(repo_dir)
         sarif_log = parse_sarif_file(sarif_file)
         save_sarif_results(session, repo.repo_id, sarif_log)
         logger.info(f"Standalone Checkov analysis completed successfully for repo_id: {repo.repo_id}")
