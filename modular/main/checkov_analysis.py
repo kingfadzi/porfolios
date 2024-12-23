@@ -3,8 +3,7 @@ import json
 import logging
 from pathlib import Path
 from sqlalchemy.dialects.postgresql import insert
-from models import CheckovSarifResult
-from sarif_om import SarifLog
+from models import Session, CheckovSarifResult
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -54,74 +53,77 @@ def run_checkov_analysis(repo_dir, repo, session):
         logger.error(f"Checkov command failed for repo_id {repo.repo_id}: {e.stderr.strip()}")
         raise RuntimeError("Checkov analysis failed.")
 
-    # Parse SARIF file
+    # Parse the SARIF output
+    logger.info(f"Parsing SARIF file for repo_id: {repo.repo_id}")
     try:
-        logger.info(f"Reading SARIF file from: {sarif_file_path}")
         with open(sarif_file_path, "r") as file:
             sarif_json = json.load(file)
 
-        sarif_log = SarifLog(**{k: v for k, v in sarif_json.items() if not k.startswith("$")})
+        # Validate SARIF content
+        if "runs" not in sarif_json or not sarif_json["runs"]:
+            raise ValueError("SARIF JSON contains no 'runs'.")
 
-        if not sarif_log.runs:
-            raise ValueError("SARIF JSON is valid but contains no 'runs'.")
-
-        logger.info(f"SARIF file successfully parsed for repo_id: {repo.repo_id}")
+        sarif_data = sarif_json["runs"][0]
+        logger.info(f"SARIF file parsed successfully for repo_id: {repo.repo_id}")
+    except json.JSONDecodeError:
+        logger.error(f"Failed to decode SARIF JSON for repo_id: {repo.repo_id}")
+        raise RuntimeError("Invalid JSON in SARIF file.")
     except Exception as e:
-        logger.error(f"Error while processing SARIF file for repo_id {repo.repo_id}: {e}")
+        logger.error(f"Error parsing SARIF file for repo_id {repo.repo_id}: {e}")
         raise RuntimeError("SARIF file processing failed.")
 
-    # Persist SARIF results to the database
-    save_sarif_results(session, repo.repo_id, sarif_log)
+    # Save SARIF results to the database
+    save_checkov_results(session, repo.repo_id, sarif_data)
 
-def save_sarif_results(session, repo_id, sarif_log):
-    """Save SARIF results to the database."""
-    logger.info(f"Saving SARIF results for repo_id: {repo_id} to the database.")
+def save_checkov_results(session, repo_id, sarif_data):
+    """Save Checkov SARIF results to the database."""
+    logger.info(f"Saving Checkov SARIF results for repo_id: {repo_id}")
     try:
-        for run in sarif_log.runs:
-            tool = run.tool.driver
-            rules = {rule.id: rule for rule in tool.rules or []}
+        tool = sarif_data["tool"]["driver"]
+        rules = {rule["id"]: rule for rule in tool.get("rules", [])}
 
-            for result in run.results or []:
-                rule_id = result.rule_id
-                rule = rules.get(rule_id, {})
-                severity = rule.properties.get("severity", "UNKNOWN") if rule.properties else "UNKNOWN"
-                message = result.message.text if result.message else "No message provided"
+        for result in sarif_data.get("results", []):
+            rule_id = result.get("ruleId")
+            rule = rules.get(rule_id, {})
+            severity = rule.get("properties", {}).get("severity", "UNKNOWN")
+            message = result.get("message", {}).get("text", "No message provided")
 
-                for location in result.locations or []:
-                    physical_location = location.physical_location
-                    artifact_location = physical_location.artifact_location
-                    region = physical_location.region
-                    file_path = artifact_location.uri if artifact_location else "N/A"
-                    start_line = region.start_line if region else -1
-                    end_line = region.end_line if region else -1
+            for location in result.get("locations", []):
+                physical_location = location.get("physicalLocation", {})
+                artifact_location = physical_location.get("artifactLocation", {})
+                region = physical_location.get("region", {})
+                file_path = artifact_location.get("uri", "N/A")
+                start_line = region.get("startLine", -1)
+                end_line = region.get("endLine", -1)
 
-                    # Insert SARIF result into the database
-                    session.execute(
-                        insert(CheckovSarifResult).values(
-                            repo_id=repo_id,
-                            rule_id=rule_id,
-                            rule_name=rule.name or "No name",
-                            severity=severity,
-                            file_path=file_path,
-                            start_line=start_line,
-                            end_line=end_line,
-                            message=message
-                        ).on_conflict_do_update(
-                            index_elements=["repo_id", "rule_id", "file_path", "start_line", "end_line"],
-                            set_={
-                                "rule_name": rule.name or "No name",
-                                "severity": severity,
-                                "message": message
-                            }
-                        )
+                session.execute(
+                    insert(CheckovSarifResult).values(
+                        repo_id=repo_id,
+                        rule_id=rule_id,
+                        rule_name=rule.get("name", "No name"),
+                        severity=severity,
+                        file_path=file_path,
+                        start_line=start_line,
+                        end_line=end_line,
+                        message=message
+                    ).on_conflict_do_update(
+                        index_elements=["repo_id", "rule_id", "file_path", "start_line", "end_line"],
+                        set_={
+                            "rule_name": rule.get("name", "No name"),
+                            "severity": severity,
+                            "message": message
+                        }
                     )
+                )
         session.commit()
-        logger.info(f"SARIF results saved successfully for repo_id: {repo_id}")
+        logger.info(f"Checkov SARIF results successfully saved for repo_id: {repo_id}")
     except Exception as e:
-        logger.error(f"Error while saving SARIF results to the database for repo_id {repo_id}: {e}")
+        logger.error(f"Error saving Checkov SARIF results for repo_id {repo_id}: {e}")
         raise
 
 if __name__ == "__main__":
+    import os
+
     # Hardcoded values for standalone execution
     repo_slug = "halo"
     repo_id = "halo"
@@ -135,8 +137,9 @@ if __name__ == "__main__":
     repo = MockRepo(repo_id, repo_slug)
     repo_dir = "/tmp/halo"
 
-    # Create a session and run Checkov analysis
+    # Initialize database session
     session = Session()
+
     try:
         logger.info(f"Starting standalone Checkov analysis for mock repo_id: {repo.repo_id}")
         run_checkov_analysis(repo_dir, repo, session)
