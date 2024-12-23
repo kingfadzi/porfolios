@@ -16,6 +16,8 @@ class CheckovResult(Base):
     check_name = Column(Text)
     check_result = Column(Text)
     severity = Column(Text)
+    file_path = Column(Text)
+    line_range = Column(Text)  # Store line range as text for simplicity
 
 # Database setup
 def setup_database(db_url):
@@ -24,7 +26,7 @@ def setup_database(db_url):
     Session = sessionmaker(bind=engine, future=True)
     return Session()
 
-# Run Checkov analysis with verbose output
+# Run Checkov analysis
 def run_checkov(repo_path):
     result = subprocess.run(
         ["checkov", "--skip-download", "--directory", str(repo_path), "--output", "json"],
@@ -32,52 +34,79 @@ def run_checkov(repo_path):
         text=True
     )
 
-    # Log all outputs for debugging
-    print(f"Checkov stdout:\n{result.stdout}")  # Debug: Print raw stdout
-    print(f"Checkov stderr:\n{result.stderr}")  # Debug: Print raw stderr
+    print("Raw stdout:", result.stdout)  # Debugging: Check JSON output
+    print("Raw stderr:", result.stderr)  # Debugging: Check error output
 
     if result.returncode != 0:
-        print(f"Checkov failed with return code: {result.returncode}")
-        raise RuntimeError(f"Checkov analysis failed with errors: {result.stderr.strip()}")
+        raise RuntimeError(f"Checkov failed: {result.stderr.strip()}")
 
-    if not result.stdout.strip():
-        print("Checkov output is empty.")
-        raise RuntimeError("Checkov returned no data.")
-
-    # Parse JSON output
     try:
         checkov_output = json.loads(result.stdout)
         summary = checkov_output.get("summary", {})
-        print(f"Checkov Summary: {summary}")  # Debug: Print summary
+        print("Checkov Summary:", summary)  # Debugging: Print summary
 
         if summary.get("failed", 0) > 0:
             print(f"Checkov found {summary['failed']} failed checks.")
         elif summary.get("passed", 0) == 0:
             print("No checks passed in Checkov. Please verify the configuration.")
+
         return checkov_output
     except json.JSONDecodeError as e:
-        print("Failed to parse Checkov JSON output.")
-        print(f"Raw stdout: {result.stdout}")
-        raise e
+        raise RuntimeError(f"Failed to parse JSON: {e}")
 
-# Save Checkov results to database with upsert
+# Save Checkov results to the database
 def save_checkov_results(session, repo_id, results):
-    for check in results['results']['failed_checks']:
+    failed_checks = results.get("results", {}).get("failed_checks", [])
+    passed_checks = results.get("results", {}).get("passed_checks", [])
+    parsing_errors = results.get("results", {}).get("parsing_errors", [])
+
+    # Insert failed checks
+    for check in failed_checks:
         session.execute(
             insert(CheckovResult).values(
                 repo_id=repo_id,
-                resource=check['resource'],
-                check_name=check['check_name'],
-                check_result=check['check_result'],
-                severity=check['severity']
+                resource=check["resource"],
+                check_name=check["check_name"],
+                check_result="FAILED",
+                severity=check.get("severity", "UNKNOWN"),
+                file_path=check.get("file_path", "N/A"),
+                line_range=str(check.get("file_line_range", "N/A"))
             ).on_conflict_do_update(
                 index_elements=["repo_id", "resource", "check_name"],  # Matches the unique constraint
                 set_={
-                    "check_result": check['check_result'],
-                    "severity": check['severity']
+                    "check_result": "FAILED",
+                    "severity": check.get("severity", "UNKNOWN"),
+                    "file_path": check.get("file_path", "N/A"),
+                    "line_range": str(check.get("file_line_range", "N/A"))
                 }
             )
         )
+
+    # Insert passed checks (optional, depending on your needs)
+    for check in passed_checks:
+        session.execute(
+            insert(CheckovResult).values(
+                repo_id=repo_id,
+                resource=check["resource"],
+                check_name=check["check_name"],
+                check_result="PASSED",
+                severity="LOW",
+                file_path=check.get("file_path", "N/A"),
+                line_range=str(check.get("file_line_range", "N/A"))
+            ).on_conflict_do_update(
+                index_elements=["repo_id", "resource", "check_name"],  # Matches the unique constraint
+                set_={
+                    "check_result": "PASSED",
+                    "file_path": check.get("file_path", "N/A"),
+                    "line_range": str(check.get("file_line_range", "N/A"))
+                }
+            )
+        )
+
+    # Log parsing errors
+    for error in parsing_errors:
+        print(f"Parsing error: {error}")
+
     session.commit()
 
 if __name__ == "__main__":
