@@ -42,7 +42,7 @@ class RepoMetrics(Base):
 class LizardMetric(Base):
     __tablename__ = "lizard_metrics"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    repo_id = Column(Integer, nullable=False)
+    repo_id = Column(String, nullable=False)
     file_name = Column(Text)
     function_name = Column(Text)
     long_name = Column(Text)
@@ -60,7 +60,7 @@ class LizardMetric(Base):
 # Lizard Summary Model
 class LizardSummary(Base):
     __tablename__ = "lizard_summary"
-    repo_id = Column(Integer, primary_key=True)
+    repo_id = Column(String, primary_key=True)
     total_nloc = Column(Integer)
     avg_ccn = Column(Float)
     total_token_count = Column(Integer)
@@ -71,7 +71,7 @@ class LizardSummary(Base):
 class ClocMetric(Base):
     __tablename__ = "cloc_metrics"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    repo_id = Column(Integer, nullable=False)
+    repo_id = Column(String, nullable=False)
     language = Column(Text)
     files = Column(Integer)
     blank = Column(Integer)
@@ -85,7 +85,7 @@ class ClocMetric(Base):
 class CheckovResult(Base):
     __tablename__ = "checkov_results"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    repo_id = Column(Integer, nullable=False)
+    repo_id = Column(String, nullable=False)
     resource = Column(Text)
     check_name = Column(Text)
     check_result = Column(Text)
@@ -93,3 +93,15 @@ class CheckovResult(Base):
     __table_args__ = (
         UniqueConstraint("repo_id", "resource", "check_name", name="checkov_result_uc"),
     )
+
+class CheckovSarifResult(Base):
+    __tablename__ = "checkov_sarif_results"
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    repo_id = Column(String, nullable=False)
+    rule_id = Column(Text)
+    rule_name = Column(Text)
+    severity = Column(Text)
+    file_path = Column(Text)
+    start_line = Column(Integer)
+    end_line = Column(Integer)
+    message = Column(Text)
