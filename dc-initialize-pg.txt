@@ -18,3 +18,5 @@ dependency-check --updateonly \
 
 export JAVA_TOOL_OPTIONS="-Dhttps.proxyHost=<proxy_server_address> -Dhttps.proxyPort=<proxy_port> -Dhttps.proxyUser=<username> -Dhttps.proxyPassword=<password>"
 ./dependency-check.sh --updateonly
+
+dependency-check --updateonly --data /path/to/dependency-check/data --nvdDatafeed file:///path/to/your/local/nvd/data/folder/ --disableRetireJS --disableOssIndex --disableCentral --disableNodeAudit
