@@ -29,23 +29,32 @@ if [[ ! -f "$DC_PROPERTIES" ]]; then
     exit 1
 fi
 
-# Preload the NVD data into the database
-echo "Preloading NVD data into the database..."
-"$DC_HOME/bin/dependency-check.sh" --updateonly --propertyfile "$DC_PROPERTIES"
+# Preload the NVD data into the database in offline mode
+echo "Preloading NVD data into the database (offline mode)..."
+"$DC_HOME/bin/dependency-check.sh" --updateonly \
+    --propertyfile "$DC_PROPERTIES" \
+    --noupdate \
+    --log "$LOG_FILE" 2>&1
 
 if [[ $? -ne 0 ]]; then
     echo "Error: Failed to preload NVD data."
+    echo "Check log file for details: $LOG_FILE"
     exit 1
 fi
 
-# Run Dependency-Check in offline mode with no updates
+# Check if the log file is created
+if [[ ! -f "$LOG_FILE" ]]; then
+    echo "Warning: Log file not created during preload. Check permissions or output directory."
+fi
+
+# Run Dependency-Check in offline mode
 echo "Running Dependency-Check in offline mode..."
 "$DC_HOME/bin/dependency-check.sh" --scan "$SCAN_PATH" \
     --propertyfile "$DC_PROPERTIES" \
     --noupdate \
     --format JSON \
     --log "$LOG_FILE" \
-    --out "$OUTPUT_DIR"
+    --out "$OUTPUT_DIR" 2>&1
 
 # Check if the scan was successful
 if [[ $? -eq 0 ]]; then
