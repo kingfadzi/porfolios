@@ -1,6 +1,6 @@
 bin/dependency-check.sh --updateonly \
     --propertyfile dependency-check.properties \
-    --log /tmp/dependency-check-preload.log --nvdApiKey 4ea06ca3-ed40-4c47-ad04-fd70e1234780 \
+    --log /tmp/dependency-check-preload.log --nvdApiKey dddddd-dddd-ddd-ddd-ddd \
     --connectionString "jdbc:postgresql://localhost:5432/dependencycheck" \
     --dbDriverName "org.postgresql.Driver" \
     --dbUser "dcuser" \
@@ -13,3 +13,8 @@ dependency-check --updateonly \
   --cveUrlBase file:///path/to/nvdcve-1.1-%d.json \
   --cveUrlModified file:///path/to/nvdcve-1.1-modified.json \
   --data /path/to/dependency-check-data
+
+./dependency-check.sh --updateonly --proxyserver <proxy_server_address> --proxyport <proxy_port> --proxyuser <username> --proxypass <password>
+
+export JAVA_TOOL_OPTIONS="-Dhttps.proxyHost=<proxy_server_address> -Dhttps.proxyPort=<proxy_port> -Dhttps.proxyUser=<username> -Dhttps.proxyPassword=<password>"
+./dependency-check.sh --updateonly
