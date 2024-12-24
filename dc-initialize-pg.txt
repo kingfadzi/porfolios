@@ -32,3 +32,5 @@ db.password=dcpassword
 
 # Disable auto-update (since air-gapped)
 cve.check.valid=true
+
+dependency-check.sh --project "MyProject" --scan /path/to/code --dbDriver org.postgresql.Driver --connectionString jdbc:postgresql://localhost:5432/dependencycheck --dbUser dcuser --dbPassword dcpassword --data /opt/dependency-check/data
