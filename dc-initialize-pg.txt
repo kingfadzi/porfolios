@@ -1,0 +1,10 @@
+bin/dependency-check.sh --updateonly \
+    --propertyfile dependency-check.properties \
+    --log /tmp/dependency-check-preload.log --nvdApiKey 4ea06ca3-ed40-4c47-ad04-fd70e1234780 \
+    --connectionString "jdbc:postgresql://localhost:5432/dependencycheck" \
+    --dbDriverName "org.postgresql.Driver" \
+    --dbUser "dcuser" \
+    --dbPassword "dcuser"
+
+
+    https://jeremylong.github.io/DependencyCheck/data/database.html
