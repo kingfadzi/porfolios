@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Script to run OWASP Dependency-Check in offline mode with a pre-configured properties file
+# Script to run OWASP Dependency-Check in offline mode
 
 # Configurable variables
 JAVA_HOME="/usr/lib/jvm/jdk-21-oracle-x64"      # Path to Java installation
@@ -29,22 +29,18 @@ if [[ ! -f "$DC_PROPERTIES" ]]; then
     exit 1
 fi
 
-# Preload the NVD data into the database in offline mode
-echo "Preloading NVD data into the database (offline mode)..."
+# Clear and preload the database
+echo "Clearing and preloading the database..."
+rm -rf /path/to/database
 "$DC_HOME/bin/dependency-check.sh" --updateonly \
     --propertyfile "$DC_PROPERTIES" \
     --noupdate \
     --log "$LOG_FILE" 2>&1
 
 if [[ $? -ne 0 ]]; then
-    echo "Error: Failed to preload NVD data."
+    echo "Error: Failed to preload the database."
     echo "Check log file for details: $LOG_FILE"
     exit 1
-fi
-
-# Check if the log file is created
-if [[ ! -f "$LOG_FILE" ]]; then
-    echo "Warning: Log file not created during preload. Check permissions or output directory."
 fi
 
 # Run Dependency-Check in offline mode
