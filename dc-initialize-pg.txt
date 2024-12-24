@@ -8,3 +8,8 @@ bin/dependency-check.sh --updateonly \
 
 
     https://jeremylong.github.io/DependencyCheck/data/database.html
+
+dependency-check --updateonly \
+  --cveUrlBase file:///path/to/nvdcve-1.1-%d.json \
+  --cveUrlModified file:///path/to/nvdcve-1.1-modified.json \
+  --data /path/to/dependency-check-data
