@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 def run_dependency_check(repo_dir, repo, session):
     """
     Run OWASP Dependency-Check on the given repo_dir and persist results to the database.
-    Writes a log file to the specified location.
+    Writes a log file and report to the specified repository directory.
     """
     logger.info(f"Starting Dependency-Check analysis for repo_id: {repo.repo_id} "
                 f"(repo_slug: {repo.repo_slug}).")
@@ -46,6 +46,7 @@ def run_dependency_check(repo_dir, repo, session):
                     "--disableOssIndex",
                     "--project", repo.repo_slug,
                     "--log", log_file,  # Write logs to the specified file
+                    "--out", report_file  # Write the report to the repo directory
                 ],
                 capture_output=True,
                 text=True,
