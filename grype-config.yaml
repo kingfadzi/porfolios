@@ -1,0 +1,41 @@
+# Configuration to ensure Grype uses a local vulnerability database
+
+# Application update settings
+check-for-app-update: false
+
+# Vulnerability database settings
+db:
+  # Disable automatic updates to prevent fetching from the internet
+  auto-update: false
+
+  # Location of the local vulnerability database
+  cache-dir: "/path/to/local/db"  # Replace with the actual path to your local DB
+
+  # Disable fetching database updates by ensuring no external URLs are used
+  update-url: ""
+
+  # Disable validation of the database's age
+  validate-age: false
+
+# Logging settings
+log:
+  # Set verbosity for troubleshooting (optional)
+  verbosity: 0
+  level: "error"
+
+# Match settings
+match:
+  java:
+    using-cpes: false
+  python:
+    using-cpes: false
+  javascript:
+    using-cpes: false
+  ruby:
+    using-cpes: false
+  dotnet:
+    using-cpes: false
+  golang:
+    using-cpes: false
+  stock:
+    using-cpes: true
