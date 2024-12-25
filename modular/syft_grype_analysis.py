@@ -2,7 +2,6 @@ import os
 import subprocess
 import json
 import logging
-from pathlib import Path
 from sqlalchemy.dialects.postgresql import insert
 from modular.models import Session, GrypeResult
 
@@ -32,7 +31,7 @@ def run_syft_and_grype(repo_dir, repo, session):
         logger.info(f"Generating SBOM for repo_id: {repo.repo_id} using Syft.")
         try:
             subprocess.run(
-                ["syft", repo_dir, "-o", "json", "--config", SYFT_CONFIG_PATH, "-q", "-f", sbom_file_path],
+                ["syft", repo_dir, "--output", "json", "--config", SYFT_CONFIG_PATH, "--file", sbom_file_path],
                 capture_output=True,
                 text=True,
                 check=True,
@@ -47,9 +46,8 @@ def run_syft_and_grype(repo_dir, repo, session):
         logger.info(f"Analyzing SBOM with Grype for repo_id: {repo.repo_id}.")
         try:
             subprocess.run(
-                ["grype", f"sbom:{sbom_file_path}", "--config", GRYPE_CONFIG_PATH, "--output", "json", "-q"],
-                stdout=open(grype_file_path, "w"),
-                stderr=subprocess.PIPE,
+                ["grype", f"sbom:{sbom_file_path}", "--config", GRYPE_CONFIG_PATH, "--output", "json", "--file", grype_file_path],
+                capture_output=True,
                 text=True,
                 check=True,
             )
@@ -128,8 +126,8 @@ if __name__ == "__main__":
     from modular.models import Session
 
     # Hardcoded values for standalone execution
-    repo_slug = "example-repo"
-    repo_id = "example-repo-id"
+    repo_slug = "halo"
+    repo_id = "halo"
 
     # Mock repo object
     class MockRepo:
@@ -138,7 +136,7 @@ if __name__ == "__main__":
             self.repo_slug = repo_slug
 
     repo = MockRepo(repo_id, repo_slug)
-    repo_dir = f"/mnt/tmpfs/cloned_repositories/{repo.repo_slug}"
+    repo_dir = f"/tmp/{repo.repo_slug}"
 
     # Create a session and run Syft and Grype analysis
     session = Session()
