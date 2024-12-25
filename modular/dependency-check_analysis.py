@@ -12,6 +12,7 @@ logger = logging.getLogger(__name__)
 def run_dependency_check(repo_dir, repo, session):
     """
     Run OWASP Dependency-Check on the given repo_dir and persist results to the database.
+    Writes a log file to the specified location.
     """
     logger.info(f"Starting Dependency-Check analysis for repo_id: {repo.repo_id} "
                 f"(repo_slug: {repo.repo_slug}).")
@@ -24,10 +25,11 @@ def run_dependency_check(repo_dir, repo, session):
 
         logger.debug(f"Repository directory found: {repo_dir}")
 
-        # 2) Paths for Dependency-Check properties and outputs
+        # 2) Paths for Dependency-Check properties, outputs, and logs
         property_file = "/opt/dependency-check/dependency-check.properties"
         retire_js_url = "file:///opt/dependency-check/data/jsrepository.json"
         report_file = os.path.join(repo_dir, "dependency-check-report.json")
+        log_file = os.path.join(repo_dir, "dependency-check.log")
         dependency_check_executable = "/opt/dependency-check/bin/dependency-check.sh"
 
         # 3) Execute the Dependency-Check command
@@ -43,6 +45,7 @@ def run_dependency_check(repo_dir, repo, session):
                     "--noupdate",
                     "--disableOssIndex",
                     "--project", repo.repo_slug,
+                    "--log", log_file,  # Write logs to the specified file
                 ],
                 capture_output=True,
                 text=True,
@@ -66,6 +69,7 @@ def run_dependency_check(repo_dir, repo, session):
         logger.info(f"Parsing Dependency-Check report for repo_id: {repo.repo_id}")
         parse_dependency_check_report(report_file, repo, session)
 
+        logger.info(f"Dependency-Check log written to: {log_file}")
         logger.info(f"Successfully processed Dependency-Check report for repo_id: {repo.repo_id}")
 
     except Exception as e:
@@ -125,7 +129,6 @@ def parse_dependency_check_report(report_file, repo, session):
 
 
 if __name__ == "__main__":
-    # This block only runs if you execute the file directly (i.e., python your_script.py)
     import logging
 
     # Configure logging for standalone run
