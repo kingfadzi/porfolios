@@ -105,3 +105,16 @@ class CheckovSarifResult(Base):
     start_line = Column(Integer)
     end_line = Column(Integer)
     message = Column(Text)
+
+class DependencyCheckResult(Base):
+    __tablename__ = "dependency_check_results"
+    id = Column(Integer, primary_key=True, autoincrement=True)  # Auto-incrementing primary key
+    repo_id = Column(String, nullable=False)  # Repository ID (foreign key or unique reference)
+    cve = Column(String, nullable=False)  # Common Vulnerabilities and Exposures ID
+    description = Column(Text, nullable=True)  # Detailed description of the vulnerability
+    severity = Column(String, nullable=True)  # Severity level (e.g., High, Medium, Low)
+    vulnerable_software = Column(String, nullable=True)  # List of vulnerable software versions
+
+    __table_args__ = (
+        UniqueConstraint("repo_id", "cve", name="dependency_check_result_uc"),  # Unique constraint on repo_id and cve
+    )
