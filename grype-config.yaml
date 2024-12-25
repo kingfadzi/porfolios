@@ -9,7 +9,7 @@ db:
   auto-update: false
 
   # Location of the local vulnerability database
-  cache-dir: "/path/to/local/db"  # Replace with the actual path to your local DB
+  cache-dir: "/root/.grype"  # Replace with the actual path to your local DB
 
   # Disable fetching database updates by ensuring no external URLs are used
   update-url: ""
