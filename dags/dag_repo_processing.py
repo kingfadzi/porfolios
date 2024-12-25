@@ -7,6 +7,8 @@ from modular.metrics import calculate_and_persist_repo_metrics
 from modular.language_analysis import perform_language_analysis
 from modular.lizard_analysis import run_lizard_analysis
 from modular.cloc_analysis import run_cloc_analysis
+from modular.syft_grype_analysis import run_syft_and_grype
+from modular.dependency_check_analysis import run_dependency_check
 from modular.models import Session, Repository
 
 # Configure logging
@@ -21,16 +23,20 @@ def analyze_repositories(batch):
             # Clone repository
             repo_dir = clone_repository(repo)
 
-            run_lizard_analysis(repo_dir, repo, session)
+            # run_lizard_analysis(repo_dir, repo, session)
 
             # Run Cloc analysis
-            run_cloc_analysis(repo_dir, repo, session)
+            # run_cloc_analysis(repo_dir, repo, session)
 
             # Perform language analysis
-            perform_language_analysis(repo_dir, repo, session)
+            # perform_language_analysis(repo_dir, repo, session)
 
             # Calculate and persist metrics
-            calculate_and_persist_repo_metrics(repo_dir, repo, session)
+            # calculate_and_persist_repo_metrics(repo_dir, repo, session)
+
+            # run_dependency_check(repo_dir, repo, session)
+
+            run_syft_and_grype(repo_dir, repo, session)
 
             # Update repository status to COMPLETED
             repo.status = "COMPLETED"
