@@ -114,7 +114,22 @@ class DependencyCheckResult(Base):
     description = Column(Text, nullable=True)  # Detailed description of the vulnerability
     severity = Column(String, nullable=True)  # Severity level (e.g., High, Medium, Low)
     vulnerable_software = Column(String, nullable=True)  # List of vulnerable software versions
-
     __table_args__ = (
         UniqueConstraint("repo_id", "cve", name="dependency_check_result_uc"),  # Unique constraint on repo_id and cve
+    )
+
+class GrypeResult(Base):
+    __tablename__ = "grype_results"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    repo_id = Column(String, nullable=False)
+    cve = Column(String, nullable=False)  # CVE ID or equivalent
+    description = Column(Text)
+    severity = Column(String, nullable=False)
+    package = Column(String, nullable=False)  # Name of the affected package
+    version = Column(String, nullable=False)  # Version of the affected package
+    file_path = Column(Text)  # File path of the affected artifact
+    cvss = Column(Text)  # CVSS scores, serialized as a JSON string
+    __table_args__ = (
+        UniqueConstraint("repo_id", "cve", "package", "version", name="grype_result_uc"),
     )

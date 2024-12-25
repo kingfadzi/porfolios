@@ -117,3 +117,16 @@ CREATE TABLE dependency_check_results (
     vulnerable_software JSONB,
     CONSTRAINT dependency_check_results_uc UNIQUE (repo_id, cve)
 );
+
+CREATE TABLE grype_results (
+   id SERIAL PRIMARY KEY,
+   repo_id VARCHAR NOT NULL,
+   cve VARCHAR NOT NULL,
+   description TEXT,
+   severity VARCHAR NOT NULL,
+   package VARCHAR NOT NULL,
+   version VARCHAR NOT NULL,
+   file_path TEXT,
+   cvss TEXT,
+   CONSTRAINT grype_result_uc UNIQUE (repo_id, cve, package, version)
+);
