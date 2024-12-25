@@ -90,37 +90,62 @@ def parse_dependency_check_report(report_file, repo, session):
         with open(report_file, "r") as file:
             report = json.load(file)
 
-        # Extract vulnerabilities
-        vulnerabilities = report.get("vulnerabilities", [])
-        if not vulnerabilities:
-            logger.info(f"No vulnerabilities found in Dependency-Check report for repo_id: {repo.repo_id}")
+        # Debug: Check top-level keys in the JSON
+        logger.debug(f"Top-level keys in the report: {list(report.keys())}")
+
+        # Extract dependencies
+        dependencies = report.get("dependencies", [])
+        if not dependencies:
+            logger.info(f"No dependencies found in Dependency-Check report for repo_id: {repo.repo_id}")
             return
 
-        logger.debug(f"Found {len(vulnerabilities)} vulnerabilities in Dependency-Check report for repo_id: {repo.repo_id}")
+        logger.debug(f"Found {len(dependencies)} dependencies in the report for repo_id: {repo.repo_id}")
 
-        # Save vulnerabilities to the database
-        for vulnerability in vulnerabilities:
-            logger.debug(f"Processing vulnerability: {vulnerability.get('name')} for repo_id: {repo.repo_id}")
+        # Iterate over each dependency
+        for dependency in dependencies:
+            file_name = dependency.get("fileName", "Unknown")
+            file_path = dependency.get("filePath", "Unknown")
+            logger.debug(f"Processing dependency - FileName: {file_name}, FilePath: {file_path}")
 
-            # Serialize vulnerable_software as a string
-            serialized_software = json.dumps(vulnerability.get("vulnerableSoftware", []))
+            vulnerabilities = dependency.get("vulnerabilities", [])
+            if not vulnerabilities:
+                logger.info(f"No vulnerabilities found for dependency: {file_name}")
+                continue
 
-            session.execute(
-                insert(DependencyCheckResult).values(
-                    repo_id=repo.repo_id,
-                    cve=vulnerability.get("name"),
-                    description=vulnerability.get("description"),
-                    severity=vulnerability.get("severity"),
-                    vulnerable_software=serialized_software
-                ).on_conflict_do_update(
-                    index_elements=["repo_id", "cve"],
-                    set_={
-                        "description": vulnerability.get("description"),
-                        "severity": vulnerability.get("severity"),
-                        "vulnerable_software": serialized_software
-                    }
+            logger.debug(f"Found {len(vulnerabilities)} vulnerabilities for dependency: {file_name}")
+
+            # Process each vulnerability
+            for vulnerability in vulnerabilities:
+                logger.debug(f"Processing vulnerability: {vulnerability.get('name')} for file: {file_name}")
+
+                # Extract vulnerability details
+                cve = vulnerability.get("name", "No CVE")
+                description = vulnerability.get("description", "No description provided")
+                severity = vulnerability.get("severity", "UNKNOWN")
+                vulnerable_software = vulnerability.get("vulnerableSoftware", [])
+
+                # Serialize vulnerable_software as a JSON string
+                serialized_software = json.dumps(vulnerable_software)
+
+                # Save the vulnerability to the database
+                session.execute(
+                    insert(DependencyCheckResult).values(
+                        repo_id=repo.repo_id,
+                        cve=cve,
+                        description=description,
+                        severity=severity,
+                        vulnerable_software=serialized_software
+                    ).on_conflict_do_update(
+                        index_elements=["repo_id", "cve"],
+                        set_={
+                            "description": description,
+                            "severity": severity,
+                            "vulnerable_software": serialized_software
+                        }
+                    )
                 )
-            )
+
+        # Commit the results to the database
         session.commit()
         logger.info(f"Vulnerabilities successfully saved for repo_id: {repo.repo_id}")
 
