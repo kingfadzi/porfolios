@@ -107,3 +107,13 @@ CREATE TABLE checkov_sarif_results (
     message TEXT,
     CONSTRAINT checkov_sarif_results_unique UNIQUE (repo_id, rule_id, file_path, start_line, end_line)
 );
+
+CREATE TABLE dependency_check_results (
+    id SERIAL PRIMARY KEY,
+    repo_id VARCHAR(255) NOT NULL,
+    cve VARCHAR(255) NOT NULL,
+    description TEXT,
+    severity VARCHAR(50),
+    vulnerable_software JSONB,
+    CONSTRAINT dependency_check_results_uc UNIQUE (repo_id, cve)
+);
