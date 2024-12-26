@@ -21,53 +21,62 @@ def run_checkov_analysis(repo_dir, repo, session):
 
     logger.debug(f"Repository directory found: {repo_dir}")
 
-    # Define output directory and files
+    # Run Checkov command
     output_dir = os.path.join(repo_dir, "checkov_results")
     os.makedirs(output_dir, exist_ok=True)
     output_file = os.path.join(output_dir, "results_json.json")
-    log_file = os.path.join(output_dir, "checkov.log")
 
-    # Run Checkov command
     try:
         logger.info(f"Executing Checkov command for repo_id: {repo.repo_id}")
-        with open(log_file, "w") as log_fh:
-            result = subprocess.run(
-                [
-                    "checkov",
-                    "--directory", str(repo_dir),
-                    "--output", "json",
-                    "--output-file-path", output_dir,
-                    "--skip-download"
-                ],
-                stdout=log_fh,
-                stderr=log_fh,
-                text=True
-            )
-    except subprocess.SubprocessError as e:
-        logger.exception(f"Subprocess error during Checkov execution for repo_id {repo.repo_id}")
+        result = subprocess.run(
+            [
+                "checkov",
+                "--directory", str(repo_dir),
+                "--output", "json",
+                "--output-file-path", output_dir,
+                "--skip-download"
+            ],
+            capture_output=True,
+            text=True
+        )
+
+        # Log stdout and stderr for debugging purposes
+        logger.debug(f"Checkov stdout:\n{result.stdout}")
+        logger.debug(f"Checkov stderr:\n{result.stderr}")
+
+        if not os.path.exists(output_file):
+            logger.error(f"Checkov did not produce the expected output file: {output_file}")
+            raise RuntimeError("Checkov analysis failed: No output file generated.")
+
+        logger.info(f"Checkov output file located at: {output_file}")
+    except Exception as e:
+        logger.error(f"Checkov command failed for repo_id {repo.repo_id}: {e}")
         raise RuntimeError("Checkov analysis failed.") from e
-
-    # Validate output file
-    if not os.path.exists(output_file):
-        logger.error(f"Checkov did not produce the expected output file: {output_file}")
-        raise RuntimeError(f"Checkov analysis failed: No output file generated. Check {log_file} for details.")
-
-    logger.info(f"Checkov output file located at: {output_file}")
-    logger.info(f"Checkov logs written to: {log_file}")
 
     # Parse the Checkov JSON output
     logger.info(f"Parsing Checkov output for repo_id: {repo.repo_id}")
     try:
         with open(output_file, "r") as file:
             checkov_data = json.load(file)
-        if not isinstance(checkov_data, list) or not checkov_data:
-            raise ValueError("Checkov returned invalid or empty data.")
-        logger.info(f"Checkov output successfully parsed for repo_id: {repo.repo_id}.")
+
+        if isinstance(checkov_data, list):
+            logger.info(f"Checkov output is a list with {len(checkov_data)} items.")
+        elif isinstance(checkov_data, dict):
+            logger.info("Checkov output is a dictionary.")
+        else:
+            raise ValueError("Checkov returned data in an unexpected format.")
+
+        if not checkov_data:
+            raise ValueError("Checkov output is empty.")
+
+        logger.debug(f"Checkov output sample: {json.dumps(checkov_data[:1] if isinstance(checkov_data, list) else checkov_data, indent=2)}")
+        logger.info(f"Checkov output successfully parsed for repo_id: {repo.repo_id}")
     except (json.JSONDecodeError, ValueError) as e:
         logger.error(f"Error parsing Checkov JSON output for repo_id {repo.repo_id}: {e}")
         raise RuntimeError("Checkov analysis returned invalid data.") from e
 
-    # Save results to the database
+    # Save results
+    logger.info(f"Saving Checkov results to the database for repo_id: {repo.repo_id}")
     save_checkov_results(session, repo.repo_id, checkov_data)
     logger.info(f"Successfully saved Checkov results for repo_id: {repo.repo_id}")
 
