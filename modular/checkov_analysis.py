@@ -108,13 +108,13 @@ def save_checkov_results(session, repo_id, results):
             )
         )
 
-        # Save files and checks
+        # Iterate over all check types
         for check_type, check_data in results.get("results", {}).items():
-            for check in check_data.get("checks", []):
+            for check in check_data.get("passed_checks", []) + check_data.get("failed_checks", []):
                 file_path = check.get("file_path")
                 file_abs_path = check.get("file_abs_path")
-                file_type = check.get("file_type", check_type)  # Derive file type from check_type
-                resource_count = check.get("resource_count", 0)
+                file_type = check_type
+                resource = check.get("resource")
 
                 # Save file details
                 session.execute(
@@ -122,44 +122,43 @@ def save_checkov_results(session, repo_id, results):
                         file_path=file_path,
                         file_abs_path=file_abs_path,
                         file_type=file_type,
-                        resource_count=resource_count
+                        resource_count=1  # Assume each check maps to a single resource
                     ).on_conflict_do_update(
                         index_elements=["file_path"],
                         set_={
                             "file_abs_path": file_abs_path,
                             "file_type": file_type,
-                            "resource_count": resource_count
                         }
                     )
                 )
 
                 # Save individual checks
-                for result in check.get("results", []):
-                    session.execute(
-                        insert(CheckovChecks).values(
-                            file_path=file_path,
-                            check_id=result["check_id"],
-                            check_name=result["check_name"],
-                            result=result["result"],
-                            resource=result.get("resource"),
-                            guideline=result.get("guideline"),
-                            start_line=result.get("start_line"),
-                            end_line=result.get("end_line")
-                        ).on_conflict_do_update(
-                            index_elements=["file_path", "check_id", "start_line", "end_line"],
-                            set_={
-                                "check_name": result["check_name"],
-                                "result": result["result"],
-                                "resource": result.get("resource"),
-                                "guideline": result.get("guideline")
-                            }
-                        )
+                session.execute(
+                    insert(CheckovChecks).values(
+                        file_path=file_path,
+                        check_id=check.get("check_id"),
+                        check_name=check.get("check_name"),
+                        result=check.get("check_result", {}).get("result"),
+                        resource=resource,
+                        guideline=check.get("guideline"),
+                        start_line=check.get("file_line_range", [None])[0],
+                        end_line=check.get("file_line_range", [None, None])[1]
+                    ).on_conflict_do_update(
+                        index_elements=["file_path", "check_id", "start_line", "end_line"],
+                        set_={
+                            "check_name": check.get("check_name"),
+                            "result": check.get("check_result", {}).get("result"),
+                            "resource": resource,
+                            "guideline": check.get("guideline"),
+                        }
                     )
+                )
 
         session.commit()
         logger.debug(f"Checkov results committed to the database for repo_id: {repo_id}")
 
     except Exception as e:
+        # Log and re-raise any DB-related error or unexpected error
         logger.exception(f"Error saving Checkov results for repo_id {repo_id}")
         raise
 
