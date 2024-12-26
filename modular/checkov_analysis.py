@@ -14,69 +14,60 @@ def run_checkov_analysis(repo_dir, repo, session):
     """
     Run Checkov analysis on the given repo_dir and persist results to the database.
     """
-    logger.info(f"Starting Checkov analysis for repo_id: {repo.repo_id} "
-                f"(repo_slug: {repo.repo_slug}).")
+    logger.info(f"Starting Checkov analysis for repo_id: {repo.repo_id} (repo_slug: {repo.repo_slug}).")
 
+    # Validate repository directory
+    if not os.path.exists(repo_dir):
+        logger.error(f"Repository directory does not exist: {repo_dir}")
+        raise FileNotFoundError(f"Repository directory not found: {repo_dir}")
+
+    logger.debug(f"Repository directory found: {repo_dir}")
+
+    # Run Checkov command
+    output_file = os.path.join(repo_dir, "checkov_results.json")
     try:
-        # 1) Validate repository directory
-        if not os.path.exists(repo_dir):
-            logger.error(f"Repository directory does not exist: {repo_dir}")
-            raise FileNotFoundError(f"Repository directory not found: {repo_dir}")
+        result = subprocess.run(
+            [
+                "checkov",
+                "--directory", str(repo_dir),
+                "--output", "json",
+                "--output-file-path", output_file,
+                "--skip-download"
+            ],
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        logger.debug(f"Checkov command completed successfully for repo_id: {repo.repo_id}")
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Checkov command failed for repo_id {repo.repo_id}: {e.stderr.strip()}")
+        raise RuntimeError("Checkov analysis failed.")
 
-        logger.debug(f"Repository directory found: {repo_dir}")
+    # Validate output file
+    if not os.path.exists(output_file):
+        logger.error(f"Checkov did not produce the expected output file: {output_file}")
+        raise RuntimeError("Checkov analysis failed.")
 
-        # 2) Set up log file for Checkov
-        log_file_path = os.path.join(repo_dir, "checkov_analysis.log")
-        logger.info(f"Checkov logs will be written to: {log_file_path}")
+    # Parse the Checkov JSON output
+    logger.info(f"Parsing Checkov output for repo_id: {repo.repo_id}")
+    try:
+        with open(output_file, "r") as file:
+            checkov_data = json.load(file)
+        if "summary" not in checkov_data or checkov_data["summary"].get("resource_count", 0) == 0:
+            raise ValueError("Checkov did not analyze any resources or produced empty results.")
+    except (json.JSONDecodeError, ValueError) as e:
+        logger.error(f"Error parsing Checkov JSON output: {e}")
+        raise RuntimeError("Checkov analysis returned invalid data.") from e
 
-        # 3) Execute the Checkov command
-        logger.info(f"Executing Checkov command in directory: {repo_dir}")
-        try:
-            with open(log_file_path, "w") as log_file:
-                result = subprocess.run(
-                    ["checkov", "--skip-download", "--directory", str(repo_dir), "--output", "json"],
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    text=True,
-                    check=True
-                )
-                log_file.write(result.stdout)  # Save stdout to the log file
-                log_file.write(result.stderr)  # Save stderr to the log file as well
+    # Log summary
+    logger.info(f"Summary for repo_id {repo.repo_id}: "
+                f"Total Passed: {checkov_data['summary']['passed']}, "
+                f"Total Failed: {checkov_data['summary']['failed']}, "
+                f"Resource Count: {checkov_data['summary']['resource_count']}")
 
-            logger.debug(f"Checkov command completed successfully for repo_id: {repo.repo_id}")
-        except subprocess.CalledProcessError as e:
-            error_message = (
-                f"Checkov command failed for repo_id {repo.repo_id}. "
-                f"Return code: {e.returncode}. "
-                f"Error output: {e.stderr.strip() if e.stderr else 'No stderr output'}. "
-                f"Standard output: {e.stdout.strip() if e.stdout else 'No stdout output'}."
-            )
-            logger.error(error_message)
-            raise RuntimeError(error_message)
-
-        # 4) Parse the Checkov output
-        stdout_str = result.stdout.strip()
-        if not stdout_str:
-            logger.error(f"No output from Checkov command for repo_id: {repo.repo_id}")
-            raise RuntimeError("Checkov analysis returned no data.")
-
-        logger.info(f"Parsing Checkov output for repo_id: {repo.repo_id}")
-        try:
-            checkov_data = json.loads(stdout_str)
-        except json.JSONDecodeError as e:
-            logger.error(f"Error decoding Checkov JSON output for repo_id {repo.repo_id}: {e}")
-            logger.debug(f"Checkov output that failed to parse:\n{stdout_str}")
-            raise RuntimeError("Failed to parse Checkov JSON output.") from e
-
-        # 5) Persist results to the database
-        logger.info(f"Saving Checkov results to the database for repo_id: {repo.repo_id}")
-        save_checkov_results(session, repo.repo_id, checkov_data)
-        logger.info(f"Successfully saved Checkov results for repo_id: {repo.repo_id}")
-
-    except Exception as e:
-        # Catch all unexpected exceptions to log a full traceback.
-        logger.exception(f"An error occurred during Checkov analysis for repo_id {repo.repo_id}")
-        raise  # Re-raise so that the caller (Airflow) is aware of the failure.
+    # Save results
+    save_checkov_results(session, repo.repo_id, checkov_data)
+    logger.info(f"Successfully saved Checkov results for repo_id: {repo.repo_id}")
 
 
 def save_checkov_results(session, repo_id, results):
