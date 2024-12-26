@@ -76,6 +76,7 @@ CASE
             WHEN total_nloc BETWEEN 5000 AND 9999 THEN '5000-9999'
             ELSE '10000+'
 END AS total_nloc_bucket,
+
         CASE
             WHEN avg_ccn < 1 THEN '0-0.99'
             WHEN avg_ccn BETWEEN 1 AND 1.99 THEN '1-1.99'
@@ -104,3 +105,13 @@ END AS function_count_bucket,
             WHEN total_ccn BETWEEN 50 AND 99 THEN '50-99'
             ELSE '100+'
 END AS total_ccn_bucket
+
+    -- Assuming `value` is the column to be bucketized
+CASE
+    WHEN value <= 20 THEN '0-20%'
+    WHEN value > 20 AND value <= 40 THEN '21-40%'
+    WHEN value > 40 AND value <= 60 THEN '41-60%'
+    WHEN value > 60 AND value <= 80 THEN '61-80%'
+    WHEN value > 80 THEN '81-100%'
+    ELSE 'Unknown'
+END AS value_bucket
