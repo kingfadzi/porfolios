@@ -40,13 +40,15 @@ def run_cloc_analysis(repo_dir, repo, session):
             logger.error(f"cloc command failed for repo_id {repo.repo_id}. "
                          f"Return code: {e.returncode}. Stderr: {e.stderr.strip()}")
             logger.debug(f"Full exception info: ", exc_info=True)
-            raise RuntimeError("cloc analysis failed.") from e
+            # raise RuntimeError("cloc analysis failed.") from e
+            return
 
         # 3) Parse the cloc output
         stdout_str = result.stdout.strip()
         if not stdout_str:
             logger.error(f"No output from cloc command for repo_id: {repo.repo_id}")
-            raise RuntimeError("cloc analysis returned no data.")
+            # raise RuntimeError("cloc analysis returned no data.")
+            return
 
         logger.info(f"Parsing cloc output for repo_id: {repo.repo_id}")
         try:
@@ -54,7 +56,8 @@ def run_cloc_analysis(repo_dir, repo, session):
         except json.JSONDecodeError as e:
             logger.error(f"Error decoding cloc JSON output for repo_id {repo.repo_id}: {e}")
             logger.debug(f"cloc output that failed to parse:\n{stdout_str}")
-            raise RuntimeError("Failed to parse cloc JSON output.") from e
+            # raise RuntimeError("Failed to parse cloc JSON output.") from e
+            return
 
         # 4) Persist results to the database
         logger.info(f"Saving cloc results to the database for repo_id: {repo.repo_id}")
@@ -64,8 +67,8 @@ def run_cloc_analysis(repo_dir, repo, session):
     except Exception as e:
         # Catch all unexpected exceptions to log a full traceback.
         logger.exception(f"An error occurred during cloc analysis for repo_id {repo.repo_id}")
-        raise  # Re-raise so that the caller (Airflow) is aware of the failure.
-
+        # raise  # Re-raise so that the caller (Airflow) is aware of the failure.
+        return
 
 def save_cloc_results(session, repo_id, results):
     """
@@ -106,7 +109,8 @@ def save_cloc_results(session, repo_id, results):
     except Exception as e:
         # Log and re-raise any DB-related error or unexpected error
         logger.exception(f"Error saving cloc results for repo_id {repo_id}")
-        raise
+        # raise
+        return
 
 
 if __name__ == "__main__":

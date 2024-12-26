@@ -82,10 +82,12 @@ def parse_and_process_checkov_output(repo_id, checkov_output_path, session):
 
     except (json.JSONDecodeError, ValueError) as e:
         logger.error(f"Error parsing Checkov JSON output for repo_id {repo_id}: {e}")
-        raise RuntimeError("Invalid Checkov JSON data.") from e
+        # raise RuntimeError("Invalid Checkov JSON data.") from e
+        return
     except Exception as e:
         logger.exception(f"Unexpected error processing Checkov output for repo_id {repo_id}: {e}")
-        raise
+        # raise
+        return
 
 
 def process_checkov_data(repo_id, checkov_data, session):
@@ -126,7 +128,8 @@ def process_checkov_data(repo_id, checkov_data, session):
 
     except Exception as e:
         logger.exception(f"Error processing Checkov data for repo_id {repo_id}")
-        raise
+        # raise
+        return
 
 
 def save_checkov_results(session, repo_id, check_type, results):

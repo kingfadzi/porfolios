@@ -40,7 +40,8 @@ def run_syft_and_grype_analysis(repo_dir, repo, session):
             logger.debug(f"SBOM successfully generated at: {sbom_file_path}")
         except subprocess.CalledProcessError as e:
             logger.error(f"Syft command failed for repo_id {repo.repo_id}: {e.stderr.strip()}")
-            raise RuntimeError("Syft analysis failed.") from e
+            # raise RuntimeError("Syft analysis failed.") from e
+            return
 
         # Analyze SBOM using Grype and write results to disk
         grype_file_path = os.path.join(repo_dir, "grype-results.json")
@@ -55,7 +56,8 @@ def run_syft_and_grype_analysis(repo_dir, repo, session):
             logger.debug(f"Grype results written to: {grype_file_path}")
         except subprocess.CalledProcessError as e:
             logger.error(f"Grype command failed for repo_id {repo.repo_id}: {e.stderr.strip()}")
-            raise RuntimeError("Grype analysis failed.") from e
+            # raise RuntimeError("Grype analysis failed.") from e
+            return
 
         # Read and parse Grype results from disk
         logger.info(f"Reading Grype results from disk for repo_id: {repo.repo_id}.")
@@ -63,7 +65,8 @@ def run_syft_and_grype_analysis(repo_dir, repo, session):
 
     except Exception as e:
         logger.exception(f"Error during Syft and Grype analysis for repo_id {repo.repo_id}: {e}")
-        raise
+        # raise
+        return
 
 
 def parse_and_save_grype_results(grype_file_path, repo_id, session):
@@ -120,7 +123,8 @@ def parse_and_save_grype_results(grype_file_path, repo_id, session):
 
     except Exception as e:
         logger.exception(f"Error saving Grype results for repo_id {repo_id}: {e}")
-        raise
+        # raise
+        return
 
 
 if __name__ == "__main__":

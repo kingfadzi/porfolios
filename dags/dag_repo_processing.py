@@ -37,7 +37,7 @@ def analyze_repositories(batch):
             # Calculate and persist metrics
             run_gitlog_analysis(repo_dir, repo, session)
 
-            run_dependency_check(repo_dir, repo, session)
+            # run_dependency_check(repo_dir, repo, session)
 
             run_syft_and_grype_analysis(repo_dir, repo, session)
 

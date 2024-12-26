@@ -23,7 +23,7 @@ def run_gitlog_analysis(repo_dir, repo, session):
         logger.error(error_message)
         raise FileNotFoundError(error_message)
     else:
-        logger.debug(f"Repository directory found: {repo_dir}")
+        logger.info(f"Repository directory found: {repo_dir}")
 
     # Access the repository using GitPython
     # repo_obj = Repo(repo_dir)
@@ -36,11 +36,12 @@ def run_gitlog_analysis(repo_dir, repo, session):
             logger.info(f"The default branch is: {repo_obj.active_branch.name}")
             default_branch = repo_obj.active_branch.name
     else:
-        logger.error("Failed to obtain Repo object")
+        logger.info(f"Repository directory found: {repo_dir}")
         return
 
     # logger.debug(f"Default branch detected: {default_branch}")
 
+    logger.info(f"Calculating metrics from gitlog for repository directory: {repo_dir}")
     # Calculate metrics
     total_size = sum(blob.size for blob in repo_obj.tree(default_branch).traverse() if blob.type == 'blob')
     file_count = sum(1 for blob in repo_obj.tree(default_branch).traverse() if blob.type == 'blob')
