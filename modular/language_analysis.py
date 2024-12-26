@@ -2,7 +2,7 @@ import os
 import subprocess
 import logging
 from datetime import datetime
-from models import Session, LanguageAnalysis
+from modular.models import import Session, LanguageAnalysis
 from sqlalchemy.dialects.postgresql import insert
 from modular.timer_decorator import log_time
 

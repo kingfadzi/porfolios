@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 # Analyze a single batch of repositories
-@log_time
+
 def analyze_repositories(batch):
     session = Session()
     for repo in batch:

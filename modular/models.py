@@ -38,6 +38,7 @@ class RepoMetrics(Base):
     repo_age_days = Column(Integer, nullable=False)
     active_branch_count = Column(Integer, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
 # Lizard Metrics Model
 class LizardMetric(Base):
     __tablename__ = "lizard_metrics"

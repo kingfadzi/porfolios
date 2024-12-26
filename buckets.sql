@@ -69,3 +69,38 @@ WHEN file_count BETWEEN 5001 AND 10000 THEN '5001-10000 files'
 WHEN file_count > 10001 THEN '10001+ files'
 END
 
+CASE
+            WHEN total_nloc < 500 THEN '0-499'
+            WHEN total_nloc BETWEEN 500 AND 999 THEN '500-999'
+            WHEN total_nloc BETWEEN 1000 AND 4999 THEN '1000-4999'
+            WHEN total_nloc BETWEEN 5000 AND 9999 THEN '5000-9999'
+            ELSE '10000+'
+END AS total_nloc_bucket,
+        CASE
+            WHEN avg_ccn < 1 THEN '0-0.99'
+            WHEN avg_ccn BETWEEN 1 AND 1.99 THEN '1-1.99'
+            WHEN avg_ccn BETWEEN 2 AND 4 THEN '2-4'
+            WHEN avg_ccn BETWEEN 5 AND 9 THEN '5-9'
+            ELSE '10+'
+END AS avg_ccn_bucket,
+        CASE
+            WHEN total_token_count < 1000 THEN '0-999'
+            WHEN total_token_count BETWEEN 1000 AND 4999 THEN '1000-4999'
+            WHEN total_token_count BETWEEN 5000 AND 9999 THEN '5000-9999'
+            WHEN total_token_count BETWEEN 10000 AND 19999 THEN '10000-19999'
+            ELSE '20000+'
+END AS total_token_count_bucket,
+        CASE
+            WHEN function_count < 10 THEN '0-9'
+            WHEN function_count BETWEEN 10 AND 19 THEN '10-19'
+            WHEN function_count BETWEEN 20 AND 49 THEN '20-49'
+            WHEN function_count BETWEEN 50 AND 99 THEN '50-99'
+            ELSE '100+'
+END AS function_count_bucket,
+        CASE
+            WHEN total_ccn < 10 THEN '0-9'
+            WHEN total_ccn BETWEEN 10 AND 19 THEN '10-19'
+            WHEN total_ccn BETWEEN 20 AND 49 THEN '20-49'
+            WHEN total_ccn BETWEEN 50 AND 99 THEN '50-99'
+            ELSE '100+'
+END AS total_ccn_bucket
