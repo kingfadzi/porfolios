@@ -109,8 +109,8 @@ def process_checkov_data(repo_id, checkov_data, session):
         for item in checkov_data:
             check_type = item.get("check_type")
             if not check_type:
-                logger.warning(f"Missing 'check_type' in Checkov data for repo_id {repo_id}. Data:\n{json.dumps(item, indent=2)}")
-                return  # Exit gracefully if no actionable data
+                logger.warning(f"No IaC components found for repo_id {repo_id}. Checkov data:\n{json.dumps(item, indent=2)}")
+            return  # Exit gracefully if no actionable data
 
             logger.debug(f"Processing check_type: {check_type}")
             save_checkov_results(session, repo_id, check_type, item)
