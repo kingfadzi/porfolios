@@ -42,7 +42,7 @@ def run_checkov_analysis(repo_dir, repo, session):
             text=True
         )
 
-        logger.debug(f"Checkov stdout:\n{result.stdout}")
+        # logger.debug(f"Checkov stdout:\n{result.stdout}")
         logger.debug(f"Checkov stderr:\n{result.stderr}")
 
         # Ensure output file exists
@@ -106,21 +106,25 @@ def process_checkov_data(repo_id, checkov_data, session):
             return  # Exit gracefully if no data is present
 
         # Process each item in the list
+        processed_count = 0
         for item in checkov_data:
             check_type = item.get("check_type")
             if not check_type:
                 logger.warning(f"No IaC components found for repo_id {repo_id}. Checkov data:\n{json.dumps(item, indent=2)}")
-            return  # Exit gracefully if no actionable data
+                continue  # Skip this item but continue processing others
 
-            logger.debug(f"Processing check_type: {check_type}")
+            logger.info(f"Processing check_type: {check_type}")
             save_checkov_results(session, repo_id, check_type, item)
+            processed_count += 1
+
+        if processed_count == 0:
+            logger.warning(f"No actionable Checkov data was processed for repo_id {repo_id}. Checkov data:\n{json.dumps(checkov_data, indent=2)}")
+        else:
+            logger.info(f"Successfully processed {processed_count} Checkov data items for repo_id {repo_id}.")
 
     except Exception as e:
         logger.exception(f"Error processing Checkov data for repo_id {repo_id}")
         raise
-
-
-
 
 
 def save_checkov_results(session, repo_id, check_type, results):
@@ -131,6 +135,7 @@ def save_checkov_results(session, repo_id, check_type, results):
     try:
         # Save summary
         summary = results.get("summary", {})
+        logger.debug(f"Summary data: {summary}")
         session.execute(
             insert(CheckovSummary).values(
                 repo_id=repo_id,
@@ -150,34 +155,70 @@ def save_checkov_results(session, repo_id, check_type, results):
             )
         )
 
+        # Save file data
+        files = results.get("results", {}).get("files", [])
+        logger.debug(f"File data: {files}")
+        processed_files = set()
+        for check in results.get("results", {}).get("passed_checks", []) + results.get("results", {}).get("failed_checks", []):
+            file_path = check.get("file_path")
+            file_abs_path = check.get("file_abs_path")
+            if file_path and file_path not in processed_files:
+                logger.debug(f"Inserting file data: repo_id={repo_id}, check_type={check_type}, file_path={file_path}, file_abs_path={file_abs_path}")
+                session.execute(
+                    insert(CheckovFiles).values(
+                        repo_id=repo_id,
+                        check_type=check_type,
+                        file_path=file_path,
+                        file_abs_path=file_abs_path,
+                        resource_count=1,  # Example logic; modify if needed
+                    ).on_conflict_do_update(
+                        index_elements=["repo_id", "check_type", "file_path"],
+                        set_={
+                            "file_abs_path": file_abs_path,
+                            "resource_count": 1,  # Update logic as required
+                        },
+                    )
+                )
+                processed_files.add(file_path)
+
         # Save individual checks
-        checks = results.get("results", {}).get("checks", [])
+        checks = results.get("results", {}).get("passed_checks", []) + results.get("results", {}).get("failed_checks", [])
+        # logger.debug(f"Check data: {checks}")
         for check in checks:
             session.execute(
                 insert(CheckovChecks).values(
                     repo_id=repo_id,
+                    file_path=check.get("file_path"),
                     check_type=check_type,
                     check_id=check.get("check_id"),
+                    check_name=check.get("check_name"),
                     result=check.get("check_result", {}).get("result"),
-                    resource=check.get("resource"),
                     severity=check.get("severity"),
-                    file_path=check.get("file_path"),
+                    resource=check.get("resource"),
+                    guideline=check.get("guideline"),
+                    start_line=check.get("code_block", [[None]])[0][0] if check.get("code_block") else None,
+                    end_line=check.get("code_block", [[None]])[-1][0] if check.get("code_block") else None,
                 ).on_conflict_do_update(
-                    index_elements=["repo_id", "check_type", "check_id"],
+                    index_elements=["repo_id", "file_path", "check_type", "check_id"],
                     set_={
-                        "result": check.get("check_result", {}).get("result"),
-                        "resource": check.get("resource"),
-                        "severity": check.get("severity"),
                         "file_path": check.get("file_path"),
+                        "check_name": check.get("check_name"),
+                        "result": check.get("check_result", {}).get("result"),
+                        "severity": check.get("severity"),
+                        "resource": check.get("resource"),
+                        "guideline": check.get("guideline"),
+                        "start_line": check.get("code_block", [[None]])[0][0] if check.get("code_block") else None,
+                        "end_line": check.get("code_block", [[None]])[-1][0] if check.get("code_block") else None,
                     },
                 )
             )
 
         session.commit()
-        logger.debug(f"Checkov results committed to the database for repo_id: {repo_id}, check_type: {check_type}")
+        logger.info(f"Checkov results committed to the database for repo_id: {repo_id}, check_type: {check_type}")
     except Exception as e:
         logger.exception(f"Error saving Checkov results for repo_id {repo_id}, check_type: {check_type}")
         raise
+
 
 if __name__ == "__main__":
     repo_slug = "WebGoat"

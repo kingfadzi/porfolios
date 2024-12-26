@@ -144,11 +144,12 @@ CREATE TABLE checkov_summary (
 
 CREATE TABLE checkov_files (
                                id SERIAL PRIMARY KEY,
-                               repo_id TEXT NOT NULL,
-                               file_path TEXT NOT NULL,
-                               file_abs_path TEXT,
-                               file_type TEXT,
-                               CONSTRAINT uq_repo_file UNIQUE (repo_id, file_path)
+                               repo_id VARCHAR NOT NULL,
+                               check_type VARCHAR NOT NULL,
+                               file_path VARCHAR NOT NULL,
+                               file_abs_path VARCHAR,
+                               resource_count INTEGER DEFAULT 0 NOT NULL,
+                               UNIQUE (repo_id, check_type, file_path)
 );
 
 CREATE TABLE checkov_checks (

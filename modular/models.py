@@ -150,14 +150,14 @@ class CheckovSummary(Base):
 
 class CheckovFiles(Base):
     __tablename__ = "checkov_files"
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     repo_id = Column(String, nullable=False)
-    file_path = Column(Text, nullable=False)
-    file_abs_path = Column(Text)
-    file_type = Column(String)
-
+    check_type = Column(String, nullable=False)
+    file_path = Column(String, nullable=False)
+    file_abs_path = Column(String, nullable=True)
+    resource_count = Column(Integer, nullable=False, default=0)
     __table_args__ = (
-        UniqueConstraint("repo_id", "file_path", name="uq_repo_file"),
+        UniqueConstraint("repo_id", "check_type", "file_path", name="uq_repo_check_file"),
     )
 
 class CheckovChecks(Base):
