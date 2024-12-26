@@ -3,7 +3,7 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime
 from modular.cloning import clone_repository, cleanup_repository_directory
-from modular.metrics import run_gitlog_analysis
+from modular.gitlog_analysis import run_gitlog_analysis
 from modular.language_analysis import run_enry_analysis
 from modular.lizard_analysis import run_lizard_analysis
 from modular.cloc_analysis import run_cloc_analysis
