@@ -96,15 +96,21 @@ def process_checkov_data(repo_id, checkov_data, session):
             logger.debug(f"Checkov data for repo_id {repo_id} is a single item. Converting to list.")
             checkov_data = [checkov_data]
         elif not isinstance(checkov_data, list):
-            logger.error(f"Checkov data for repo_id {repo_id} is neither a list nor a dictionary.")
-            raise ValueError("Checkov data must be a list or a dictionary.")
+            logger.warning(f"Checkov data for repo_id {repo_id} is neither a list nor a dictionary.")
+            logger.warning(f"Received Checkov data:\n{json.dumps(checkov_data, indent=2)}")
+            return  # Gracefully exit if data is not in an expected format
+
+        # Check if there's no valid data
+        if not checkov_data:
+            logger.warning(f"No Checkov data found for repo_id {repo_id}.")
+            return  # Exit gracefully if no data is present
 
         # Process each item in the list
         for item in checkov_data:
             check_type = item.get("check_type")
             if not check_type:
-                logger.error(f"Missing 'check_type' in Checkov data for repo_id {repo_id}: {item}")
-                continue  # Skip invalid entries
+                logger.warning(f"Missing 'check_type' in Checkov data for repo_id {repo_id}. Data:\n{json.dumps(item, indent=2)}")
+                return  # Exit gracefully if no actionable data
 
             logger.debug(f"Processing check_type: {check_type}")
             save_checkov_results(session, repo_id, check_type, item)
@@ -112,6 +118,7 @@ def process_checkov_data(repo_id, checkov_data, session):
     except Exception as e:
         logger.exception(f"Error processing Checkov data for repo_id {repo_id}")
         raise
+
 
 
 
