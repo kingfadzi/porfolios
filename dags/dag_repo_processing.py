@@ -4,7 +4,7 @@ from airflow.operators.python import PythonOperator
 from datetime import datetime
 from modular.cloning import clone_repository, cleanup_repository_directory
 from modular.gitlog_analysis import run_gitlog_analysis
-from modular.language_analysis import run_enry_analysis
+from modular.go_enry_analysis import run_enry_analysis
 from modular.lizard_analysis import run_lizard_analysis
 from modular.cloc_analysis import run_cloc_analysis
 from modular.syft_grype_analysis import run_syft_and_grype_analysis

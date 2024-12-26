@@ -20,7 +20,7 @@ class Repository(Base):
 
 class LanguageAnalysis(Base):
     __tablename__ = "languages_analysis"
-    id = Column(String, primary_key=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
     repo_id = Column(String, nullable=False)
     language = Column(String, nullable=False)
     percent_usage = Column(Float, nullable=False)
