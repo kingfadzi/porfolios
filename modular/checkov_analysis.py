@@ -21,27 +21,28 @@ def run_checkov_analysis(repo_dir, repo, session):
 
     logger.debug(f"Repository directory found: {repo_dir}")
 
-    # Define output directory and file
+    # Define output directory and files
     output_dir = os.path.join(repo_dir, "checkov_results")
     os.makedirs(output_dir, exist_ok=True)
     output_file = os.path.join(output_dir, "results_json.json")
+    log_file = os.path.join(output_dir, "checkov.log")
 
     # Run Checkov command
     try:
         logger.info(f"Executing Checkov command for repo_id: {repo.repo_id}")
-        result = subprocess.run(
-            [
-                "checkov",
-                "--directory", str(repo_dir),
-                "--output", "json",
-                "--output-file-path", output_dir,
-                "--skip-download"
-            ],
-            capture_output=True,
-            text=True
-        )
-        logger.debug(f"Checkov stdout:\n{result.stdout}")
-        logger.debug(f"Checkov stderr:\n{result.stderr}")
+        with open(log_file, "w") as log_fh:
+            result = subprocess.run(
+                [
+                    "checkov",
+                    "--directory", str(repo_dir),
+                    "--output", "json",
+                    "--output-file-path", output_dir,
+                    "--skip-download"
+                ],
+                stdout=log_fh,
+                stderr=log_fh,
+                text=True
+            )
     except subprocess.SubprocessError as e:
         logger.exception(f"Subprocess error during Checkov execution for repo_id {repo.repo_id}")
         raise RuntimeError("Checkov analysis failed.") from e
@@ -49,9 +50,10 @@ def run_checkov_analysis(repo_dir, repo, session):
     # Validate output file
     if not os.path.exists(output_file):
         logger.error(f"Checkov did not produce the expected output file: {output_file}")
-        raise RuntimeError("Checkov analysis failed: No output file generated.")
+        raise RuntimeError(f"Checkov analysis failed: No output file generated. Check {log_file} for details.")
 
     logger.info(f"Checkov output file located at: {output_file}")
+    logger.info(f"Checkov logs written to: {log_file}")
 
     # Parse the Checkov JSON output
     logger.info(f"Parsing Checkov output for repo_id: {repo.repo_id}")
