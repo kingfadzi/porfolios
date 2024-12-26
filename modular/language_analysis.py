@@ -3,10 +3,12 @@ import csv
 from sqlalchemy.dialects.postgresql import insert
 import logging
 from modular.models import Session, LizardMetric, LizardSummary
+from modular.timer_decorator import log_time
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+@log_time
 def run_lizard_analysis(repo_dir, repo, session):
     """Run lizard analysis and persist results."""
     logger.info(f"Running lizard analysis for repo_id: {repo.repo_id}")

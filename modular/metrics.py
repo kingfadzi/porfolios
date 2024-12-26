@@ -3,7 +3,9 @@ from datetime import datetime
 import pytz
 from sqlalchemy.dialects.postgresql import insert
 from modular.models import Session, RepoMetrics
+from modular.timer_decorator import log_time
 
+@log_time
 def calculate_and_persist_repo_metrics(repo_dir, repo, session):
     """Calculate and persist repository metrics."""
     logger.info(f"Starting metrics calculation for repository: {repo.repo_name} (ID: {repo.repo_id})")

@@ -4,12 +4,14 @@ import json
 import logging
 from sqlalchemy.dialects.postgresql import insert
 from modular.models import Session, CheckovSummary, CheckovFiles, CheckovChecks
+from modular.timer_decorator import log_time
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 
+@log_time
 def run_checkov_analysis(repo_dir, repo, session):
     """
     Run Checkov analysis on the given repo_dir and persist results to the database.

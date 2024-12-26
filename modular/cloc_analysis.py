@@ -3,13 +3,13 @@ import subprocess
 import json
 import logging
 from sqlalchemy.dialects.postgresql import insert
-
 from modular.models import Session, ClocMetric
+from modular.timer_decorator import log_time
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-
+@log_time
 def run_cloc_analysis(repo_dir, repo, session):
     """
     Run cloc analysis on the given repo_dir and persist results to the database.

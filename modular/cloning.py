@@ -4,6 +4,7 @@ import subprocess
 import threading
 import logging
 from modular.models import Session, Repository
+from modular.timer_decorator import log_time
 
 clone_semaphore = threading.Semaphore(10)
 logging.basicConfig(level=logging.DEBUG)
@@ -19,6 +20,7 @@ def ensure_ssh_url(clone_url):
         return clone_url
     raise ValueError(f"Unsupported URL format: {clone_url}")
 
+@log_time
 def clone_repository(repo, timeout_seconds=120):
     base_dir = "/mnt/tmpfs/cloned_repositories"
     repo_dir = f"{base_dir}/{repo.repo_slug}"

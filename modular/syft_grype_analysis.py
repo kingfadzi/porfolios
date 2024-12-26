@@ -4,6 +4,7 @@ import json
 import logging
 from sqlalchemy.dialects.postgresql import insert
 from modular.models import Session, GrypeResult
+from modular.timer_decorator import log_time
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
@@ -11,7 +12,7 @@ logger = logging.getLogger(__name__)
 SYFT_CONFIG_PATH = "/root/.syft/config.yaml"
 GRYPE_CONFIG_PATH = "/root/.grype/config.yaml"
 
-
+@log_time
 def run_syft_and_grype(repo_dir, repo, session):
     """
     Run Syft to generate SBOM and Grype to analyze vulnerabilities, saving results to the database.

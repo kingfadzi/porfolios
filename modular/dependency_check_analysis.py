@@ -4,11 +4,12 @@ import json
 import logging
 from sqlalchemy.dialects.postgresql import insert
 from modular.models import Session, DependencyCheckResult
+from modular.timer_decorator import log_time
 
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-
+@log_time
 def run_dependency_check(repo_dir, repo, session):
     """
     Run OWASP Dependency-Check on the given repo_dir and persist results to the database.

@@ -11,12 +11,14 @@ from modular.syft_grype_analysis import run_syft_and_grype
 from modular.dependency_check_analysis import run_dependency_check
 from modular.checkov_analysis import run_checkov_analysis
 from modular.models import Session, Repository
+from modular.timer_decorator import log_time
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 # Analyze a single batch of repositories
+@log_time
 def analyze_repositories(batch):
     session = Session()
     for repo in batch:

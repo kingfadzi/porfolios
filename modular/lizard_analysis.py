@@ -4,11 +4,13 @@ import logging
 import os
 from sqlalchemy.dialects.postgresql import insert
 from modular.models import Session, LizardSummary
+from modular.timer_decorator import log_time
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+@log_time
 def run_lizard_analysis(repo_dir, repo, session):
     """Run lizard analysis and persist only the summary results."""
     logger.info(f"Starting lizard analysis for repo_id: {repo.repo_id} (repo_slug: {repo.repo_slug})")
