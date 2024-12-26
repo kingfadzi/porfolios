@@ -20,7 +20,8 @@ def run_enry_analysis(repo_dir, repo, session):
     if not os.path.exists(repo_dir):
         error_message = f"Repository directory does not exist: {repo_dir}"
         logger.error(error_message)
-        raise FileNotFoundError(error_message)
+        # raise FileNotFoundError(error_message)
+        return
     else:
         logger.debug(f"Repository directory found: {repo_dir}")
 
@@ -31,13 +32,15 @@ def run_enry_analysis(repo_dir, repo, session):
         logger.info(f"Language analysis completed successfully. Output file: {analysis_file}")
     except subprocess.CalledProcessError as e:
         logger.error(f"Error running go-enry for repository {repo.repo_name}: {e}")
-        raise RuntimeError(f"Language analysis failed for {repo.repo_name}: {e}")
+        # raise RuntimeError(f"Language analysis failed for {repo.repo_name}: {e}")
+        return
 
     # Validate the analysis file
     if not os.path.exists(analysis_file):
         error_message = f"Language analysis file not found for repository {repo.repo_name}. Expected at: {analysis_file}"
         logger.error(error_message)
-        raise FileNotFoundError(error_message)
+        # raise FileNotFoundError(error_message)
+        return
 
     # Parse and persist the language analysis results
     logger.info(f"Parsing language analysis results from file: {analysis_file}")
@@ -65,7 +68,8 @@ def run_enry_analysis(repo_dir, repo, session):
         logger.info(f"Language analysis results saved to the database for repo_id: {repo.repo_id}")
     except Exception as e:
         logger.error(f"Error while parsing or saving analysis results for repository {repo.repo_name}: {e}")
-        raise RuntimeError(f"Failed to persist language analysis for {repo.repo_name}: {e}")
+        # raise RuntimeError(f"Failed to persist language analysis for {repo.repo_name}: {e}")
+        return
 
 if __name__ == "__main__":
     # Hardcoded values for independent execution
