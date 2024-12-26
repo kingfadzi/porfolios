@@ -13,7 +13,7 @@ SYFT_CONFIG_PATH = "/root/.syft/config.yaml"
 GRYPE_CONFIG_PATH = "/root/.grype/config.yaml"
 
 @log_time
-def run_syft_and_grype(repo_dir, repo, session):
+def run_syft_and_grype_analysis(repo_dir, repo, session):
     """
     Run Syft to generate SBOM and Grype to analyze vulnerabilities, saving results to the database.
     """
@@ -143,7 +143,7 @@ if __name__ == "__main__":
     session = Session()
     try:
         logger.info(f"Starting standalone Syft and Grype analysis for repo_id: {repo.repo_id}.")
-        run_syft_and_grype(repo_dir, repo, session)
+        run_syft_and_grype_analysis(repo_dir, repo, session)
         logger.info(f"Standalone Syft and Grype analysis completed successfully for repo_id: {repo.repo_id}.")
     except Exception as e:
         logger.error(f"Error during standalone Syft and Grype analysis: {e}")

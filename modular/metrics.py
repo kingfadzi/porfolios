@@ -6,7 +6,7 @@ from modular.models import Session, RepoMetrics
 from modular.timer_decorator import log_time
 
 @log_time
-def calculate_and_persist_repo_metrics(repo_dir, repo, session):
+def run_gitlog_analysis(repo_dir, repo, session):
     """Calculate and persist repository metrics."""
     logger.info(f"Starting metrics calculation for repository: {repo.repo_name} (ID: {repo.repo_id})")
 
@@ -89,7 +89,7 @@ if __name__ == "__main__":
     session = Session()
     try:
         logger.info(f"Running metrics calculation for hardcoded repo_id: {repo.repo_id}, repo_slug: {repo.repo_slug}")
-        calculate_and_persist_repo_metrics(repo_dir, repo, session)
+        run_gitlog_analysis(repo_dir, repo, session)
     except Exception as e:
         logger.error(f"Error during standalone metrics calculation: {e}")
     finally:
