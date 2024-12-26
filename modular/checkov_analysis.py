@@ -3,6 +3,7 @@ import subprocess
 import json
 import logging
 from sqlalchemy.dialects.postgresql import insert
+
 from modular.models import Session, CheckovFiles, CheckovChecks, CheckovSummary
 
 logging.basicConfig(level=logging.DEBUG)
@@ -37,22 +38,23 @@ def run_checkov_analysis(repo_dir, repo, session):
                 ],
                 stdout=log_fh,
                 stderr=log_fh,
-                check=False
+                text=True
             )
             logger.debug(f"Checkov command finished with return code {result.returncode} for repo_id: {repo.repo_id}")
+
+        # Check return code and warn if non-zero
+        if result.returncode != 0:
+            logger.warning(f"Checkov returned a non-zero exit code {result.returncode} for repo_id: {repo.repo_id}. "
+                           f"Logs available at: {log_file}")
+
+        # Validate output file
+        if not os.path.exists(output_file):
+            logger.error(f"Checkov did not produce the expected output file: {output_file}")
+            raise RuntimeError("Checkov analysis failed.")
+
     except Exception as e:
         logger.error(f"Failed to execute Checkov for repo_id {repo.repo_id}: {e}")
         raise RuntimeError("Checkov analysis failed.") from e
-
-    # Check return code
-    if result.returncode != 0:
-        logger.error(f"Checkov analysis failed for repo_id {repo.repo_id}. Check logs at: {log_file}")
-        raise RuntimeError("Checkov analysis returned a non-zero exit code.")
-
-    # Validate output file
-    if not os.path.exists(output_file):
-        logger.error(f"Checkov did not produce the expected output file: {output_file}")
-        raise RuntimeError("Checkov analysis failed.")
 
     # Parse the Checkov JSON output
     logger.info(f"Parsing Checkov output for repo_id: {repo.repo_id}")
