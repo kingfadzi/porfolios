@@ -18,7 +18,8 @@ def run_lizard_analysis(repo_dir, repo, session):
     # Validate repository directory
     if not os.path.exists(repo_dir):
         logger.error(f"Repository directory does not exist: {repo_dir}")
-        raise FileNotFoundError(f"Repository directory not found: {repo_dir}")
+        # raise FileNotFoundError(f"Repository directory not found: {repo_dir}")
+        return
 
     logger.debug(f"Repository directory found: {repo_dir}")
 
@@ -29,12 +30,14 @@ def run_lizard_analysis(repo_dir, repo, session):
         logger.debug(f"Lizard command completed successfully for repo_id: {repo.repo_id}")
     except subprocess.CalledProcessError as e:
         logger.error(f"Lizard command failed for repo_id {repo.repo_id}: {e.stderr.strip()}")
-        raise RuntimeError("Lizard analysis failed.")
+        # raise RuntimeError("Lizard analysis failed.")
+        return
 
     # Parse the lizard output
     if not result.stdout.strip():
         logger.error(f"No output from lizard command for repo_id: {repo.repo_id}")
-        raise RuntimeError("Lizard analysis returned no data.")
+        # raise RuntimeError("Lizard analysis returned no data.")
+        return
 
     logger.info(f"Parsing lizard output for repo_id: {repo.repo_id}")
     csv_data = result.stdout.splitlines()
