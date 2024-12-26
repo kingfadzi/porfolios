@@ -1,4 +1,4 @@
-from git import Repo
+from git import Repo, GitCommandError, InvalidGitRepositoryError
 from datetime import datetime
 import pytz
 from sqlalchemy.dialects.postgresql import insert
@@ -26,9 +26,20 @@ def run_gitlog_analysis(repo_dir, repo, session):
         logger.debug(f"Repository directory found: {repo_dir}")
 
     # Access the repository using GitPython
-    repo_obj = Repo(repo_dir)
-    default_branch = repo_obj.active_branch.name
-    logger.debug(f"Default branch detected: {default_branch}")
+    # repo_obj = Repo(repo_dir)
+    repo_obj = get_repo_object(repo_dir)
+
+    if repo_obj:
+        logger.info(f"Successfully obtained Repo object for: {repo_dir}")
+        # You can now use repo_object for further operations
+        if not repo_obj.head.is_detached:
+            logger.info(f"The default branch is: {repo_obj.active_branch.name}")
+            default_branch = repo_obj.active_branch.name
+    else:
+        logger.error("Failed to obtain Repo object")
+        return
+
+    # logger.debug(f"Default branch detected: {default_branch}")
 
     # Calculate metrics
     total_size = sum(blob.size for blob in repo_obj.tree(default_branch).traverse() if blob.type == 'blob')
@@ -68,11 +79,34 @@ def run_gitlog_analysis(repo_dir, repo, session):
     session.commit()
     logger.info(f"Metrics saved for repository: {repo.repo_name} (ID: {repo.repo_id})")
 
+def get_repo_object(repo_dir):
+    try:
+        # Access the repository using GitPython
+        repo_obj = Repo(repo_dir)
+
+        # Check if the repository is in a detached HEAD state
+        if repo_obj.head.is_detached:
+            logger.warning("Repository is in detached HEAD state")
+        else:
+            default_branch = repo_obj.active_branch.name
+            logger.debug(f"Default branch detected: {default_branch}")
+
+        return repo_obj
+
+    except InvalidGitRepositoryError:
+        logger.error(f"The directory {repo_dir} is not a valid Git repository")
+    except GitCommandError as e:
+        logger.error(f"Git command error: {e}")
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
+
+    return None
+
 if __name__ == "__main__":
 
     # Hardcoded values for standalone execution
-    repo_slug = "example-repo"
-    repo_id = "example-repo-id"
+    repo_slug = "WebGoat"
+    repo_id = "WebGoat"
 
     # Mock repo object
     class MockRepo:
@@ -84,7 +118,7 @@ if __name__ == "__main__":
     repo = MockRepo(repo_id, repo_slug)
 
     # Define the path to the cloned repository
-    repo_dir = f"/mnt/tmpfs/cloned_repositories/{repo.repo_slug}"
+    repo_dir = f"/tmp/{repo.repo_slug}"
 
     # Create a session and run metrics calculation
     session = Session()

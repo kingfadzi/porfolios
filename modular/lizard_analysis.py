@@ -87,8 +87,8 @@ def save_lizard_summary(session, repo_id, summary):
 
 if __name__ == "__main__":
     # Hardcoded values for standalone execution
-    repo_slug = "halo"
-    repo_id = "halo"
+    repo_slug = "WebGoat"
+    repo_id = "WebGoat"
 
     # Mock repo object
     class MockRepo:
