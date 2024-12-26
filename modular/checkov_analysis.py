@@ -36,18 +36,23 @@ def run_checkov_analysis(repo_dir, repo, session):
                 result = subprocess.run(
                     ["checkov", "--skip-download", "--directory", str(repo_dir), "--output", "json"],
                     stdout=subprocess.PIPE,
-                    stderr=log_file,
+                    stderr=subprocess.PIPE,
                     text=True,
                     check=True
                 )
-                log_file.write(result.stdout)  # Also save stdout to the log file
+                log_file.write(result.stdout)  # Save stdout to the log file
+                log_file.write(result.stderr)  # Save stderr to the log file as well
 
             logger.debug(f"Checkov command completed successfully for repo_id: {repo.repo_id}")
         except subprocess.CalledProcessError as e:
-            logger.error(f"Checkov command failed for repo_id {repo.repo_id}. "
-                         f"Return code: {e.returncode}. Logs are in {log_file_path}")
-            logger.debug(f"Full exception info: ", exc_info=True)
-            raise RuntimeError("Checkov analysis failed.") from e
+            error_message = (
+                f"Checkov command failed for repo_id {repo.repo_id}. "
+                f"Return code: {e.returncode}. "
+                f"Error output: {e.stderr.strip() if e.stderr else 'No stderr output'}. "
+                f"Standard output: {e.stdout.strip() if e.stdout else 'No stdout output'}."
+            )
+            logger.error(error_message)
+            raise RuntimeError(error_message)
 
         # 4) Parse the Checkov output
         stdout_str = result.stdout.strip()
