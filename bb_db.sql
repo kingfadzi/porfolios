@@ -131,37 +131,38 @@ CREATE TABLE grype_results (
    CONSTRAINT grype_result_uc UNIQUE (repo_id, cve, package, version)
 );
 
+CREATE TABLE checkov_summary (
+                                 id SERIAL PRIMARY KEY,
+                                 repo_id TEXT NOT NULL,
+                                 check_type TEXT NOT NULL,
+                                 passed INTEGER DEFAULT 0,
+                                 failed INTEGER DEFAULT 0,
+                                 skipped INTEGER DEFAULT 0,
+                                 parsing_errors INTEGER DEFAULT 0,
+                                 CONSTRAINT uq_repo_check UNIQUE (repo_id, check_type)
+);
+
 CREATE TABLE checkov_files (
-                               file_path VARCHAR PRIMARY KEY,
+                               id SERIAL PRIMARY KEY,
+                               repo_id TEXT NOT NULL,
+                               file_path TEXT NOT NULL,
                                file_abs_path TEXT,
-                               file_type VARCHAR,
-                               resource_count INTEGER
+                               file_type TEXT,
+                               CONSTRAINT uq_repo_file UNIQUE (repo_id, file_path)
 );
 
 CREATE TABLE checkov_checks (
                                 id SERIAL PRIMARY KEY,
-                                repo_id VARCHAR NOT NULL,
-                                file_path VARCHAR NOT NULL,
-                                check_type VARCHAR NOT NULL,
-                                check_id VARCHAR NOT NULL,
-                                check_name VARCHAR,
-                                result VARCHAR NOT NULL,
-                                severity VARCHAR,
-                                resource VARCHAR,
+                                repo_id TEXT NOT NULL,
+                                file_path TEXT NOT NULL,
+                                check_type TEXT NOT NULL,
+                                check_id TEXT NOT NULL,
+                                check_name TEXT,
+                                result TEXT,
+                                severity TEXT,
+                                resource TEXT,
                                 guideline TEXT,
                                 start_line INTEGER,
                                 end_line INTEGER,
-                                CONSTRAINT uq_repo_file_checktype_checkid UNIQUE (repo_id, file_path, check_type, check_id)
-);
-
-
-CREATE TABLE checkov_summary (
-                                 id SERIAL PRIMARY KEY,                -- Auto-incrementing ID
-                                 repo_id VARCHAR NOT NULL,             -- Repository ID
-                                 check_type VARCHAR NOT NULL,          -- Type of the check (e.g., terraform, dockerfile, etc.)
-                                 passed INTEGER NOT NULL DEFAULT 0,    -- Count of passed checks
-                                 failed INTEGER NOT NULL DEFAULT 0,    -- Count of failed checks
-                                 skipped INTEGER NOT NULL DEFAULT 0,   -- Count of skipped checks
-                                 parsing_errors INTEGER NOT NULL DEFAULT 0, -- Count of parsing errors
-                                 UNIQUE (repo_id, check_type)          -- Unique constraint on repo_id and check_type
+                                CONSTRAINT uq_repo_check_id UNIQUE (repo_id, file_path, check_type, check_id)
 );
