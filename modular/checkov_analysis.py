@@ -91,10 +91,15 @@ def process_checkov_data(repo_id, checkov_data, session):
     Process the parsed Checkov data for a specific repository.
     """
     try:
-        if not isinstance(checkov_data, list):
-            logger.error(f"Checkov data for repo_id {repo_id} is not a list.")
-            raise ValueError("Checkov data must be a list.")
+        # Normalize checkov_data to always be a list
+        if isinstance(checkov_data, dict):
+            logger.debug(f"Checkov data for repo_id {repo_id} is a single item. Converting to list.")
+            checkov_data = [checkov_data]
+        elif not isinstance(checkov_data, list):
+            logger.error(f"Checkov data for repo_id {repo_id} is neither a list nor a dictionary.")
+            raise ValueError("Checkov data must be a list or a dictionary.")
 
+        # Process each item in the list
         for item in checkov_data:
             check_type = item.get("check_type")
             if not check_type:
@@ -107,6 +112,7 @@ def process_checkov_data(repo_id, checkov_data, session):
     except Exception as e:
         logger.exception(f"Error processing Checkov data for repo_id {repo_id}")
         raise
+
 
 
 
@@ -167,8 +173,8 @@ def save_checkov_results(session, repo_id, check_type, results):
         raise
 
 if __name__ == "__main__":
-    repo_slug = "sonar-metrics"
-    repo_id = "sonar-metrics"
+    repo_slug = "WebGoat"
+    repo_id = "WebGoat"
     repo_dir = f"/tmp/{repo_slug}"
 
     class MockRepo:
