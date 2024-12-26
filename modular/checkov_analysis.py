@@ -23,9 +23,12 @@ def run_checkov_analysis(repo_dir, repo, session):
 
     logger.debug(f"Repository directory found: {repo_dir}")
 
-    # Run Checkov command
-    output_file = os.path.join(repo_dir, "checkov_results.json")
+    # Define paths
+    output_dir = os.path.join(repo_dir, "checkov_results.json")
+    output_file = os.path.join(output_dir, "results_json.json")
     log_file = os.path.join(repo_dir, "checkov_analysis.log")
+
+    # Run Checkov command
     try:
         with open(log_file, "w") as log_fh:
             result = subprocess.run(
@@ -33,7 +36,7 @@ def run_checkov_analysis(repo_dir, repo, session):
                     "checkov",
                     "--directory", str(repo_dir),
                     "--output", "json",
-                    "--output-file-path", output_file,
+                    "--output-file-path", output_dir,
                     "--skip-download"
                 ],
                 stdout=log_fh,
