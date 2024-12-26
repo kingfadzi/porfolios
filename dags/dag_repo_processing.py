@@ -9,6 +9,7 @@ from modular.lizard_analysis import run_lizard_analysis
 from modular.cloc_analysis import run_cloc_analysis
 from modular.syft_grype_analysis import run_syft_and_grype
 from modular.dependency_check_analysis import run_dependency_check
+from modular.checkov_analysis import run_checkov_analysis
 from modular.models import Session, Repository
 
 # Configure logging
@@ -36,7 +37,9 @@ def analyze_repositories(batch):
 
             # run_dependency_check(repo_dir, repo, session)
 
-            run_syft_and_grype(repo_dir, repo, session)
+            # run_syft_and_grype(repo_dir, repo, session)
+
+            run_checkov_analysis(repo_dir, repo, session)
 
             # Update repository status to COMPLETED
             repo.status = "COMPLETED"

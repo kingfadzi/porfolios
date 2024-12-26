@@ -130,3 +130,29 @@ CREATE TABLE grype_results (
    cvss TEXT,
    CONSTRAINT grype_result_uc UNIQUE (repo_id, cve, package, version)
 );
+
+CREATE TABLE checkov_files (
+                               file_path VARCHAR PRIMARY KEY,
+                               file_abs_path TEXT,
+                               file_type VARCHAR,
+                               resource_count INTEGER
+);
+CREATE TABLE checkov_checks (
+                                file_path VARCHAR NOT NULL REFERENCES checkov_files(file_path),
+                                check_id VARCHAR NOT NULL,
+                                check_name VARCHAR NOT NULL,
+                                result VARCHAR NOT NULL,
+                                resource VARCHAR,
+                                guideline TEXT,
+                                start_line INTEGER,
+                                end_line INTEGER,
+                                PRIMARY KEY (file_path, check_id, start_line, end_line)
+);
+
+CREATE TABLE checkov_summary (
+                                 repo_id VARCHAR PRIMARY KEY,
+                                 passed INTEGER NOT NULL,
+                                 failed INTEGER NOT NULL,
+                                 skipped INTEGER NOT NULL,
+                                 parsing_errors INTEGER NOT NULL
+);

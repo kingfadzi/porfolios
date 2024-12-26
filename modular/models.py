@@ -133,3 +133,32 @@ class GrypeResult(Base):
     __table_args__ = (
         UniqueConstraint("repo_id", "cve", "package", "version", name="grype_result_uc"),
     )
+
+class CheckovFiles(Base):
+    __tablename__ = 'checkov_files'
+    file_path = Column(String, primary_key=True)
+    file_abs_path = Column(Text)
+    file_type = Column(String)
+    resource_count = Column(Integer)
+
+class CheckovChecks(Base):
+    __tablename__ = 'checkov_checks'
+    file_path = Column(String, ForeignKey('checkov_files.file_path'), nullable=False)
+    check_id = Column(String, nullable=False)
+    check_name = Column(String, nullable=False)
+    result = Column(String, nullable=False)
+    resource = Column(String)
+    guideline = Column(Text)
+    start_line = Column(Integer)
+    end_line = Column(Integer)
+    __table_args__ = (
+        PrimaryKeyConstraint('file_path', 'check_id', 'start_line', 'end_line'),
+    )
+
+class CheckovSummary(Base):
+    __tablename__ = 'checkov_summary'
+    repo_id = Column(String, primary_key=True)
+    passed = Column(Integer, nullable=False)
+    failed = Column(Integer, nullable=False)
+    skipped = Column(Integer, nullable=False)
+    parsing_errors = Column(Integer, nullable=False)
