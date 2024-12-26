@@ -5,6 +5,13 @@ from sqlalchemy.dialects.postgresql import insert
 from modular.models import Session, RepoMetrics
 from modular.timer_decorator import log_time
 
+import os
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
+
 @log_time
 def run_gitlog_analysis(repo_dir, repo, session):
     """Calculate and persist repository metrics."""
@@ -62,12 +69,6 @@ def run_gitlog_analysis(repo_dir, repo, session):
     logger.info(f"Metrics saved for repository: {repo.repo_name} (ID: {repo.repo_id})")
 
 if __name__ == "__main__":
-    import os
-    import logging
-
-    # Configure logging
-    logging.basicConfig(level=logging.DEBUG)
-    logger = logging.getLogger(__name__)
 
     # Hardcoded values for standalone execution
     repo_slug = "example-repo"
