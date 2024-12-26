@@ -3,6 +3,7 @@ import subprocess
 import json
 import logging
 from sqlalchemy.dialects.postgresql import insert
+
 from modular.models import Session, CheckovFiles, CheckovChecks, CheckovSummary
 
 logging.basicConfig(level=logging.DEBUG)
@@ -24,129 +25,141 @@ def run_checkov_analysis(repo_dir, repo, session):
 
         logger.debug(f"Repository directory found: {repo_dir}")
 
-        # 2) Execute the Checkov command
-        output_file = os.path.join(repo_dir, "results.json")
+        # 2) Set up log file for Checkov
+        log_file_path = os.path.join(repo_dir, "checkov_analysis.log")
+        logger.info(f"Checkov logs will be written to: {log_file_path}")
+
+        # 3) Execute the Checkov command
         logger.info(f"Executing Checkov command in directory: {repo_dir}")
         try:
-            result = subprocess.run(
-                [
-                    "checkov",
-                    "--directory", str(repo_dir),
-                    "--skip-download",
-                    "--output", "json",
-                    "--output-file-path", str(output_file)
-                ],
-                capture_output=True,
-                text=True,
-                check=True
-            )
+            with open(log_file_path, "w") as log_file:
+                result = subprocess.run(
+                    ["checkov", "--skip-download", "--directory", str(repo_dir), "--output", "json"],
+                    stdout=subprocess.PIPE,
+                    stderr=log_file,
+                    text=True,
+                    check=True
+                )
+                log_file.write(result.stdout)  # Also save stdout to the log file
+
             logger.debug(f"Checkov command completed successfully for repo_id: {repo.repo_id}")
         except subprocess.CalledProcessError as e:
             logger.error(f"Checkov command failed for repo_id {repo.repo_id}. "
-                         f"Return code: {e.returncode}. Stderr: {e.stderr.strip()}")
+                         f"Return code: {e.returncode}. Logs are in {log_file_path}")
             logger.debug(f"Full exception info: ", exc_info=True)
             raise RuntimeError("Checkov analysis failed.") from e
 
-        # 3) Parse the Checkov output
-        if not os.path.exists(output_file):
-            logger.error(f"No output file from Checkov command for repo_id: {repo.repo_id}")
+        # 4) Parse the Checkov output
+        stdout_str = result.stdout.strip()
+        if not stdout_str:
+            logger.error(f"No output from Checkov command for repo_id: {repo.repo_id}")
             raise RuntimeError("Checkov analysis returned no data.")
 
         logger.info(f"Parsing Checkov output for repo_id: {repo.repo_id}")
         try:
-            with open(output_file, "r") as f:
-                checkov_data = json.load(f)
+            checkov_data = json.loads(stdout_str)
         except json.JSONDecodeError as e:
             logger.error(f"Error decoding Checkov JSON output for repo_id {repo.repo_id}: {e}")
+            logger.debug(f"Checkov output that failed to parse:\n{stdout_str}")
             raise RuntimeError("Failed to parse Checkov JSON output.") from e
 
-        # 4) Persist results to the database
+        # 5) Persist results to the database
         logger.info(f"Saving Checkov results to the database for repo_id: {repo.repo_id}")
         save_checkov_results(session, repo.repo_id, checkov_data)
         logger.info(f"Successfully saved Checkov results for repo_id: {repo.repo_id}")
 
     except Exception as e:
+        # Catch all unexpected exceptions to log a full traceback.
         logger.exception(f"An error occurred during Checkov analysis for repo_id {repo.repo_id}")
-        raise
+        raise  # Re-raise so that the caller (Airflow) is aware of the failure.
 
 
 def save_checkov_results(session, repo_id, results):
     """
-    Save Checkov results to the database.
+    Save Checkov results to the database in CheckovFiles, CheckovChecks, and CheckovSummary tables.
     """
     logger.debug(f"Processing Checkov results for repo_id: {repo_id}")
 
     try:
-        for check_type_data in results:
-            check_type = check_type_data.get("check_type", "unknown")
-            check_results = check_type_data.get("results", {})
-            summary = check_type_data.get("summary", {})
+        # Save summary
+        summary = results.get("summary", {})
+        session.execute(
+            insert(CheckovSummary).values(
+                repo_id=repo_id,
+                passed=summary.get("passed", 0),
+                failed=summary.get("failed", 0),
+                skipped=summary.get("skipped", 0),
+                parsing_errors=summary.get("parsing_errors", 0)
+            ).on_conflict_do_update(
+                index_elements=["repo_id"],
+                set_={
+                    "passed": summary.get("passed", 0),
+                    "failed": summary.get("failed", 0),
+                    "skipped": summary.get("skipped", 0),
+                    "parsing_errors": summary.get("parsing_errors", 0)
+                }
+            )
+        )
 
-            # Save file-level data
-            for check in check_results.get("passed_checks", []) + check_results.get("failed_checks", []):
+        # Save files and checks
+        for check_type in results.get("results", {}):
+            for check in results["results"][check_type].get("checks", []):
+                file_path = check.get("file_path")
+                file_abs_path = check.get("file_abs_path")
+                file_type = check.get("file_type", check_type)  # Derive file type from check_type
+                resource_count = check.get("resource_count", 0)
+
+                # Save file details
                 session.execute(
                     insert(CheckovFiles).values(
-                        file_path=check.get("file_path"),
-                        file_abs_path=check.get("file_abs_path"),
-                        file_type=check_type,
-                        resource_count=1
+                        file_path=file_path,
+                        file_abs_path=file_abs_path,
+                        file_type=file_type,
+                        resource_count=resource_count
                     ).on_conflict_do_update(
                         index_elements=["file_path"],
-                        set_={"resource_count": 1}
-                    )
-                )
-
-                # Save check data
-                session.execute(
-                    insert(CheckovChecks).values(
-                        file_path=check.get("file_path"),
-                        check_id=check.get("check_id"),
-                        check_name=check.get("check_name"),
-                        result=check["check_result"]["result"],
-                        resource=check.get("resource"),
-                        guideline=check.get("guideline"),
-                        start_line=check.get("file_line_range", [0])[0],
-                        end_line=check.get("file_line_range", [0])[1]
-                    ).on_conflict_do_update(
-                        index_elements=["file_path", "check_id", "start_line", "end_line"],
                         set_={
-                            "check_name": check.get("check_name"),
-                            "result": check["check_result"]["result"],
-                            "guideline": check.get("guideline")
+                            "file_abs_path": file_abs_path,
+                            "file_type": file_type,
+                            "resource_count": resource_count
                         }
                     )
                 )
 
-            # Save summary data
-            session.execute(
-                insert(CheckovSummary).values(
-                    repo_id=repo_id,
-                    passed=summary.get("passed", 0),
-                    failed=summary.get("failed", 0),
-                    skipped=summary.get("skipped", 0),
-                    parsing_errors=summary.get("parsing_errors", 0)
-                ).on_conflict_do_update(
-                    index_elements=["repo_id"],
-                    set_={
-                        "passed": summary.get("passed", 0),
-                        "failed": summary.get("failed", 0),
-                        "skipped": summary.get("skipped", 0),
-                        "parsing_errors": summary.get("parsing_errors", 0)
-                    }
-                )
-            )
+                # Save individual checks
+                for result in check.get("results", []):
+                    session.execute(
+                        insert(CheckovChecks).values(
+                            file_path=file_path,
+                            check_id=result["check_id"],
+                            check_name=result["check_name"],
+                            result=result["result"],
+                            resource=result.get("resource"),
+                            guideline=result.get("guideline"),
+                            start_line=result.get("start_line"),
+                            end_line=result.get("end_line")
+                        ).on_conflict_do_update(
+                            index_elements=["file_path", "check_id", "start_line", "end_line"],
+                            set_={
+                                "check_name": result["check_name"],
+                                "result": result["result"],
+                                "resource": result.get("resource"),
+                                "guideline": result.get("guideline")
+                            }
+                        )
+                    )
 
         session.commit()
         logger.debug(f"Checkov results committed to the database for repo_id: {repo_id}")
 
     except Exception as e:
+        # Log and re-raise any DB-related error or unexpected error
         logger.exception(f"Error saving Checkov results for repo_id {repo_id}")
-        session.rollback()
         raise
 
 
 if __name__ == "__main__":
-    # Hardcoded values for standalone testing
+    # Hardcoded values for a standalone test
     repo_slug = "halo"
     repo_id = "halo"
 
@@ -155,6 +168,7 @@ if __name__ == "__main__":
         def __init__(self, repo_id, repo_slug):
             self.repo_id = repo_id
             self.repo_slug = repo_slug
+            self.repo_name = repo_slug  # Mock additional attributes if needed
 
     repo = MockRepo(repo_id, repo_slug)
     repo_dir = f"/tmp/{repo.repo_slug}"
