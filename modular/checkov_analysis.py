@@ -32,6 +32,7 @@ def run_checkov_analysis(repo_dir, repo, session):
                 [
                     "checkov",
                     "--directory", str(repo_dir),
+                    "--skip-download",
                     "--output", "json",
                     "--output-file-path", str(output_file)
                 ],
