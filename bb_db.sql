@@ -138,7 +138,7 @@ CREATE TABLE checkov_files (
                                resource_count INTEGER
 );
 CREATE TABLE checkov_checks (
-                                file_path VARCHAR NOT NULL REFERENCES checkov_files(file_path),
+                                file_path VARCHAR NOT NULL,
                                 check_id VARCHAR NOT NULL,
                                 check_name VARCHAR NOT NULL,
                                 result VARCHAR NOT NULL,
@@ -148,6 +148,7 @@ CREATE TABLE checkov_checks (
                                 end_line INTEGER,
                                 PRIMARY KEY (file_path, check_id, start_line, end_line)
 );
+
 
 CREATE TABLE checkov_summary (
                                  repo_id VARCHAR PRIMARY KEY,

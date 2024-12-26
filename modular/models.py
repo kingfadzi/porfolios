@@ -143,7 +143,7 @@ class CheckovFiles(Base):
 
 class CheckovChecks(Base):
     __tablename__ = 'checkov_checks'
-    file_path = Column(String, ForeignKey('checkov_files.file_path'), nullable=False)
+    file_path = Column(String, nullable=False)
     check_id = Column(String, nullable=False)
     check_name = Column(String, nullable=False)
     result = Column(String, nullable=False)
