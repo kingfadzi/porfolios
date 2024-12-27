@@ -3,7 +3,7 @@ import json
 import logging
 from subprocess import run
 from sqlalchemy.dialects.postgresql import insert
-from modular.models import Session, CheckovSummary, CheckovFiles, CheckovChecks
+from modular.models import Session, CheckovSummary
 from modular.execution_decorator import analyze_execution
 
 # Configure logging
@@ -25,9 +25,7 @@ def run_checkov_analysis(repo_dir, repo, session, run_id=None):
 
     # Validate repository directory
     if not os.path.exists(repo_dir):
-        error_message = f"Repository directory does not exist: {repo_dir}"
-        logger.error(error_message)
-        raise FileNotFoundError(error_message)
+        raise FileNotFoundError(f"Repository directory does not exist: {repo_dir}")
 
     # Define output directory
     output_dir = os.path.join(repo_dir, "checkov_results")
@@ -51,9 +49,7 @@ def run_checkov_analysis(repo_dir, repo, session, run_id=None):
         # Validate if the results file exists in the output directory
         results_file = os.path.join(output_dir, "results_json.json")
         if not os.path.isfile(results_file):
-            error_message = f"Checkov did not produce the expected results file in {output_dir}."
-            logger.error(error_message)
-            raise FileNotFoundError(error_message)
+            raise FileNotFoundError(f"Checkov did not produce the expected results file in {output_dir}.")
 
         # Process Checkov output
         summary = parse_and_process_checkov_output(repo.repo_id, results_file, session)
@@ -61,7 +57,9 @@ def run_checkov_analysis(repo_dir, repo, session, run_id=None):
     except Exception as e:
         error_message = f"Error during Checkov execution for repo_id {repo.repo_id}: {e}"
         logger.exception(error_message)
-        raise RuntimeError(f"Checkov execution failed for repo_id {repo.repo_id}. Error: {e}")
+
+        # Reraise the exception so the decorator can handle it
+        raise RuntimeError(error_message)
 
     # Return summary on success to the decorator for persistence
     return f"{summary}"
@@ -86,113 +84,78 @@ def parse_and_process_checkov_output(repo_id, checkov_output_path, session):
 
         logger.info(f"Checkov output successfully parsed for repo_id: {repo_id}.")
 
-        # Handle checkov_data if it's a list (as observed from previous errors)
+        # If the output is a list of checks (i.e., IaC files were found)
         if isinstance(checkov_data, list):
-            # Assuming the summary is inside the first item of the list
-            summary = checkov_data[0].get('summary', {})
-            checks_data = checkov_data[0].get('results', {}).get('failed_checks', []) + checkov_data[0].get('results', {}).get('passed_checks', [])
+            for check in checkov_data:
+                check_type = check.get('check_type')
+                check_summary = check.get('summary', {})
+
+                # Extract summary for each check type
+                passed = check_summary.get('passed', 0)
+                failed = check_summary.get('failed', 0)
+                skipped = check_summary.get('skipped', 0)
+                parsing_errors = check_summary.get('parsing_errors', 0)
+                resource_count = check_summary.get('resource_count', 0)
+
+                # Persist each check summary to the database
+                save_checkov_results(session, repo_id, check_type, passed, failed, skipped, parsing_errors, resource_count)
+
+            # Return the check types found in the output
+            check_types = [check.get('check_type') for check in checkov_data]
+            return f"Processed check types: {', '.join(check_types)}"
+
         else:
-            # If checkov_data is a dictionary
-            summary = checkov_data.get('summary', {})
-            checks_data = checkov_data.get('results', {}).get('failed_checks', []) + checkov_data.get('results', {}).get('passed_checks', [])
-
-        # Extract the summary values
-        passed = summary.get('passed', 0)
-        failed = summary.get('failed', 0)
-        skipped = summary.get('skipped', 0)
-        parsing_errors = summary.get('parsing_errors', 0)
-
-        # Process and save the check results into the database
-        for check in checks_data:
-            file_path = check.get('file_path')
-            check_type = check.get('check_class')
-            check_name = check.get('check_name')
-            result = check.get('check_result', {}).get('result')
-            check_id = check.get('check_id')
-
-            save_checkov_results(session, repo_id, check_type, file_path, check_name, result, check_id)
-
-        # Return summary in the desired format
-        return f"Processed items: Passed: {passed}, Failed: {failed}, Skipped: {skipped}, Parsing Errors: {parsing_errors}"
+            # If no IaC files were found, return the exact payload received from Checkov without modification
+            return json.dumps(checkov_data)
 
     except (json.JSONDecodeError, ValueError) as e:
-        error_message = f"Error parsing Checkov JSON output for repo_id {repo_id}: {e}"
-        logger.error(error_message)
-        raise RuntimeError(f"Failed to parse Checkov output for repo_id {repo_id}. Error: {e}")  # Raise a generic exception
+        logger.error(f"Error parsing Checkov JSON output for repo_id {repo_id}: {e}")
+        raise RuntimeError(f"Failed to parse Checkov output for repo_id {repo_id}.")  # Raise a generic exception
 
     except Exception as e:
-        error_message = f"Unexpected error processing Checkov output for repo_id {repo_id}: {e}"
-        logger.exception(error_message)
-        raise RuntimeError(f"Unexpected error processing Checkov output for repo_id {repo_id}. Error: {e}")
+        logger.exception(f"Unexpected error processing Checkov output for repo_id {repo_id}: {e}")
+        raise RuntimeError(f"Unexpected error processing Checkov output for repo_id {repo_id}.")
 
 
-def save_checkov_results(session, repo_id, check_type, file_path, check_name, result, check_id):
+def save_checkov_results(session, repo_id, check_type, passed, failed, skipped, parsing_errors, resource_count):
     """
-    Save Checkov results to the database in CheckovFiles, CheckovChecks, and CheckovSummary tables.
+    Save Checkov results to the database in CheckovSummary table.
     """
     try:
-        # Save summary
+        # Save summary to CheckovSummary
         session.execute(
             insert(CheckovSummary).values(
                 repo_id=repo_id,
                 check_type=check_type,
-                passed=1 if result == 'PASS' else 0,
-                failed=1 if result == 'FAIL' else 0,
-                skipped=1 if result == 'SKIP' else 0,
-                parsing_errors=0  # Assuming no parsing errors for each check, set to 0
+                passed=passed,
+                failed=failed,
+                skipped=skipped,
+                parsing_errors=parsing_errors,
+                resource_count=resource_count,
             ).on_conflict_do_update(
                 index_elements=["repo_id", "check_type"],
                 set_={
-                    "passed": 1 if result == 'PASS' else 0,
-                    "failed": 1 if result == 'FAIL' else 0,
-                    "skipped": 1 if result == 'SKIP' else 0,
-                    "parsing_errors": 0,
+                    "passed": passed,
+                    "failed": failed,
+                    "skipped": skipped,
+                    "parsing_errors": parsing_errors,
+                    "resource_count": resource_count,
                 },
             )
         )
 
-        # Save files and checks
-        session.execute(
-            insert(CheckovFiles).values(
-                repo_id=repo_id,
-                check_type=check_type,
-                file_path=file_path,
-                resource_count=1,  # Example logic for counting files
-            ).on_conflict_do_update(
-                index_elements=["repo_id", "check_type", "file_path"],
-                set_={"resource_count": 1}
-            )
-        )
-
-        session.execute(
-            insert(CheckovChecks).values(
-                repo_id=repo_id,
-                file_path=file_path,
-                check_type=check_type,
-                check_id=check_id,
-                check_name=check_name,
-                result=result,
-                severity=None,  # Assuming no severity available in this example
-                resource=None,  # Resource is also assumed to be null
-                guideline=None  # Assuming no guidelines
-            ).on_conflict_do_update(
-                index_elements=["repo_id", "file_path", "check_type", "check_id"],
-                set_={"result": result}
-            )
-        )
-
         session.commit()
-        logger.info(f"Checkov results committed to the database for repo_id: {repo_id}, check_type: {check_type}")
+        logger.info(f"Checkov summary for {check_type} committed to the database for repo_id: {repo_id}")
 
     except Exception as e:
-        logger.exception(f"Error saving Checkov results for repo_id {repo_id}, check_type {check_type}")
+        logger.exception(f"Error saving Checkov summary for repo_id {repo_id}, check_type {check_type}")
         raise  # Raise exception if saving results fails
 
 
 if __name__ == "__main__":
-    repo_slug = "WebGoat"
-    repo_id = "WebGoat"
-    repo_dir = f"/tmp/{repo_slug}"
+    repo_slug = "sonar-metrics"
+    repo_id = "sonar-metrics"
+    repo_dir = f"/Users/fadzi/Documents/journals"
 
     class MockRepo:
         def __init__(self, repo_id, repo_slug):

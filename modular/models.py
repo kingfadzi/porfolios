@@ -143,6 +143,7 @@ class CheckovSummary(Base):
     passed = Column(Integer, default=0)
     failed = Column(Integer, default=0)
     skipped = Column(Integer, default=0)
+    resource_count = Column(Integer, default=0)
     parsing_errors = Column(Integer, default=0)
 
     __table_args__ = (

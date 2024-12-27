@@ -136,6 +136,7 @@ CREATE TABLE checkov_summary (
                                  passed INTEGER DEFAULT 0,
                                  failed INTEGER DEFAULT 0,
                                  skipped INTEGER DEFAULT 0,
+                                 resource_count INTEGER DEFAULT 0,
                                  parsing_errors INTEGER DEFAULT 0,
                                  CONSTRAINT uq_repo_check UNIQUE (repo_id, check_type)
 );
