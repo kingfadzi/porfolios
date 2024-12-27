@@ -22,13 +22,13 @@ CREATE TABLE bitbucket_repositories (
     created_on TIMESTAMP,
     updated_on TIMESTAMP
 );
-CREATE TABLE languages_analysis (
-    id SERIAL PRIMARY KEY,
-    repo_id VARCHAR NOT NULL,
-    language VARCHAR NOT NULL,
-    percent_usage FLOAT NOT NULL,
-    analysis_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE (repo_id, language)
+CREATE TABLE go_enry_analysis (
+                                  id SERIAL PRIMARY KEY,
+                                  repo_id VARCHAR NOT NULL,
+                                  language VARCHAR NOT NULL,
+                                  percent_usage FLOAT NOT NULL,
+                                  analysis_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+                                  UNIQUE (repo_id, language)
 );
 
 CREATE TABLE repo_metrics (
@@ -42,9 +42,6 @@ CREATE TABLE repo_metrics (
                               active_branch_count INTEGER NOT NULL,
                               updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
-
--- Create lizard_metrics table
-DROP TABLE IF EXISTS lizard_metrics;
 
 CREATE TABLE lizard_metrics (
     id SERIAL PRIMARY KEY,
@@ -167,4 +164,31 @@ CREATE TABLE checkov_checks (
                                 start_line INTEGER,
                                 end_line INTEGER,
                                 CONSTRAINT uq_repo_check_id UNIQUE (repo_id, file_path, check_type, check_id)
+);
+
+CREATE TABLE trivy_vulnerability (
+                                     id SERIAL PRIMARY KEY,
+                                     repo_id VARCHAR NOT NULL,
+                                     target VARCHAR NOT NULL,
+                                     resource_class VARCHAR,  -- e.g., config, lang-pkgs
+                                     resource_type VARCHAR,   -- e.g., dockerfile, terraform
+                                     vulnerability_id VARCHAR NOT NULL,
+                                     pkg_name VARCHAR,
+                                     installed_version VARCHAR,
+                                     fixed_version VARCHAR,
+                                     severity VARCHAR NOT NULL,
+                                     primary_url VARCHAR,
+                                     description TEXT,
+                                     CONSTRAINT uq_repo_vuln_pkg UNIQUE (repo_id, vulnerability_id, pkg_name)
+);
+
+CREATE TABLE analysis_execution_log (
+                                        id SERIAL PRIMARY KEY,
+                                        method_name VARCHAR NOT NULL,
+                                        stage VARCHAR,
+                                        run_id VARCHAR,
+                                        status VARCHAR NOT NULL, -- "SUCCESS" or "FAILURE"
+                                        message TEXT, -- Success message or error details
+                                        execution_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                        duration FLOAT NOT NULL
 );

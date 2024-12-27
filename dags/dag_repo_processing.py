@@ -11,54 +11,70 @@ from modular.syft_grype_analysis import run_syft_and_grype_analysis
 from modular.dependency_check_analysis import run_dependency_check
 from modular.checkov_analysis import run_checkov_analysis
 from modular.models import Session, Repository
-from modular.timer_decorator import log_time
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-# Analyze a single batch of repositories
+def analyze_repositories(batch, run_id, **kwargs):
+    """
+    Analyze a batch of repositories by running various analysis tools.
 
-def analyze_repositories(batch):
+    :param batch: List of Repository objects to analyze.
+    :param run_id: The DAG run ID for tracking.
+    :param kwargs: Additional keyword arguments from Airflow.
+    """
     session = Session()
     for repo in batch:
         try:
+            logger.info(f"Processing repository: {repo.repo_name} (ID: {repo.repo_id})")
+
             # Clone repository
             repo_dir = clone_repository(repo)
+            logger.debug(f"Repository cloned to: {repo_dir}")
 
-            run_lizard_analysis(repo_dir, repo, session)
+            # Run Lizard Analysis
+            run_lizard_analysis(repo_dir, repo, session, run_id=run_id)
 
-            # Run Cloc analysis
-            run_cloc_analysis(repo_dir, repo, session)
+            # Run Cloc Analysis
+            run_cloc_analysis(repo_dir, repo, session, run_id=run_id)
 
-            # Perform language analysis
-            run_enry_analysis(repo_dir, repo, session)
+            # Perform Language Analysis with go-enry
+            run_enry_analysis(repo_dir, repo, session, run_id=run_id)
 
-            # Calculate and persist metrics
-            run_gitlog_analysis(repo_dir, repo, session)
+            # Calculate and Persist GitLog Metrics
+            run_gitlog_analysis(repo_dir, repo, session, run_id=run_id)
 
-            # run_dependency_check(repo_dir, repo, session)
+            # Run Dependency-Check Analysis
+            run_dependency_check(repo_dir, repo, session, run_id=run_id)
 
-            run_syft_and_grype_analysis(repo_dir, repo, session)
+            # Run Syft and Grype Analysis
+            run_syft_and_grype_analysis(repo_dir, repo, session, run_id=run_id)
 
-            run_checkov_analysis(repo_dir, repo, session)
+            # Run Checkov Analysis
+            run_checkov_analysis(repo_dir, repo, session, run_id=run_id)
 
             # Update repository status to COMPLETED
             repo.status = "COMPLETED"
             repo.comment = "Processing completed successfully."
-            repo.updated_on = datetime.utcnow()
+            repo.updated_on = datetime.now(timezone.utc)
             session.add(repo)
             session.commit()
+            logger.info(f"Repository {repo.repo_name} processed successfully.")
+
         except Exception as e:
+            logger.error(f"Error processing repository {repo.repo_name}: {e}")
             # Update repository status to ERROR
             repo.status = "ERROR"
             repo.comment = str(e)
-            repo.updated_on = datetime.utcnow()
+            repo.updated_on = datetime.now(timezone.utc)
             session.add(repo)
             session.commit()
+            logger.info(f"Repository {repo.repo_name} marked as ERROR.")
         finally:
             # Cleanup repository directory
             cleanup_repository_directory(repo_dir)
+            logger.debug(f"Repository directory {repo_dir} cleaned up.")
     session.close()
 
 # Fetch repositories in batches
@@ -82,7 +98,11 @@ def create_batches(batch_size=1000, num_tasks=10):
     return task_batches
 
 # Default DAG arguments
-default_args = {'owner': 'airflow', 'start_date': datetime(2023, 12, 1), 'retries': 1}
+default_args = {
+    'owner': 'airflow',
+    'start_date': datetime(2023, 12, 1),
+    'retries': 1
+}
 
 # Define DAG
 with DAG(
@@ -101,5 +121,8 @@ with DAG(
         PythonOperator(
             task_id=f"process_batch_{task_id}",
             python_callable=analyze_repositories,
-            op_args=[batch],
+            op_kwargs={
+                'batch': batch,
+                'run_id': '{{ run_id }}'  # Pass run_id using Jinja templating
+            },
         )

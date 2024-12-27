@@ -18,8 +18,8 @@ class Repository(Base):
     comment = Column(String)
     updated_on = Column(DateTime)
 
-class LanguageAnalysis(Base):
-    __tablename__ = "languages_analysis"
+class GoEnryAnalysis(Base):
+    __tablename__ = "go_enry_analysis"
     id = Column(Integer, primary_key=True, autoincrement=True)
     repo_id = Column(String, nullable=False)
     language = Column(String, nullable=False)
@@ -180,3 +180,35 @@ class CheckovChecks(Base):
         UniqueConstraint("repo_id", "file_path", "check_type", "check_id", name="uq_repo_check_id"),
     )
 
+class TrivyVulnerability(Base):
+    __tablename__ = "trivy_vulnerability"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    repo_id = Column(String, nullable=False)
+    target = Column(String, nullable=False)
+    resource_class = Column(String, nullable=True)  # Class of resource (e.g., config, lang-pkgs)
+    resource_type = Column(String, nullable=True)  # Type of resource (e.g., dockerfile, terraform)
+    vulnerability_id = Column(String, nullable=False)
+    pkg_name = Column(String, nullable=True)
+    installed_version = Column(String, nullable=True)
+    fixed_version = Column(String, nullable=True)
+    severity = Column(String, nullable=False)
+    primary_url = Column(String, nullable=True)
+    description = Column(Text, nullable=True)
+
+    __table_args__ = (
+        UniqueConstraint('repo_id', 'vulnerability_id', 'pkg_name', name='uq_repo_vuln_pkg'),
+    )
+
+class AnalysisExecutionLog(Base):
+    __tablename__ = "analysis_execution_log"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    method_name = Column(String, nullable=False)
+    stage = Column(String, nullable=True)
+    run_id = Column(String, nullable=True)
+    repo_id = Column(String, nullable=True)  # Added repo_id
+    status = Column(String, nullable=False)  # "SUCCESS" or "FAILURE"
+    message = Column(String, nullable=True)  # Success message or error details
+    execution_time = Column(DateTime, default=datetime.utcnow, nullable=False)
+    duration = Column(Float, nullable=False)

@@ -4,86 +4,88 @@ import json
 import logging
 from sqlalchemy.dialects.postgresql import insert
 from modular.models import Session, ClocMetric
-from modular.timer_decorator import log_time
+from modular.execution_decorator import analyze_execution
 
+# Configure logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-@log_time
-def run_cloc_analysis(repo_dir, repo, session):
+
+@analyze_execution(session_factory=Session, stage="CLOC Analysis")
+def run_cloc_analysis(repo_dir, repo, session, run_id=None):
     """
     Run cloc analysis on the given repo_dir and persist results to the database.
+
+    :param repo_dir: Directory path of the repository to be analyzed.
+    :param repo: Repository object containing metadata like repo_id and repo_slug.
+    :param session: Database session to persist the results.
+    :param run_id: DAG run ID passed for tracking.
+    :return: Success message with the number of processed languages or raises an exception on failure.
     """
-    logger.info(f"Starting cloc analysis for repo_id: {repo.repo_id} "
-                f"(repo_slug: {repo.repo_slug}).")
+    logger.info(f"Starting CLOC analysis for repo_id: {repo.repo_id} (repo_slug: {repo.repo_slug}).")
 
+    # Validate repository directory
+    if not os.path.exists(repo_dir):
+        error_message = f"Repository directory does not exist: {repo_dir}"
+        logger.error(error_message)
+        raise FileNotFoundError(error_message)
+
+    # Execute CLOC command
     try:
-        # 1) Validate repository directory
-        if not os.path.exists(repo_dir):
-            logger.error(f"Repository directory does not exist: {repo_dir}")
-            raise FileNotFoundError(f"Repository directory not found: {repo_dir}")
+        logger.info(f"Executing CLOC command for repo_id: {repo.repo_id}")
+        result = subprocess.run(
+            ["cloc", "--json", str(repo_dir)],
+            capture_output=True,
+            text=True,
+            check=False
+        )
 
-        logger.debug(f"Repository directory found: {repo_dir}")
-
-        # 2) Execute the cloc command
-        logger.info(f"Executing cloc command in directory: {repo_dir}")
-        try:
-            result = subprocess.run(
-                ["cloc", "--json", str(repo_dir)],
-                capture_output=True,
-                text=True,
-                check=True
-            )
-            logger.debug(f"cloc command completed successfully for repo_id: {repo.repo_id}")
-        except subprocess.CalledProcessError as e:
-            # CalledProcessError is raised when `check=True` and the command returns a non-zero exit code
-            logger.error(f"cloc command failed for repo_id {repo.repo_id}. "
-                         f"Return code: {e.returncode}. Stderr: {e.stderr.strip()}")
-            logger.debug(f"Full exception info: ", exc_info=True)
-            # raise RuntimeError("cloc analysis failed.") from e
-            return
-
-        # 3) Parse the cloc output
+        # Validate output
         stdout_str = result.stdout.strip()
         if not stdout_str:
-            logger.error(f"No output from cloc command for repo_id: {repo.repo_id}")
-            # raise RuntimeError("cloc analysis returned no data.")
-            return
+            error_message = f"No output from CLOC command for repo_id: {repo.repo_id}"
+            logger.error(error_message)
+            raise RuntimeError(error_message)
 
-        logger.info(f"Parsing cloc output for repo_id: {repo.repo_id}")
+        logger.info(f"Parsing CLOC output for repo_id: {repo.repo_id}")
         try:
             cloc_data = json.loads(stdout_str)
         except json.JSONDecodeError as e:
-            logger.error(f"Error decoding cloc JSON output for repo_id {repo.repo_id}: {e}")
-            logger.debug(f"cloc output that failed to parse:\n{stdout_str}")
-            # raise RuntimeError("Failed to parse cloc JSON output.") from e
-            return
+            error_message = f"Error decoding CLOC JSON output for repo_id {repo.repo_id}: {e}"
+            logger.error(error_message)
+            raise RuntimeError(error_message)
 
-        # 4) Persist results to the database
-        logger.info(f"Saving cloc results to the database for repo_id: {repo.repo_id}")
-        save_cloc_results(session, repo.repo_id, cloc_data)
-        logger.info(f"Successfully saved cloc results for repo_id: {repo.repo_id}")
+        # Persist results to the database
+        logger.info(f"Saving CLOC results to the database for repo_id: {repo.repo_id}")
+        processed_languages = save_cloc_results(session, repo.repo_id, cloc_data)
 
     except Exception as e:
-        # Catch all unexpected exceptions to log a full traceback.
-        logger.exception(f"An error occurred during cloc analysis for repo_id {repo.repo_id}")
-        # raise  # Re-raise so that the caller (Airflow) is aware of the failure.
-        return
+        logger.exception(f"Error during CLOC execution for repo_id {repo.repo_id}: {e}")
+        raise
+
+    # Return success message
+    return f"{processed_languages} languages processed."
+
 
 def save_cloc_results(session, repo_id, results):
     """
-    Save cloc results to the database in the ClocMetric table.
+    Save CLOC results to the database in the ClocMetric table.
+
+    :param session: Database session.
+    :param repo_id: Repository ID being analyzed.
+    :param results: Parsed CLOC JSON results.
+    :return: Number of languages processed.
     """
-    logger.debug(f"Processing cloc results for repo_id: {repo_id}")
+    logger.debug(f"Processing CLOC results for repo_id: {repo_id}")
 
     try:
+        processed_languages = 0
         for language, metrics in results.items():
             if language == "header":
-                logger.debug(f"Skipping header in cloc results for repo_id: {repo_id}")
+                logger.debug(f"Skipping header in CLOC results for repo_id: {repo_id}")
                 continue
 
             logger.debug(f"Saving metrics for language: {language} in repo_id: {repo_id}")
-
             session.execute(
                 insert(ClocMetric).values(
                     repo_id=repo_id,
@@ -102,48 +104,36 @@ def save_cloc_results(session, repo_id, results):
                     }
                 )
             )
+            processed_languages += 1
 
         session.commit()
-        logger.debug(f"Cloc results committed to the database for repo_id: {repo_id}")
+        logger.debug(f"CLOC results committed to the database for repo_id: {repo_id}")
+        return processed_languages
 
     except Exception as e:
-        # Log and re-raise any DB-related error or unexpected error
-        logger.exception(f"Error saving cloc results for repo_id {repo_id}")
-        # raise
-        return
+        logger.exception(f"Error saving CLOC results for repo_id {repo_id}")
+        raise
 
 
 if __name__ == "__main__":
-    # This block only runs if you execute the file directly (i.e., python your_script.py)
-    # In Airflow, this block is typically not used. Airflow just imports the module and calls run_cloc_analysis.
-    import logging
+    repo_slug = "WebGoat"
+    repo_id = "WebGoat"
+    repo_dir = f"/tmp/{repo_slug}"
 
-    # Configure logging for standalone run
-    logging.basicConfig(level=logging.DEBUG)
-    logger = logging.getLogger(__name__)
-
-    # Hardcoded values for a standalone test
-    repo_slug = "example-repo"
-    repo_id = "example-repo-id"
-
-    # Mock repo object
     class MockRepo:
         def __init__(self, repo_id, repo_slug):
             self.repo_id = repo_id
             self.repo_slug = repo_slug
-            self.repo_name = repo_slug  # Mock additional attributes if needed
 
     repo = MockRepo(repo_id, repo_slug)
-    repo_dir = f"/mnt/tmpfs/cloned_repositories/{repo.repo_slug}"
-
-    # Create a session and run cloc analysis
     session = Session()
+
     try:
-        logger.info(f"Starting standalone cloc analysis for mock repo_id: {repo.repo_id}")
-        run_cloc_analysis(repo_dir, repo, session)
-        logger.info(f"Standalone cloc analysis completed successfully for repo_id: {repo.repo_id}")
+        logger.info(f"Starting standalone CLOC analysis for mock repo_id: {repo.repo_id}")
+        result = run_cloc_analysis(repo_dir, repo=repo, session=session, run_id="STANDALONE_RUN_001")
+        logger.info(f"Standalone CLOC analysis result: {result}")
     except Exception as e:
-        logger.error(f"Error during standalone cloc analysis: {e}")
+        logger.error(f"Error during standalone CLOC analysis: {e}")
     finally:
         session.close()
         logger.info(f"Database session closed for repo_id: {repo.repo_id}")
