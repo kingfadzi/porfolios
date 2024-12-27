@@ -33,7 +33,7 @@ def run_trivy_analysis(repo_dir, repo, session, run_id=None):
     logger.info(f"Executing Trivy command in directory: {repo_dir}")
     try:
         result = subprocess.run(
-            ["trivy", "fs", "--format", "json", repo_dir],
+            ["trivy", "fs", "--skip-db-update", "--skip-java-db-update", "--offline-scan", "--format", "json", repo_dir],
             capture_output=True,
             text=True,
             check=True
@@ -133,8 +133,8 @@ if __name__ == "__main__":
     logger = logging.getLogger(__name__)
 
     # Hardcoded values for a standalone test
-    repo_slug = "WebGoat1"
-    repo_id = "WebGoat1"  # Changed ID for clarity
+    repo_slug = "WebGoat"
+    repo_id = "WebGoat"  # Changed ID for clarity
 
     # Mock repo object
     class MockRepo:

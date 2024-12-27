@@ -8,7 +8,7 @@ from modular.go_enry_analysis import run_enry_analysis
 from modular.lizard_analysis import run_lizard_analysis
 from modular.cloc_analysis import run_cloc_analysis
 from modular.syft_grype_analysis import run_syft_and_grype_analysis
-from modular.dependency_check_analysis import run_dependency_check
+from modular.trivy_analysis import run_trivy_analysis
 from modular.checkov_analysis import run_checkov_analysis
 from modular.models import Session, Repository
 
@@ -46,7 +46,7 @@ def analyze_repositories(batch, run_id, **kwargs):
             run_gitlog_analysis(repo_dir, repo, session, run_id=run_id)
 
             # Run Dependency-Check Analysis
-            run_dependency_check(repo_dir, repo, session, run_id=run_id)
+            run_trivy_analysis(repo_dir, repo, session, run_id=run_id)
 
             # Run Syft and Grype Analysis
             run_syft_and_grype_analysis(repo_dir, repo, session, run_id=run_id)

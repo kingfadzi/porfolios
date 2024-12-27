@@ -187,8 +187,9 @@ CREATE TABLE analysis_execution_log (
                                         method_name VARCHAR NOT NULL,
                                         stage VARCHAR,
                                         run_id VARCHAR,
-                                        status VARCHAR NOT NULL, -- "SUCCESS" or "FAILURE"
-                                        message TEXT, -- Success message or error details
+                                        repo_id VARCHAR,
+                                        status VARCHAR NOT NULL,
+                                        message TEXT,
                                         execution_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                                         duration FLOAT NOT NULL
 );
