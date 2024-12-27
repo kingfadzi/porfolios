@@ -92,12 +92,17 @@ def save_trivy_results(session, repo_id, results):
             target = item.get("Target")
             vulnerabilities = item.get("Vulnerabilities", [])
 
+            resource_class = item.get("Class", None)
+            resource_type = item.get("Type", None)
+
             for vuln in vulnerabilities:
                 total_vulnerabilities += 1  # Increment the count for each vulnerability
                 session.execute(
                     insert(TrivyVulnerability).values(
                         repo_id=repo_id,
                         target=target,
+                        resource_class=resource_class,
+                        resource_type=resource_type,
                         vulnerability_id=vuln.get("VulnerabilityID"),
                         pkg_name=vuln.get("PkgName"),
                         installed_version=vuln.get("InstalledVersion"),
@@ -108,6 +113,8 @@ def save_trivy_results(session, repo_id, results):
                     ).on_conflict_do_update(
                         index_elements=["repo_id", "vulnerability_id", "pkg_name"],
                         set_={
+                            "resource_class": resource_class,
+                            "resource_type": resource_type,
                             "installed_version": vuln.get("InstalledVersion"),
                             "fixed_version": vuln.get("FixedVersion"),
                             "severity": vuln.get("Severity"),
