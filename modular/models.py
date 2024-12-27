@@ -127,6 +127,7 @@ class GrypeResult(Base):
     cve = Column(String, nullable=False)  # CVE ID or equivalent
     description = Column(Text)
     severity = Column(String, nullable=False)
+    language = Column(String, nullable=False)
     package = Column(String, nullable=False)  # Name of the affected package
     version = Column(String, nullable=False)  # Version of the affected package
     file_path = Column(Text)  # File path of the affected artifact
@@ -140,6 +141,7 @@ class CheckovSummary(Base):
     id = Column(Integer, primary_key=True)
     repo_id = Column(String, nullable=False)
     check_type = Column(String, nullable=False)
+    language = Column(String, nullable=False)
     passed = Column(Integer, default=0)
     failed = Column(Integer, default=0)
     skipped = Column(Integer, default=0)

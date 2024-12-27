@@ -41,7 +41,7 @@ def run_syft_and_grype_analysis(repo_dir, repo, session, run_id=None):
     logger.info(f"Generating SBOM for repo_id: {repo.repo_id} using Syft.")
     try:
         subprocess.run(
-            ["syft", repo_dir, "--output", "json", "--config", SYFT_CONFIG_PATH, "--file", sbom_file_path],
+            ["syft", repo_dir, "--output", "json", "--file", sbom_file_path],
             capture_output=True,
             text=True,
             check=True,
@@ -57,7 +57,7 @@ def run_syft_and_grype_analysis(repo_dir, repo, session, run_id=None):
     logger.info(f"Analyzing SBOM with Grype for repo_id: {repo.repo_id}.")
     try:
         subprocess.run(
-            ["grype", f"sbom:{sbom_file_path}", "--config", GRYPE_CONFIG_PATH, "--output", "json", "--file", grype_file_path],
+            ["grype", f"sbom:{sbom_file_path}",  "--output", "json", "--file", grype_file_path],
             capture_output=True,
             text=True,
             check=True,
@@ -121,6 +121,7 @@ def parse_and_save_grype_results(grype_file_path, repo_id, session):
             package = artifact.get("name", "Unknown")
             version = artifact.get("version", "Unknown")
             file_path = locations[0].get("path", "N/A") if locations else "N/A"
+            language = artifact.get("language", "Unknown")
 
             logger.debug(f"Saving vulnerability: {cve} for repo_id: {repo_id}, package: {package}.")
 
@@ -132,13 +133,15 @@ def parse_and_save_grype_results(grype_file_path, repo_id, session):
                     severity=severity,
                     package=package,
                     version=version,
-                    file_path=file_path
+                    file_path=file_path,
+                    language=language
                 ).on_conflict_do_update(
                     index_elements=["repo_id", "cve", "package", "version"],
                     set_={
                         "description": description,
                         "severity": severity,
-                        "file_path": file_path
+                        "file_path": file_path,
+                        "language": language
                     },
                 )
             )
