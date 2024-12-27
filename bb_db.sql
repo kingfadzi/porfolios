@@ -122,6 +122,7 @@ CREATE TABLE grype_results (
    cve VARCHAR NOT NULL,
    description TEXT,
    severity VARCHAR NOT NULL,
+   language VARCHAR NOT NULL,
    package VARCHAR NOT NULL,
    version VARCHAR NOT NULL,
    file_path TEXT,
