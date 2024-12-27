@@ -30,29 +30,29 @@ def analyze_repositories(batch, run_id, **kwargs):
             logger.info(f"Processing repository: {repo.repo_name} (ID: {repo.repo_id})")
 
             # Clone repository
-            repo_dir = clone_repository(repo, run_id=run_id)
+            repo_dir = clone_repository(repo=repo, run_id=run_id)
             logger.debug(f"Repository cloned to: {repo_dir}")
 
             # Run Lizard Analysis
-            run_lizard_analysis(repo_dir, repo, session, run_id=run_id)
+            run_lizard_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
 
             # Run Cloc Analysis
-            run_cloc_analysis(repo_dir, repo, session, run_id=run_id)
+            run_cloc_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
 
             # Perform Language Analysis with go-enry
-            run_enry_analysis(repo_dir, repo, session, run_id=run_id)
+            run_enry_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
 
             # Calculate and Persist GitLog Metrics
-            run_gitlog_analysis(repo_dir, repo, session, run_id=run_id)
+            run_gitlog_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
 
             # Run Dependency-Check Analysis
-            run_trivy_analysis(repo_dir, repo, session, run_id=run_id)
+            run_trivy_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
 
             # Run Syft and Grype Analysis
-            run_syft_and_grype_analysis(repo_dir, repo, session, run_id=run_id)
+            run_syft_and_grype_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
 
             # Run Checkov Analysis
-            run_checkov_analysis(repo_dir, repo, session, run_id=run_id)
+            run_checkov_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
 
             # Update repository status to COMPLETED
             repo.status = "COMPLETED"
