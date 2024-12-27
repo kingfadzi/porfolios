@@ -1,7 +1,7 @@
 import time
 import logging
 from datetime import datetime
-from models import AnalysisExecutionLog
+from modular.models import AnalysisExecutionLog
 
 logger = logging.getLogger(__name__)
 

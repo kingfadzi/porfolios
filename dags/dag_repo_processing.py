@@ -30,7 +30,7 @@ def analyze_repositories(batch, run_id, **kwargs):
             logger.info(f"Processing repository: {repo.repo_name} (ID: {repo.repo_id})")
 
             # Clone repository
-            repo_dir = clone_repository(repo)
+            repo_dir = clone_repository(repo, run_id=run_id)
             logger.debug(f"Repository cloned to: {repo_dir}")
 
             # Run Lizard Analysis
@@ -57,7 +57,7 @@ def analyze_repositories(batch, run_id, **kwargs):
             # Update repository status to COMPLETED
             repo.status = "COMPLETED"
             repo.comment = "Processing completed successfully."
-            repo.updated_on = datetime.now(timezone.utc)
+            repo.updated_on = datetime.utcnow()
             session.add(repo)
             session.commit()
             logger.info(f"Repository {repo.repo_name} processed successfully.")
@@ -67,7 +67,7 @@ def analyze_repositories(batch, run_id, **kwargs):
             # Update repository status to ERROR
             repo.status = "ERROR"
             repo.comment = str(e)
-            repo.updated_on = datetime.now(timezone.utc)
+            repo.updated_on = datetime.utcnow()
             session.add(repo)
             session.commit()
             logger.info(f"Repository {repo.repo_name} marked as ERROR.")
