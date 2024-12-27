@@ -10,7 +10,6 @@ from modular.execution_decorator import analyze_execution
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-
 @analyze_execution(session_factory=Session, stage="Checkov Analysis")
 def run_checkov_analysis(repo_dir, repo, session, run_id=None):
     """
@@ -61,7 +60,7 @@ def run_checkov_analysis(repo_dir, repo, session, run_id=None):
 
     except Exception as e:
         logger.exception(f"Error during Checkov execution for repo_id {repo.repo_id}: {e}")
-        raise
+        return "Error during Checkov execution."
 
     # Return success message
     return f"{processed_items} items processed."
@@ -82,7 +81,8 @@ def parse_and_process_checkov_output(repo_id, checkov_output_path, session):
             checkov_data = json.load(file)
 
         if not checkov_data:
-            raise ValueError("Checkov output is empty.")
+            logger.warning(f"Checkov output is empty for repo_id {repo_id}.")
+            return 0  # Return 0 if no data to process
 
         logger.info(f"Checkov output successfully parsed for repo_id: {repo_id}.")
         return process_checkov_data(repo_id, checkov_data, session)
@@ -90,11 +90,11 @@ def parse_and_process_checkov_output(repo_id, checkov_output_path, session):
     except (json.JSONDecodeError, ValueError) as e:
         error_message = f"Error parsing Checkov JSON output for repo_id {repo_id}: {e}"
         logger.error(error_message)
-        raise RuntimeError(error_message)
+        return 0  # Return 0 if error occurs in parsing
 
     except Exception as e:
         logger.exception(f"Unexpected error processing Checkov output for repo_id {repo_id}: {e}")
-        raise
+        return 0  # Return 0 if an unexpected error occurs
 
 
 def process_checkov_data(repo_id, checkov_data, session):
@@ -111,28 +111,31 @@ def process_checkov_data(repo_id, checkov_data, session):
         if isinstance(checkov_data, dict):
             checkov_data = [checkov_data]
         if not isinstance(checkov_data, list):
-            raise ValueError(f"Unexpected Checkov data format for repo_id {repo_id}.")
+            logger.warning(f"Unexpected Checkov data format for repo_id {repo_id}. Expected list.")
+            return 0  # Return 0 if data format is unexpected
 
         # Process each item
         processed_count = 0
         for item in checkov_data:
             check_type = item.get("check_type")
             if not check_type:
+                logger.debug(f"Skipping item without valid check_type: {item}")  # Log the item being skipped
                 continue  # Skip items without a valid check_type
 
-            logger.info(f"Processing check_type: {check_type}")
+            logger.info(f"Processing check_type: {check_type}")  # Log the check_type being processed
             save_checkov_results(session, repo_id, check_type, item)
             processed_count += 1
 
         if processed_count == 0:
-            raise ValueError(f"No actionable Checkov data found for repo_id {repo_id}.")
+            logger.warning(f"No actionable Checkov data found for repo_id {repo_id}.")
+            return 0  # Return 0 if no actionable data found
 
         logger.info(f"Successfully processed {processed_count} Checkov items for repo_id {repo_id}.")
         return processed_count
 
     except Exception as e:
         logger.exception(f"Error processing Checkov data for repo_id {repo_id}")
-        raise
+        return 0  # Return 0 if error occurs
 
 
 def save_checkov_results(session, repo_id, check_type, results):
