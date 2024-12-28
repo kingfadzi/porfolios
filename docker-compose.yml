@@ -26,5 +26,5 @@ services:
     volumes:
       - ./cloned_repositories:/mnt/cloned_repositories
       - ./certs/self-signed-cert.pem:/etc/pip/certs/self-signed-cert.pem
-      - ./certs/ssh/id_rsa:/root/.ssh/id_rsa
-      - ./certs/ssh/id_rsa.pub:/root/.ssh/id_rsa.pub
+      - ~/.ssh/id_rsa:/root/.ssh/id_rsa
+      - ~/.ssh/id_rsa.pub:/root/.ssh/id_rsa.pub
