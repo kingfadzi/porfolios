@@ -1,8 +1,30 @@
-version: '3.8'
+version: "3.9"
+
 services:
-  app:
-    image: registry.access.redhat.com/ubi8/ubi-minimal
-    user: "${USER_ID}:${GROUP_ID}"  # Run as the non-root user
+  postgres:
+    image: postgres:13
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: airflow
+    ports:
+      - "5433:5432"
     volumes:
-      - ./app-data:/app
-    command: sh -c 'echo "Running as $(id)" && touch /app/testfile && ls -l /app'
+      - ./project/postgresql/data:/var/lib/postgresql/data
+
+  airflow:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: "postgresql+psycopg2://postgres:postgres@postgres:5432/airflow"
+    depends_on:
+      - postgres
+    ports:
+      - "8088:8080"
+    volumes:
+      - ./cloned_repositories:/mnt/cloned_repositories
+      - ./certs/self-signed-cert.pem:/etc/pip/certs/self-signed-cert.pem
+      - ./certs/ssh/id_rsa:/root/.ssh/id_rsa
+      - ./certs/ssh/id_rsa.pub:/root/.ssh/id_rsa.pub
