@@ -75,18 +75,20 @@ COPY ./airflow.cfg ${AIRFLOW_HOME}/airflow.cfg
 COPY ./tools/go-enry/go-enry /usr/local/bin/go-enry
 
 # cloc
-COPY ./tools/cloc /usr/local/bin/cloc
+COPY ./tools/cloc/cloc /usr/local/bin/cloc
 
 # grype
 COPY ./tools/grype/grype /usr/local/bin/grype
-COPY ./tools/grype/.grype /root/.grype
+COPY ./tools/grype/config.yaml /root/.grype/
+COPY ./tools/grype/listing.json /root/.grype/
+COPY ./tools/grype/db /root/.cache/grype/
 
 # syft
 COPY ./tools/syft/syft /usr/local/bin/syft
-COPY ./tools/syft/.syft /root/.syft
+COPY ./tools/syft/config.yaml /root/.syft/
 
 # trivy
-COPY ./tools/trivy /usr/local/bin/trivy
+COPY ./tools/trivy/trivy /usr/local/bin/trivy
 COPY ./tools/trivy/db /root/.cache/trivy
 
 # Add and make start_services.sh executable

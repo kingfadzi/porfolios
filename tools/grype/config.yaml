@@ -4,7 +4,7 @@ check-for-app-update: false
 # Database configuration
 db:
   auto_update: false
-  cache_dir: /root/.grype
+  cache_dir: /root/.cache/grype/db
   update-urls: ""
   validate-age: false
 
