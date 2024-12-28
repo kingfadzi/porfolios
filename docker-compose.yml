@@ -4,30 +4,22 @@ services:
   postgres:
     image: postgres:13
     container_name: postgres
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: airflow
+    env_file:
+      - ${ENV_FILE:-.env} # Default to .env if ENV_FILE is not set
     ports:
       - "5433:5432"
     volumes:
-      - ./project/postgresql/data:/var/lib/postgresql/data
+      - ./tools/postgresql/data:/var/lib/postgresql/data
 
   airflow:
     build:
       context: .
       dockerfile: Dockerfile
-    environment:
-      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: "postgresql+psycopg2://postgres:postgres@postgres:5432/airflow"
-      HTTP_PROXY: http://your-proxy.example.com:8080  # Replace with your proxy URL
-      HTTPS_PROXY: https://your-proxy.example.com:8443  # Replace with your proxy URL
-      NO_PROXY: localhost,127.0.0.1,postgres  # No proxy for local services
+    env_file:
+      - ${ENV_FILE:-.env} # Default to .env if ENV_FILE is not set
     depends_on:
       - postgres
     ports:
       - "8088:8080"
     volumes:
       - ./cloned_repositories:/mnt/cloned_repositories
-      - ./certs/self-signed-cert.pem:/etc/pip/certs/self-signed-cert.pem
-      - ~/.ssh/id_rsa:/root/.ssh/id_rsa
-      - ~/.ssh/id_rsa.pub:/root/.ssh/id_rsa.pub

@@ -1,13 +1,16 @@
-FROM registry.access.redhat.com/ubi8/ubi:latest
+# FROM registry.access.redhat.com/ubi8/ubi:latest
+FROM rockylinux:8
 
 # Set environment variables
 ENV AIRFLOW_HOME=/root/airflow
 ENV AIRFLOW_DAGS_FOLDER=/root/airflow/dags
-ENV global.cert=/etc/pip/certs/self-signed-cert.pem
-ENV global.index=https://pypi.org/simple
-ENV global.index-url=https://pypi.org/simple
 ENV PYTHONIOENCODING=utf-8
 ENV LANG=C.UTF-8
+
+# Accept build arguments for pip configuration
+ARG GLOBAL_CERT
+ARG GLOBAL_INDEX
+ARG GLOBAL_INDEX_URL
 
 # Install system dependencies
 RUN dnf update -y && \
@@ -15,6 +18,7 @@ RUN dnf update -y && \
     dnf module reset -y python36 && \
     dnf module enable -y python39 && \
     dnf install -y \
+        bash \
         python3.11 \
         python3-pip \
         python3-devel \
@@ -30,6 +34,9 @@ RUN alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1 && \
     alternatives --set python3 /usr/bin/python3.11 && \
     python3 -m ensurepip && \
     python3 -m pip install --no-cache-dir --upgrade pip
+
+# Configure self-signed certificate for pip
+RUN echo -e "[global]\ncert = ${GLOBAL_CERT}\nindex-url = ${GLOBAL_INDEX_URL}" > /etc/pip.conf
 
 # Install Python dependencies
 RUN python3 -m pip install --no-cache-dir \
@@ -53,14 +60,11 @@ RUN echo "host all all 0.0.0.0/0 md5" >> /var/lib/pgsql/data/pg_hba.conf && \
     echo "listen_addresses='*'" >> /var/lib/pgsql/data/postgresql.conf
 USER root
 
-# Prepare directories and copy configurations
+# Prepare directories
 RUN mkdir -p /mnt/cloned_repositories
 RUN mkdir -p /root/.syft
 RUN mkdir -p /root/.grype
 RUN mkdir -p /root/.cache/trivy
-
-# pip config
-COPY ./pip.conf /etc/pip.conf
 
 # airflow config
 COPY ./dags ${AIRFLOW_DAGS_FOLDER}
