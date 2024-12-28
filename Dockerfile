@@ -72,7 +72,7 @@ COPY ./modular ${AIRFLOW_DAGS_FOLDER}/modular
 COPY ./airflow.cfg ${AIRFLOW_HOME}/airflow.cfg
 
 # go-enry
-COPY ./tools/go-enry /usr/local/bin/go-enry
+COPY ./tools/go-enry/go-enry /usr/local/bin/go-enry
 
 # cloc
 COPY ./tools/cloc /usr/local/bin/cloc
