@@ -19,6 +19,9 @@ services:
       dockerfile: Dockerfile
     environment:
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: "postgresql+psycopg2://postgres:postgres@postgres:5432/airflow"
+      HTTP_PROXY: http://your-proxy.example.com:8080  # Replace with your proxy URL
+      HTTPS_PROXY: https://your-proxy.example.com:8443  # Replace with your proxy URL
+      NO_PROXY: localhost,127.0.0.1,postgres  # No proxy for local services
     depends_on:
       - postgres
     ports:
