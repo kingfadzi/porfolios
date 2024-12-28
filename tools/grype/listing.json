@@ -1,0 +1,10 @@
+{
+  "available": [
+    {
+      "built": "2024-12-25T01:31:33Z",
+      "checksum": "sha256:ec10300a185d3e33af23dd843f526dd9e8f94ae94a175b502860174798e0a1ef",
+      "url": "file:///root/.grype/5",
+      "version": 5
+    }
+  ]
+}

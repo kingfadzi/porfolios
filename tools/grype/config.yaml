@@ -1,0 +1,37 @@
+# Application update checks
+check-for-app-update: false
+
+# Database configuration
+db:
+  auto_update: false
+  cache_dir: /root/.grype
+  update-urls: ""
+  validate-age: false
+
+# Logging configuration
+log:
+  level: info
+  file: /var/log/grype.log
+
+# Match configuration for supported languages
+match:
+  java:
+    using-cpes: true
+  python:
+    using-cpes: true
+  ruby:
+    using-cpes: true
+  javascript:
+    using-cpes: true
+  go:
+    using-cpes: true
+  rust:
+    using-cpes: true
+  c:
+    using-cpes: true
+  cpp:
+    using-cpes: true
+  dotnet:
+    using-cpes: true
+
+
