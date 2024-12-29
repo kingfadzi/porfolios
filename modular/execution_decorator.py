@@ -77,6 +77,8 @@ def analyze_execution(session_factory, stage=None):
                 elapsed_time = time.time() - start_time
                 error_message = str(e)
 
+                repo.comment = error_message
+
                 # Log failure to the database
                 session.add(AnalysisExecutionLog(
                     method_name=method_name,

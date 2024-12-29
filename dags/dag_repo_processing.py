@@ -76,10 +76,10 @@ def determine_final_status(repo, run_id, session):
         # No records found for this run_id
         repo.status = "ERROR"
         repo.comment = "No analysis records found for this run ID."
-    elif any(status == "FAILED" for (status,) in analysis_statuses):
+    elif any(status == "FAILURE" for (status,) in analysis_statuses):
         # If any status is FAILED
-        repo.status = "FAILED"
-        repo.comment = "One or more analysis steps failed."
+        repo.status = "FAILURE"
+        # repo.comment = "One or more analysis steps failed."
     elif all(status == "SUCCESS" for (status,) in analysis_statuses):
         # If all statuses are SUCCESS
         repo.status = "SUCCESS"
@@ -87,7 +87,7 @@ def determine_final_status(repo, run_id, session):
     else:
         # Mixed statuses or other scenarios
         repo.status = "UNKNOWN"
-        repo.comment = "Couldnt figure out what happened during the analyses."
+        # repo.comment = "Couldnt figure out what happened during the analyses."
 
     # Update the repository object
     repo.updated_on = datetime.utcnow()
