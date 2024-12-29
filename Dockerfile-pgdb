@@ -3,6 +3,7 @@ FROM almalinux:8
 
 # Set environment variables
 ENV POSTGRES_VERSION=13
+ENV PGDATA=/var/lib/pgsql/data
 
 # Install PostgreSQL and dependencies
 RUN dnf -y update && \
@@ -14,14 +15,16 @@ RUN dnf -y update && \
         postgresql-contrib && \
     dnf clean all
 
-# Initialize the PostgreSQL database cluster
-RUN /usr/bin/postgresql-${POSTGRES_VERSION}-setup initdb
+# Create the data directory and initialize the database
+RUN mkdir -p $PGDATA && \
+    chown -R postgres:postgres $PGDATA && \
+    su - postgres -c "initdb -D $PGDATA"
 
-# Expose the PostgreSQL port
+# Expose PostgreSQL port
 EXPOSE 5432
 
-# Define entrypoint for customization by derived images
-ENTRYPOINT ["/usr/bin/postgres", "-D", "/var/lib/pgsql/data"]
+# Set the default user to "postgres"
+USER postgres
 
-# Default command can be overridden
-CMD ["postgres"]
+# Command to start PostgreSQL
+CMD ["postgres", "-D", "/var/lib/pgsql/data"]
