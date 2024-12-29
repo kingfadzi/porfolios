@@ -86,7 +86,7 @@ COPY ./tools/syft/config.yaml /root/.syft/
 
 # trivy
 COPY ./tools/trivy/trivy /usr/local/bin/trivy
-COPY ./tools/trivy/db /root/.cache/trivy
+COPY ./tools/trivy/db /root/.cache/trivy/db
 
 # Add and make start_services.sh executable
 COPY ./tools/start_services.sh /usr/local/bin/start_services.sh
