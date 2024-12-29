@@ -27,7 +27,7 @@ def ensure_ssh_url(clone_url):
     raise ValueError(f"Unsupported URL format: {clone_url}")
 
 @analyze_execution(session_factory=Session, stage="Clone Repository")
-def clone_repository(repo, timeout_seconds=120, run_id=None):
+def clone_repository(repo, timeout_seconds=300, run_id=None):
     """
     Clone the specified repository into /mnt/tmpfs/cloned_repositories.
     Uses a semaphore to limit concurrent clones to 10.
