@@ -5,7 +5,7 @@ services:
     image: postgres:13
     container_name: postgres
     env_file:
-      - ${ENV_FILE:-.env}
+      - ${ENV_FILE:-.env}  # Default to .env if ENV_FILE is not set
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -19,10 +19,12 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        GLOBAL_CERT: ${GLOBAL_CERT}
+        GLOBAL_INDEX: ${GLOBAL_INDEX}
+        GLOBAL_INDEX_URL: ${GLOBAL_INDEX_URL}
     env_file:
       - ${ENV_FILE:-.env}
-    depends_on:
-      - postgres
     environment:
       HTTP_PROXY: ${HTTP_PROXY}
       HTTPS_PROXY: ${HTTPS_PROXY}
@@ -30,6 +32,7 @@ services:
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: ${AIRFLOW__DATABASE__SQL_ALCHEMY_CONN}
     volumes:
       - ./cloned_repositories:/mnt/cloned_repositories
+      # Mount SSH keys and certificates only if paths are defined
       - ${SSH_KEYS_PATH:+${SSH_KEYS_PATH}/ssh_key:/root/.ssh/id_rsa:ro}
       - ${SSH_KEYS_PATH:+${SSH_KEYS_PATH}/ssh_key_pub:/root/.ssh/id_rsa.pub:ro}
       - ${CERT_PATH:+${CERT_PATH}:/etc/pip/certs/self-signed-cert.pem:ro}
