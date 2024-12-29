@@ -5,7 +5,7 @@ services:
     image: postgres:13
     container_name: postgres
     env_file:
-      - ${ENV_FILE:-.env}  # Default to .env if ENV_FILE is not set
+      - ${ENV_FILE:-.env}
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -32,8 +32,12 @@ services:
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: ${AIRFLOW__DATABASE__SQL_ALCHEMY_CONN}
     volumes:
       - ./cloned_repositories:/mnt/cloned_repositories
-      - ${SSH_KEYS_PATH:-}/ssh_key:/root/.ssh/id_rsa:ro
-      - ${SSH_KEYS_PATH:-}/ssh_key_pub:/root/.ssh/id_rsa.pub:ro
-      - ${CERT_PATH:-}/etc/pip/certs/self-signed-cert.pem:ro
+      - ${SSH_KEYS_PATH:-/dev/null}/ssh_key:/root/.ssh/id_rsa:ro
+      - ${SSH_KEYS_PATH:-/dev/null}/ssh_key_pub:/root/.ssh/id_rsa.pub:ro
+      - ${CERT_PATH:-/dev/null}:/etc/pip/certs/self-signed-cert.pem:ro
     ports:
       - "8088:8080"
+
+volumes:
+  data_volume:
+  log_volume:
