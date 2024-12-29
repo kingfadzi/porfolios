@@ -33,5 +33,5 @@ mkdir -p /tmp/cloned_repositories
 chmod 777 /tmp/cloned_repositories
 
 # Start Airflow webserver and scheduler
-airflow webserver --port 8088 &
+airflow webserver --port 8080 &
 airflow scheduler
