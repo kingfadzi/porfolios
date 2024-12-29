@@ -10,34 +10,34 @@ CREATE TABLE bitbucket_projects (
 
 -- Table for repositories
 CREATE TABLE bitbucket_repositories (
-                                        repo_id VARCHAR PRIMARY KEY,
-                                        repo_name VARCHAR NOT NULL,
-                                        repo_slug VARCHAR NOT NULL,
-                                        clone_url_ssh VARCHAR,
-                                        status VARCHAR,
-                                        comment VARCHAR,
-                                        updated_on TIMESTAMP
+    repo_id VARCHAR PRIMARY KEY,
+    repo_name VARCHAR NOT NULL,
+    repo_slug VARCHAR NOT NULL,
+    clone_url_ssh VARCHAR,
+    status VARCHAR,
+    comment VARCHAR,
+    updated_on TIMESTAMP
 );
 
 CREATE TABLE go_enry_analysis (
-                                  id SERIAL PRIMARY KEY,
-                                  repo_id VARCHAR NOT NULL,
-                                  language VARCHAR NOT NULL,
-                                  percent_usage FLOAT NOT NULL,
-                                  analysis_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-                                  UNIQUE (repo_id, language)
+    id SERIAL PRIMARY KEY,
+    repo_id VARCHAR NOT NULL,
+    language VARCHAR NOT NULL,
+    percent_usage FLOAT NOT NULL,
+    analysis_date TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    UNIQUE (repo_id, language)
 );
 
 CREATE TABLE repo_metrics (
-                              repo_id VARCHAR PRIMARY KEY,
-                              repo_size_bytes FLOAT NOT NULL,
-                              file_count INTEGER NOT NULL,
-                              total_commits INTEGER NOT NULL,
-                              number_of_contributors INTEGER NOT NULL,
-                              last_commit_date TIMESTAMP,
-                              repo_age_days INTEGER NOT NULL,
-                              active_branch_count INTEGER NOT NULL,
-                              updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    repo_id VARCHAR PRIMARY KEY,
+    repo_size_bytes FLOAT NOT NULL,
+    file_count INTEGER NOT NULL,
+    total_commits INTEGER NOT NULL,
+    number_of_contributors INTEGER NOT NULL,
+    last_commit_date TIMESTAMP,
+    repo_age_days INTEGER NOT NULL,
+    active_branch_count INTEGER NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE lizard_metrics (
@@ -114,81 +114,81 @@ CREATE TABLE dependency_check_results (
 );
 
 CREATE TABLE grype_results (
-   id SERIAL PRIMARY KEY,
-   repo_id VARCHAR NOT NULL,
-   cve VARCHAR NOT NULL,
-   description TEXT,
-   severity VARCHAR NOT NULL,
-   language VARCHAR NOT NULL,
-   package VARCHAR NOT NULL,
-   version VARCHAR NOT NULL,
-   file_path TEXT,
-   cvss TEXT,
-   CONSTRAINT grype_result_uc UNIQUE (repo_id, cve, package, version)
+    id SERIAL PRIMARY KEY,
+    repo_id VARCHAR NOT NULL,
+    cve VARCHAR NOT NULL,
+    description TEXT,
+    severity VARCHAR NOT NULL,
+    language VARCHAR NOT NULL,
+    package VARCHAR NOT NULL,
+    version VARCHAR NOT NULL,
+    file_path TEXT,
+    cvss TEXT,
+    CONSTRAINT grype_result_uc UNIQUE (repo_id, cve, package, version)
 );
 
 CREATE TABLE checkov_summary (
-                                 id SERIAL PRIMARY KEY,
-                                 repo_id TEXT NOT NULL,
-                                 check_type TEXT NOT NULL,
-                                 passed INTEGER DEFAULT 0,
-                                 failed INTEGER DEFAULT 0,
-                                 skipped INTEGER DEFAULT 0,
-                                 resource_count INTEGER DEFAULT 0,
-                                 parsing_errors INTEGER DEFAULT 0,
-                                 CONSTRAINT uq_repo_check UNIQUE (repo_id, check_type)
+    id SERIAL PRIMARY KEY,
+    repo_id TEXT NOT NULL,
+    check_type TEXT NOT NULL,
+    passed INTEGER DEFAULT 0,
+    failed INTEGER DEFAULT 0,
+    skipped INTEGER DEFAULT 0,
+    resource_count INTEGER DEFAULT 0,
+    parsing_errors INTEGER DEFAULT 0,
+    CONSTRAINT uq_repo_check UNIQUE (repo_id, check_type)
 );
 
 CREATE TABLE checkov_files (
-                               id SERIAL PRIMARY KEY,
-                               repo_id VARCHAR NOT NULL,
-                               check_type VARCHAR NOT NULL,
-                               file_path VARCHAR NOT NULL,
-                               file_abs_path VARCHAR,
-                               resource_count INTEGER DEFAULT 0 NOT NULL,
-                               UNIQUE (repo_id, check_type, file_path)
+    id SERIAL PRIMARY KEY,
+    repo_id VARCHAR NOT NULL,
+    check_type VARCHAR NOT NULL,
+    file_path VARCHAR NOT NULL,
+    file_abs_path VARCHAR,
+    resource_count INTEGER DEFAULT 0 NOT NULL,
+    UNIQUE (repo_id, check_type, file_path)
 );
 
 CREATE TABLE checkov_checks (
-                                id SERIAL PRIMARY KEY,
-                                repo_id TEXT NOT NULL,
-                                file_path TEXT NOT NULL,
-                                check_type TEXT NOT NULL,
-                                check_id TEXT NOT NULL,
-                                check_name TEXT,
-                                result TEXT,
-                                severity TEXT,
-                                resource TEXT,
-                                guideline TEXT,
-                                start_line INTEGER,
-                                end_line INTEGER,
-                                CONSTRAINT uq_repo_check_id UNIQUE (repo_id, file_path, check_type, check_id)
+    id SERIAL PRIMARY KEY,
+    repo_id TEXT NOT NULL,
+    file_path TEXT NOT NULL,
+    check_type TEXT NOT NULL,
+    check_id TEXT NOT NULL,
+    check_name TEXT,
+    result TEXT,
+    severity TEXT,
+    resource TEXT,
+    guideline TEXT,
+    start_line INTEGER,
+    end_line INTEGER,
+    CONSTRAINT uq_repo_check_id UNIQUE (repo_id, file_path, check_type, check_id)
 );
 
 CREATE TABLE trivy_vulnerability (
-                                     id SERIAL PRIMARY KEY,
-                                     repo_id VARCHAR NOT NULL,
-                                     target VARCHAR NOT NULL,
-                                     resource_class VARCHAR,  -- e.g., config, lang-pkgs
-                                     resource_type VARCHAR,   -- e.g., dockerfile, terraform
-                                     vulnerability_id VARCHAR NOT NULL,
-                                     pkg_name VARCHAR,
-                                     installed_version VARCHAR,
-                                     fixed_version VARCHAR,
-                                     severity VARCHAR NOT NULL,
-                                     primary_url VARCHAR,
-                                     description TEXT,
-                                     CONSTRAINT uq_repo_vuln_pkg UNIQUE (repo_id, vulnerability_id, pkg_name)
+    id SERIAL PRIMARY KEY,
+    repo_id VARCHAR NOT NULL,
+    target VARCHAR NOT NULL,
+    resource_class VARCHAR,  -- e.g., config, lang-pkgs
+    resource_type VARCHAR,   -- e.g., dockerfile, terraform
+    vulnerability_id VARCHAR NOT NULL,
+    pkg_name VARCHAR,
+    installed_version VARCHAR,
+    fixed_version VARCHAR,
+    severity VARCHAR NOT NULL,
+    primary_url VARCHAR,
+    description TEXT,
+    CONSTRAINT uq_repo_vuln_pkg UNIQUE (repo_id, vulnerability_id, pkg_name)
 );
 
 CREATE TABLE analysis_execution_log (
-                                        id SERIAL PRIMARY KEY,
-                                        method_name VARCHAR NOT NULL,
-                                        stage VARCHAR,
-                                        run_id VARCHAR,
-                                        repo_id VARCHAR,
-                                        status VARCHAR NOT NULL,
-                                        message TEXT,
-                                        execution_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                                        duration FLOAT NOT NULL
+    id SERIAL PRIMARY KEY,
+    method_name VARCHAR NOT NULL,
+    stage VARCHAR,
+    run_id VARCHAR,
+    repo_id VARCHAR,
+    status VARCHAR NOT NULL,
+    message TEXT,
+    execution_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    duration FLOAT NOT NULL
 );
