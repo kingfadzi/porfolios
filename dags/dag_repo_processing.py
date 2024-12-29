@@ -65,7 +65,12 @@ def determine_final_status(repo, run_id, session):
     logger.info(f"Determining final status for repository {repo.repo_name} (ID: {repo.repo_id}) with run_id: {run_id}")
 
     # Query all statuses related to the run_id
-    analysis_statuses = session.query(AnalysisExecutionLog.status).filter_by(run_id=run_id, repo_id=repo.repo_id).all()
+    analysis_statuses = (
+        session.query(AnalysisExecutionLog.status)
+        .filter(AnalysisExecutionLog.run_id == run_id, AnalysisExecutionLog.repo_id == repo.repo_id)
+        .filter(AnalysisExecutionLog.status != "PROCESSING")
+        .all()
+    )
 
     if not analysis_statuses:
         # No records found for this run_id
