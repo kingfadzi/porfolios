@@ -10,7 +10,7 @@ from modular.cloc_analysis import run_cloc_analysis
 from modular.syft_grype_analysis import run_syft_and_grype_analysis
 from modular.trivy_analysis import run_trivy_analysis
 from modular.checkov_analysis import run_checkov_analysis
-from modular.models import Session, Repository
+from modular.models import Session, Repository, AnalysisExecutionLog
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -65,7 +65,7 @@ def determine_final_status(repo, run_id, session):
     logger.info(f"Determining final status for repository {repo.repo_name} (ID: {repo.repo_id}) with run_id: {run_id}")
 
     # Query all statuses related to the run_id
-    analysis_statuses = session.query(Repository.status).filter_by(run_id=run_id).all()
+    analysis_statuses = session.query(AnalysisExecutionLog.status).filter_by(run_id=run_id, repo_id=repo.repo_id).all()
 
     if not analysis_statuses:
         # No records found for this run_id
@@ -81,8 +81,8 @@ def determine_final_status(repo, run_id, session):
         repo.comment = "All analysis steps completed successfully."
     else:
         # Mixed statuses or other scenarios
-        repo.status = "PARTIAL_SUCCESS"
-        repo.comment = "Some analysis steps were successful, others failed."
+        repo.status = "UNKNOWN"
+        repo.comment = "Couldnt figure out what happened during the analyses."
 
     # Update the repository object
     repo.updated_on = datetime.utcnow()
