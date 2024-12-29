@@ -1,0 +1,27 @@
+# Base PostgreSQL Dockerfile
+FROM almalinux:8
+
+# Set environment variables
+ENV POSTGRES_VERSION=13
+
+# Install PostgreSQL and dependencies
+RUN dnf -y update && \
+    dnf -y install \
+        dnf-plugins-core && \
+    dnf -y module enable postgresql:$POSTGRES_VERSION && \
+    dnf -y install \
+        postgresql-server \
+        postgresql-contrib && \
+    dnf clean all
+
+# Initialize the PostgreSQL database cluster
+RUN /usr/bin/postgresql-${POSTGRES_VERSION}-setup initdb
+
+# Expose the PostgreSQL port
+EXPOSE 5432
+
+# Define entrypoint for customization by derived images
+ENTRYPOINT ["/usr/bin/postgres", "-D", "/var/lib/pgsql/data"]
+
+# Default command can be overridden
+CMD ["postgres"]

@@ -8,3 +8,5 @@ pytz==2024.2
 PyYAML==6.0.2
 Requests==2.32.3
 SQLAlchemy==1.4.54
+lizard
+psycopg2-binary
