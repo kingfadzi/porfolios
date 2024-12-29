@@ -1,5 +1,5 @@
 # FROM registry.access.redhat.com/ubi8/ubi:latest
-FROM rockylinux:8
+FROM almalinux:8-base
 
 # Set environment variables
 ENV AIRFLOW_HOME=/root/airflow
