@@ -35,11 +35,6 @@ su - postgres -c "psql -tAc \"SELECT 1 FROM pg_database WHERE datname='airflow'\
         --password password
 }
 
-# Create /tmp/cloned_repositories if it is the first time
-echo "Creating /tmp/cloned_repositories directory..."
-mkdir -p /tmp/cloned_repositories
-chmod 777 /tmp/cloned_repositories
-
 # Start Airflow webserver and scheduler
 rm -f /root/airflow/airflow-webserver.pid
 airflow webserver --port 8080 &
