@@ -48,8 +48,13 @@ def clone_repository(repo, timeout_seconds=120, run_id=None):
     with clone_semaphore:
         try:
             # Remove any existing directory before cloning
-            subprocess.run(f"rm -rf {repo_dir} && git clone {clone_url} {repo_dir}",
-                           shell=True, check=True, timeout=timeout_seconds)
+            subprocess.run(
+                f"rm -rf {repo_dir} && GIT_SSH_COMMAND='ssh -o StrictHostKeyChecking=no' git clone {clone_url} {repo_dir}",
+                shell=True,
+                check=True,
+                timeout=timeout_seconds
+            )
+
             return repo_dir
         except subprocess.TimeoutExpired:
             error_msg = f"Cloning repository {repo.repo_name} took too long (>{timeout_seconds}s)."
