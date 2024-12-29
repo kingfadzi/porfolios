@@ -128,12 +128,12 @@ with DAG(
         'modular_processing_with_batches',
         default_args=default_args,
         schedule_interval=None,
-        max_active_tasks=5,
+        max_active_tasks=10,
         catchup=False,
 ) as dag:
 
     # Fetch and divide repositories into batches
-    batches = create_batches(batch_size=1000, num_tasks=5)
+    batches = create_batches(batch_size=1000, num_tasks=10)
 
     # Create tasks for each batch
     for task_id, batch in enumerate(batches):
