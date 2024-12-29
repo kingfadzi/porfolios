@@ -104,7 +104,7 @@ RUN chmod +x /usr/local/bin/*
 
 # Configure working directory and expose ports
 WORKDIR ${AIRFLOW_HOME}
-EXPOSE 8088 5432
+EXPOSE 8080 5432
 
 # Use the script to start PostgreSQL and Airflow
 CMD ["/usr/local/bin/start_services.sh"]
