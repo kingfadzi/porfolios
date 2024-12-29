@@ -75,7 +75,45 @@ def analyze_repositories(batch, run_id, **kwargs):
             # Cleanup repository directory
             cleanup_repository_directory(repo_dir)
             logger.debug(f"Repository directory {repo_dir} cleaned up.")
+        determine_final_status(repo, run_id, session)
     session.close()
+
+def determine_final_status(repo, run_id, session):
+    """
+    Determine the final status of a repository after all analysis runs.
+
+    :param repo: Repository object to update.
+    :param run_id: The run ID for tracking.
+    :param session: Database session.
+    """
+    logger.info(f"Determining final status for repository {repo.repo_name} (ID: {repo.repo_id}) with run_id: {run_id}")
+
+    # Query all statuses related to the run_id
+    analysis_statuses = session.query(Repository.status).filter_by(run_id=run_id).all()
+
+    if not analysis_statuses:
+        # No records found for this run_id
+        repo.status = "ERROR"
+        repo.comment = "No analysis records found for this run ID."
+    elif any(status == "FAILED" for (status,) in analysis_statuses):
+        # If any status is FAILED
+        repo.status = "FAILED"
+        repo.comment = "One or more analysis steps failed."
+    elif all(status == "SUCCESS" for (status,) in analysis_statuses):
+        # If all statuses are SUCCESS
+        repo.status = "SUCCESS"
+        repo.comment = "All analysis steps completed successfully."
+    else:
+        # Mixed statuses or other scenarios
+        repo.status = "PARTIAL_SUCCESS"
+        repo.comment = "Some analysis steps were successful, others failed."
+
+    # Update the repository object
+    repo.updated_on = datetime.utcnow()
+    session.add(repo)
+    session.commit()
+    logger.info(f"Final status for repository {repo.repo_name}: {repo.status} ({repo.comment})")
+
 
 # Fetch repositories in batches
 def fetch_repositories(batch_size=1000):

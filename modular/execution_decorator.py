@@ -35,6 +35,18 @@ def analyze_execution(session_factory, stage=None):
             start_time = time.time()
 
             try:
+                session.add(AnalysisExecutionLog(
+                    method_name=method_name,
+                    stage=stage,
+                    run_id=run_id,
+                    repo_id=repo_id,
+                    status="PROCESSING",
+                    message=f"Starting analysis {method_name}",
+                    execution_time=datetime.utcnow(),
+                    duration=0
+                ))
+                session.commit()
+
                 logger.info(
                     f"Starting analysis {method_name} "
                     f"(Stage: {stage}, Run ID: {run_id}, Repo ID: {repo_id})..."

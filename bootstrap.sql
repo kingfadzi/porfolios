@@ -16,4 +16,4 @@ INSERT INTO bitbucket_repositories (repo_id, repo_name, repo_slug, clone_url_ssh
 ('chartjs', 'Charts.js', 'chartjs', 'ssh://git@github.com/chartjs/Chart.js.git', 'NEW', 'Simple yet flexible charting library', '2024-12-29 15:20:00'),
 ('ansible-examples', 'Ansible Examples', 'ansible-examples', 'ssh://git@github.com/ansible/ansible-examples.git', 'NEW', 'Example playbooks for Ansible', '2024-12-29 15:30:00'),
 ('express', 'Express.js', 'express', 'ssh://git@github.com/expressjs/express.git', 'NEW', 'Fast, unopinionated web framework for Node.js', '2024-12-29 15:40:00'),
-('spring-boot-examples', 'Spring Boot Examples', 'spring-boot-examples', 'ssh://git@github.com/spring-projects/spring-boot.git', 'NEW', 'Sample projects using Spring Boot', '2024-12-29 15:50:00');
+('spring-boot-examples', 'Spring Boot Examples', 'spring-boot-examples', 'ssh://git@github.com:gothinkster/spring-boot-realworld-example-app.git', 'NEW', 'Sample projects using Spring Boot', '2024-12-29 15:50:00');
