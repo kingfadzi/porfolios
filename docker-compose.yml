@@ -11,7 +11,7 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - ./tools/postgresql/data:/var/lib/postgresql/data
+      - ./tools/postgresql/data:/var/lib/pgsql/data
 
   airflow:
     build:

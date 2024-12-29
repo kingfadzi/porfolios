@@ -57,13 +57,6 @@ RUN pip3 install --no-cache-dir \
     checkov \
     sqlalchemy
 
-# Initialize PostgreSQL database
-USER postgres
-RUN initdb -D /var/lib/pgsql/data || echo "Database already initialized"
-RUN echo "host all all 0.0.0.0/0 md5" >> /var/lib/pgsql/data/pg_hba.conf && \
-    echo "listen_addresses='*'" >> /var/lib/pgsql/data/postgresql.conf
-USER root
-
 # Prepare directories
 RUN mkdir -p /mnt/cloned_repositories
 RUN mkdir -p /root/.syft
