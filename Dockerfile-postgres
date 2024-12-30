@@ -42,8 +42,8 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 # Expose PostgreSQL port
 EXPOSE 5432
 
-# Switch to the 'postgres' user for runtime
-USER postgres
+# Do NOT switch to 'postgres' user here
+# USER postgres
 
 # Set the entrypoint and command
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
