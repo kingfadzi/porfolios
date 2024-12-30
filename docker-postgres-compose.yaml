@@ -2,13 +2,15 @@ services:
   postgres:
     build:
       context: .
-      dockerfile: Dockerfile-postgres # Adjust to match your Dockerfile name
+      dockerfile: Dockerfile-postgres  # Adjust to your PostgreSQL Dockerfile
     container_name: postgres_base
+    env_file:
+      - .env  # Shared environment file
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: airflow
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - "5434:5432"  # Map container port 5432 to host port 5434 to avoid conflict
+      - "${POSTGRES_HOST_PORT:-5432}:5432"  # Expose PostgreSQL on its host machine
     volumes:
-      - ./tools/postgresql/data:/var/lib/pgsql/data  # Persist PostgreSQL data
+      - ${POSTGRES_DATA_DIR:-./tools/postgresql/data}:/var/lib/pgsql/data
