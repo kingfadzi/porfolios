@@ -8,6 +8,7 @@ ENV PGDATA=/var/lib/pgsql/data
 ARG USER_ID=1000
 ARG GROUP_ID=1000
 
+
 # Install PostgreSQL
 RUN dnf -y update && \
     dnf -y install dnf-plugins-core && \
@@ -19,8 +20,10 @@ RUN dnf -y update && \
 RUN groupadd -g ${GROUP_ID} pggroup && \
     useradd -u ${USER_ID} -g pggroup -m pguser
 
-# Set up the data directory
-RUN mkdir -p ${PGDATA} && chown -R pguser:pggroup ${PGDATA}
+# Ensure the entire /var/lib/pgsql directory is owned by pguser
+RUN mkdir -p /var/lib/pgsql && \
+    mkdir -p ${PGDATA} && \
+    chown -R pguser:pggroup /var/lib/pgsql
 
 # Copy your entrypoint script
 COPY docker-entrypoint.sh /usr/local/bin/
