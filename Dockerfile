@@ -19,6 +19,7 @@ RUN dnf update -y && \
     dnf module enable -y python39 && \
     dnf install -y \
         bash \
+        nc \
         python3.11 \
         python3-pip \
         python3-devel \
