@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   airflow:
     build:
@@ -12,33 +10,28 @@ services:
         HOST_UID: ${HOST_UID}
         HOST_GID: ${HOST_GID}
     env_file:
-      - .env
+      - .env-local  # Use the appropriate .env file
     environment:
-      # Proxy settings
-      HTTP_PROXY: ${HTTP_PROXY}
-      HTTPS_PROXY: ${HTTPS_PROXY}
-      NO_PROXY: ${NO_PROXY},${POSTGRES_HOST}
-      # Airflow specific environment variables are already defined in .env
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+      HTTP_PROXY: ${HTTP_PROXY:-}
+      HTTPS_PROXY: ${HTTPS_PROXY:-}
+      NO_PROXY: "${NO_PROXY:-localhost},${POSTGRES_HOST}"
     volumes:
       - ./cloned_repositories:/mnt/cloned_repositories
-      - ${SSH_KEYS_PATH:-~/.ssh/id_rsa}:/home/airflow/.ssh/id_rsa:ro
-      - ${SSH_KEYS_PUB_PATH:-~/.ssh/id_rsa.pub}:/home/airflow/.ssh/id_rsa.pub:ro
-      - ${CERT_PATH:-/dev/null}:/etc/pip/certs/self-signed-cert.pem:ro
       - ./dags:/home/airflow/airflow/dags
-      - ./modular:/home/airflow/airflow/dags/modular
       - ./logs:/home/airflow/airflow/logs
       - ./plugins:/home/airflow/airflow/plugins
-      # Mounting tools if needed
-      - ./tools:/usr/local/bin
     ports:
-      - "${AIRFLOW_HOST_PORT:-8088}:8088"
+      - "8088:8080"  # Map host port 8088 to container port 8080
     networks:
       - airflow_network
     restart: always
-    # No need to specify user here since Dockerfile sets the USER
 
 networks:
   airflow_network:
     driver: bridge
-
-# No volumes section needed since PostgreSQL is external
