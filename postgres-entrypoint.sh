@@ -1,17 +1,17 @@
 #!/bin/bash
 set -e
 
-# Ensure PostgreSQL data directory exists and is owned by postgres
-echo "Ensuring PostgreSQL data directory exists and has correct permissions..."
-chown -R postgres:postgres /var/lib/pgsql/data
+# 1. Make sure the data directory belongs to postgres
+echo "Fixing ownership of /var/lib/pgsql..."
+chown -R postgres:postgres /var/lib/pgsql
 chmod 700 /var/lib/pgsql/data
 
-# Initialize PostgreSQL if not already initialized
+# 2. Initialize the DB if needed
 if [ ! -f /var/lib/pgsql/data/PG_VERSION ]; then
     echo "Initializing PostgreSQL database..."
-    initdb -D /var/lib/pgsql/data
+    su - postgres -c "initdb -D /var/lib/pgsql/data"
 
-    # Configure PostgreSQL for external connections
+    # Configure external connections
     echo "host all all 0.0.0.0/0 md5" >> /var/lib/pgsql/data/pg_hba.conf
     echo "listen_addresses = '*'" >> /var/lib/pgsql/data/postgresql.conf
     echo "PostgreSQL database initialized."
@@ -19,6 +19,6 @@ else
     echo "PostgreSQL database already initialized."
 fi
 
-# Start PostgreSQL
+# 3. Finally, run Postgres as the postgres user
 echo "Starting PostgreSQL..."
-exec postgres -D /var/lib/pgsql/data
+exec su - postgres -c "exec $*"

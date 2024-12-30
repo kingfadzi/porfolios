@@ -1,3 +1,5 @@
+FROM almalinux:8
+
 # Set environment variables
 ENV POSTGRES_VERSION=13
 ENV PGDATA=/var/lib/pgsql/data
@@ -5,7 +7,7 @@ ENV PGDATA=/var/lib/pgsql/data
 # Install PostgreSQL
 RUN dnf -y update && \
     dnf -y install dnf-plugins-core && \
-    dnf -y module enable postgresql:$POSTGRES_VERSION && \
+    dnf -y module enable postgresql:${POSTGRES_VERSION} && \
     dnf -y install postgresql-server postgresql-contrib && \
     dnf clean all
 
@@ -13,28 +15,19 @@ RUN dnf -y update && \
 ARG UID=1000
 ARG GID=1000
 
-# Update postgres group and user with provided UID and GID
+# Update the postgres group and user
 RUN groupmod -g $GID postgres || true && \
-    usermod -u $UID postgres || true && \
-    chown -R postgres:postgres /var/lib/pgsql
+    usermod -u $UID postgres || true
 
-# Ensure the data directory exists and has correct permissions
-RUN mkdir -p $PGDATA && \
-    chown -R postgres:postgres $PGDATA && \
-    chmod 700 $PGDATA
-
-# Copy entrypoint script
-COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+# Copy your entrypoint script
+COPY docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Expose PostgreSQL port
 EXPOSE 5432
 
-# Switch to postgres user
-USER postgres
+# Keep user as root here, so we can chown inside the entrypoint
+USER root
 
-# Set entrypoint
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
-
-# Default command
 CMD ["postgres", "-D", "/var/lib/pgsql/data"]

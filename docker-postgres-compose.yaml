@@ -16,4 +16,5 @@ services:
     ports:
       - "${POSTGRES_HOST_PORT:-5432}:5432"  # Expose PostgreSQL on its host machine
     volumes:
-      - ${POSTGRES_DATA_DIR:-./tools/postgresql/data}:/var/lib/pgsql/data
+      - ${POSTGRES_DATA_DIR:-./tools/postgresql/data}:/var/lib/pgsql/data:Z
+
