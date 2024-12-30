@@ -18,10 +18,8 @@ dnf clean all
 ARG UID=1000
 ARG GID=1000
 
-# Create postgres group and user with dynamic UID/GID
-RUN groupadd -g $GID postgres && \
-    useradd -u $UID -g $GID -m -s /bin/bash postgres && \
-    chmod 700 $PGDATA
+# Dynamically update the postgres user with the provided UID and GID
+RUN usermod -u $UID postgres && groupmod -g $GID postgres || true
 
 # Initialize PostgreSQL
 RUN mkdir -p $PGDATA && chown -R postgres:postgres $PGDATA && \
