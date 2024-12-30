@@ -87,9 +87,6 @@ RUN mkdir -p $AIRFLOW_HOME && \
     chown -R airflow:airflow /home/airflow && \
     chown -R airflow:airflow /mnt/cloned_repositories
 
-# Switch to the airflow user
-USER airflow
-
 # Configure pip with dynamic settings
 RUN mkdir -p /home/airflow/.pip && \
     if [ -n "$GLOBAL_CERT" ]; then \
@@ -144,6 +141,9 @@ RUN chmod +x /usr/local/bin/start_services.sh
 
 # Make binaries and scripts executable
 RUN chmod +x /usr/local/bin/*
+
+# Switch to the airflow user
+USER airflow
 
 # Configure working directory and expose ports
 WORKDIR $AIRFLOW_HOME
