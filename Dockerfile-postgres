@@ -1,0 +1,30 @@
+FROM almalinux:8
+
+# Set environment variables
+ENV POSTGRES_VERSION=13
+ENV PGDATA=/var/lib/pgsql/data
+
+# Install PostgreSQL
+RUN dnf -y update && \
+dnf -y install \
+dnf-plugins-core && \
+dnf -y module enable postgresql:$POSTGRES_VERSION && \
+dnf -y install \
+postgresql-server \
+postgresql-contrib && \
+dnf clean all
+
+# Initialize PostgreSQL
+RUN mkdir -p $PGDATA && chown -R postgres:postgres $PGDATA && \
+su - postgres -c "initdb -D $PGDATA"
+
+# Configure PostgreSQL for external connections
+RUN echo "listen_addresses = '*'" >> $PGDATA/postgresql.conf && \
+echo "host all all 0.0.0.0/0 md5" >> $PGDATA/pg_hba.conf
+
+# Expose PostgreSQL port
+EXPOSE 5432
+
+# Run PostgreSQL
+USER postgres
+CMD ["postgres", "-D", "/var/lib/pgsql/data"]

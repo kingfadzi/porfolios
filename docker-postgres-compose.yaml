@@ -1,0 +1,14 @@
+services:
+  postgres:
+    build:
+      context: .
+      dockerfile: Dockerfile  # Adjust to match your Dockerfile name
+    container_name: postgres_base
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: airflow
+    ports:
+      - "5434:5432"  # Map container port 5432 to host port 5434 to avoid conflict
+    volumes:
+      - ./tools/postgresql/data:/var/lib/pgsql/data  # Persist PostgreSQL data
