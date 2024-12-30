@@ -6,13 +6,13 @@ if [ -z "$AIRFLOW__DATABASE__SQL_ALCHEMY_CONN" ]; then
     exit 1
 fi
 
-# Extract hostname and port from the connection string
-POSTGRES_HOST=$(echo $AIRFLOW__DATABASE__SQL_ALCHEMY_CONN | sed -n 's/^.*@[^:]*:.*/\1/p')
-POSTGRES_PORT=$(echo $AIRFLOW__DATABASE__SQL_ALCHEMY_CONN | sed -n 's/^.*:[0-9]*\/.*/\1/p')
+# Extract hostname and port from the connection string using `awk`
+POSTGRES_HOST=$(echo $AIRFLOW__DATABASE__SQL_ALCHEMY_CONN | awk -F'[@:]' '{print $2}')
+POSTGRES_PORT=$(echo $AIRFLOW__DATABASE__SQL_ALCHEMY_CONN | awk -F'[@:]' '{print $3}')
 
 # Wait for PostgreSQL to be ready
 echo "Waiting for PostgreSQL to be ready on $POSTGRES_HOST:$POSTGRES_PORT..."
-while ! nc -z $POSTGRES_HOST $POSTGRES_PORT; do
+while ! nc -z "$POSTGRES_HOST" "$POSTGRES_PORT"; do
     sleep 2
     echo "Waiting..."
 done
@@ -41,7 +41,7 @@ fi
 rm -f /root/airflow/airflow-webserver.pid
 
 # Start the Airflow webserver and scheduler
-echo "Starting Airflow webserver..."
+echo "Starting Airflow webserver on port 8080..."
 airflow webserver --port 8080 &
 
 echo "Starting Airflow scheduler..."
