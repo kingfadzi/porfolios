@@ -24,21 +24,21 @@ if [ ! -f "$PGDATA/PG_VERSION" ]; then
     start_postgres_temp
 
     # Wait until PostgreSQL is ready to accept connections
-    until psql --host=localhost --username=postgres -c '\q' 2>/dev/null; do
+    until psql --host=127.0.0.1 --username=postgres -c '\q' 2>/dev/null; do
         echo "Waiting for PostgreSQL to start..."
         sleep 1
     done
 
     if [ -n "$POSTGRES_USER" ] && [ -n "$POSTGRES_PASSWORD" ]; then
         echo "Creating user '$POSTGRES_USER'..."
-        psql --host=localhost --username=postgres <<-EOSQL
+        psql --host=127.0.0.1 --username=postgres <<-EOSQL
             CREATE USER "$POSTGRES_USER" WITH SUPERUSER PASSWORD '$POSTGRES_PASSWORD';
 EOSQL
     fi
 
     if [ -n "$POSTGRES_DB" ]; then
         echo "Creating database '$POSTGRES_DB'..."
-        psql --host=localhost --username=postgres <<-EOSQL
+        psql --host=127.0.0.1 --username=postgres <<-EOSQL
             CREATE DATABASE "$POSTGRES_DB" WITH OWNER "$POSTGRES_USER";
 EOSQL
     fi
