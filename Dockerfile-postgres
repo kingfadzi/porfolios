@@ -3,7 +3,6 @@ FROM almalinux:8
 # Set environment variables
 ENV POSTGRES_VERSION=13
 ENV PGDATA=/var/lib/pgsql/data
-ENV PGSOCKET=/tmp
 
 # Accept UID and GID as build arguments
 ARG USER_ID=1000
@@ -27,11 +26,14 @@ RUN if ! id -u postgres >/dev/null 2>&1; then \
     fi
 
 # Prepare the directory structure
-RUN mkdir -p /var/lib/pgsql && \
-    mkdir -p "${PGDATA}" && \
-    # Do NOT create "${PGDATA}/log" here to keep PGDATA empty for initdb
+RUN mkdir -p /var/lib/pgsql/data && \
     chown -R postgres:postgres /var/lib/pgsql && \
-    chmod 700 "${PGDATA}"
+    chmod 700 /var/lib/pgsql/data
+
+# Ensure /var/run/postgresql exists with proper permissions
+RUN mkdir -p /var/run/postgresql && \
+    chown postgres:postgres /var/run/postgresql && \
+    chmod 775 /var/run/postgresql
 
 # Copy the entrypoint script
 COPY docker-entrypoint.sh /usr/local/bin/
