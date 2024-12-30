@@ -14,9 +14,8 @@ ARG UID=1000
 ARG GID=1000
 
 # Update postgres group and user with provided UID and GID
-# Dynamically update the postgres group and user if necessary
-RUN if [ "$(getent group postgres | cut -d: -f3)" != "$GID" ]; then groupmod -g $GID postgres; fi && \
-    if [ "$(id -u postgres)" != "$UID" ]; then usermod -u $UID postgres; fi && \
+RUN groupmod -g $GID postgres || true && \
+    usermod -u $UID postgres || true && \
     chown -R postgres:postgres /var/lib/pgsql
 
 # Ensure the data directory exists and has correct permissions
