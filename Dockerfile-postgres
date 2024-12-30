@@ -16,14 +16,14 @@ RUN dnf -y update && \
     dnf clean all
 
 # Ensure the postgres group exists
-RUN getent group postgres || groupadd -g ${GID} postgres
+RUN getent group postgres || groupadd -g ${GROUP_ID} postgres
 
 # Ensure the postgres user exists
-RUN getent passwd postgres || useradd -u ${UID} -g postgres -d /var/lib/pgsql postgres
+RUN getent passwd postgres || useradd -u ${USER_ID} -g postgres -d /var/lib/pgsql postgres
 
 # Update UID and GID if necessary
-RUN getent group postgres | grep -q ":${GID}$" || groupmod -g ${GID} postgres && \
-    getent passwd postgres | grep -q ":${UID}:" || usermod -u ${UID} postgres && \
+RUN getent group postgres | grep -q ":${GROUP_ID}$" || groupmod -g ${GROUP_ID} postgres && \
+    getent passwd postgres | grep -q ":${USER_ID}:" || usermod -u ${USER_ID} postgres && \
     mkdir -p ${PGDATA} && \
     chown -R postgres:postgres /var/lib/pgsql && \
     chmod 700 ${PGDATA}
