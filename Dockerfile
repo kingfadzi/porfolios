@@ -25,8 +25,54 @@ RUN dnf update -y && \
         python3-devel \
         git \
         wget \
-        && \
+        postgresql-devel && \
     dnf clean all
+
+# Install system dependencies
+RUN dnf update -y && \
+    dnf module enable -y postgresql:13 && \
+    dnf module reset -y python36 && \
+    dnf module enable -y python39 && \
+    dnf install -y \
+        bash \
+        python3.11 \
+        python3-pip \
+        python3-devel \
+        git \
+        wget \
+        postgresql-server \
+        postgresql-libs \
+        postgresql && \
+    dnf clean all
+
+# Set Python 3.11 as default and ensure pip is installed
+RUN alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1 && \
+    alternatives --set python3 /usr/bin/python3.11 && \
+    python3 -m ensurepip && \
+    python3 -m pip install --no-cache-dir --upgrade pip
+
+# Configure pip with dynamic settings
+RUN if [ -n "$GLOBAL_CERT" ]; then \
+      echo -e "[global]\ncert = ${GLOBAL_CERT}\nindex-url = ${GLOBAL_INDEX_URL}" > /etc/pip.conf; \
+    else \
+      echo -e "[global]\nindex-url = ${GLOBAL_INDEX_URL}" > /etc/pip.conf; \
+    fi
+
+# Install Python dependencies
+RUN python3 -m pip install --no-cache-dir \
+    apache-airflow[postgres] \
+    psycopg2-binary \
+    gitpython
+RUN pip3 install --no-cache-dir \
+    apache-airflow-providers-postgres \
+    psycopg2-binary \
+    requests \
+    pandas \
+    numpy \
+    lizard \
+    checkov \
+    sqlalchemy
+
 
 # Create a group and user with specified UID and GID
 RUN groupadd -g ${HOST_GID} airflow && \
