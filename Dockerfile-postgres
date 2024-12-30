@@ -1,45 +1,39 @@
-FROM almalinux:8
-
 # Set environment variables
 ENV POSTGRES_VERSION=13
 ENV PGDATA=/var/lib/pgsql/data
 
 # Install PostgreSQL
 RUN dnf -y update && \
-dnf -y install \
-dnf-plugins-core && \
-dnf -y module enable postgresql:$POSTGRES_VERSION && \
-dnf -y install \
-postgresql-server \
-postgresql-contrib && \
-dnf clean all
+    dnf -y install dnf-plugins-core && \
+    dnf -y module enable postgresql:$POSTGRES_VERSION && \
+    dnf -y install postgresql-server postgresql-contrib && \
+    dnf clean all
 
 # Allow dynamic UID and GID
 ARG UID=1000
 ARG GID=1000
 
-# Dynamically update the postgres user with the provided UID and GID
-RUN usermod -u $UID postgres && groupmod -g $GID postgres || true
+# Update postgres group and user with provided UID and GID
+RUN groupmod -g $GID postgres && \
+    usermod -u $UID postgres
 
-# Initialize PostgreSQL
-RUN mkdir -p $PGDATA && chown -R postgres:postgres $PGDATA && \
-su - postgres -c "initdb -D $PGDATA"
+# Ensure the data directory exists and has correct permissions
+RUN mkdir -p $PGDATA && \
+    chown -R postgres:postgres $PGDATA && \
+    chmod 700 $PGDATA
 
-# Configure PostgreSQL for external connections
-RUN echo "listen_addresses = '*'" >> $PGDATA/postgresql.conf && \
-echo "host all all 0.0.0.0/0 md5" >> $PGDATA/pg_hba.conf
-
-# Copy initialization script
-COPY postgres-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+# Copy entrypoint script
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Expose PostgreSQL port
 EXPOSE 5432
 
-# Run PostgreSQL
+# Switch to postgres user
 USER postgres
 
-# Set entrypoint script
+# Set entrypoint
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 
+# Default command
 CMD ["postgres", "-D", "/var/lib/pgsql/data"]
