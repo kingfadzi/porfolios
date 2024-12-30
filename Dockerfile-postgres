@@ -15,7 +15,7 @@ RUN dnf -y update && \
     dnf -y install postgresql-server postgresql-contrib && \
     dnf clean all
 
-Ensure the postgres group exists
+# Ensure the postgres group exists
 RUN getent group postgres || groupadd -g ${GID} postgres
 
 # Ensure the postgres user exists
