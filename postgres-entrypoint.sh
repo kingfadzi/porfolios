@@ -9,7 +9,7 @@ chmod 700 /var/lib/pgsql/data
 # Initialize PostgreSQL if not already initialized
 if [ ! -f /var/lib/pgsql/data/postgresql.conf ]; then
     echo "Initializing PostgreSQL database..."
-    su - postgres -c "initdb -D /var/lib/pgsql/data"
+    runuser -u postgres -- initdb -D /var/lib/pgsql/data
 
     # Configure PostgreSQL for external connections
     echo "host all all 0.0.0.0/0 md5" >> /var/lib/pgsql/data/pg_hba.conf
@@ -21,4 +21,4 @@ fi
 
 # Start PostgreSQL as the postgres user
 echo "Starting PostgreSQL..."
-exec su - postgres -c "postgres -D /var/lib/pgsql/data"
+exec runuser -u postgres -- postgres -D /var/lib/pgsql/data
