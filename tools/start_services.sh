@@ -24,18 +24,18 @@ wait_for_service() {
     exit 1
 }
 
+# Remove leftover PID files
+echo "Cleaning up stale PID files..."
+rm -f "$AIRFLOW_HOME/airflow-webserver.pid"
+
 # Wait for PostgreSQL to be ready
 wait_for_service "$POSTGRES_HOST" "$POSTGRES_PORT"
 
 # Initialize the Airflow database if needed
-if ! airflow db check; then
-    echo "Initializing Airflow database..."
-    airflow db init
-else
-    echo "Airflow database is already initialized."
-fi
+echo "Checking Airflow database initialization..."
+airflow db init
 
-# Check if the admin user already exists
+# Create the Airflow admin user if it doesn't exist
 if ! airflow users list | grep -q "$AIRFLOW_ADMIN_USERNAME"; then
     echo "Creating Airflow admin user..."
     airflow users create \
@@ -48,9 +48,6 @@ if ! airflow users list | grep -q "$AIRFLOW_ADMIN_USERNAME"; then
 else
     echo "Admin user '$AIRFLOW_ADMIN_USERNAME' already exists. Skipping user creation."
 fi
-
-# Remove leftover PID files
-rm -f "$AIRFLOW_HOME/airflow-webserver.pid"
 
 # Start the Airflow webserver
 echo "Starting Airflow webserver on port ${AIRFLOW_HOST_PORT:-8088}..."
