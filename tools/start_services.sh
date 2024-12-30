@@ -1,14 +1,10 @@
 #!/bin/bash
 
-# Ensure the Airflow database connection string is set
-if [ -z "$AIRFLOW__DATABASE__SQL_ALCHEMY_CONN" ]; then
-    echo "Environment variable AIRFLOW__DATABASE__SQL_ALCHEMY_CONN is not set. Exiting."
+# Ensure required environment variables are set
+if [ -z "$POSTGRES_HOST" ] || [ -z "$POSTGRES_PORT" ] || [ -z "$AIRFLOW__DATABASE__SQL_ALCHEMY_CONN" ]; then
+    echo "Environment variables POSTGRES_HOST, POSTGRES_PORT, or AIRFLOW__DATABASE__SQL_ALCHEMY_CONN are not set. Exiting."
     exit 1
 fi
-
-# Extract hostname and port from the connection string using `awk`
-POSTGRES_HOST=$(echo $AIRFLOW__DATABASE__SQL_ALCHEMY_CONN | awk -F'[@:]' '{print $2}')
-POSTGRES_PORT=$(echo $AIRFLOW__DATABASE__SQL_ALCHEMY_CONN | awk -F'[@:]' '{print $3}')
 
 # Wait for PostgreSQL to be ready
 echo "Waiting for PostgreSQL to be ready on $POSTGRES_HOST:$POSTGRES_PORT..."
