@@ -22,12 +22,8 @@ RUN groupadd -g ${GROUP_ID} pggroup && \
 # Prepare the directory structure
 RUN mkdir -p /var/lib/pgsql && \
     mkdir -p "${PGDATA}" && \
-    mkdir -p "${PGDATA}/log" && \
-    # Ownership of everything under /var/lib/pgsql
     chown -R pguser:pggroup /var/lib/pgsql && \
-    # Permission best practice for Postgres data directories
-    chmod 700 "${PGDATA}" && \
-    chmod 700 "${PGDATA}/log"
+    chmod 700 "${PGDATA}"
 
 # Copy your entrypoint script
 COPY docker-entrypoint.sh /usr/local/bin/
