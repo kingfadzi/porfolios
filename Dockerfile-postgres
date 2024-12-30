@@ -16,9 +16,8 @@ RUN dnf -y update && \
     dnf clean all
 
 # Modify the existing 'postgres' user and group to match host UID and GID
-RUN usermod -u ${USER_ID} postgres && \
-    groupmod -g ${GROUP_ID} postgres && \
-    # Ensure ownership and permissions
+RUN getent group postgres | grep -q ":${GROUP_ID}$" || groupmod -g ${GROUP_ID} postgres && \
+    getent passwd postgres | grep -q ":${USER_ID}:" || usermod -u ${USER_ID} postgres && \
     mkdir -p /var/lib/pgsql/data && \
     chown -R postgres:postgres /var/lib/pgsql && \
     chmod 700 /var/lib/pgsql/data
