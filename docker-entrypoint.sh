@@ -9,7 +9,7 @@ start_postgres() {
 # Check if PGDATA is empty
 if [ -z "$(ls -A "$PGDATA")" ]; then
     echo "Initializing PostgreSQL database..."
-    initdb
+    initdb -D "$PGDATA"
 
     # Modify postgresql.conf to listen on all addresses
     echo "listen_addresses='*'" >> "$PGDATA/postgresql.conf"

@@ -32,8 +32,5 @@ EXPOSE 5432
 # Switch to pguser
 USER pguser
 
-# Initialize the database
-RUN /usr/bin/postgresql-setup initdb
-
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["postgres", "-D", "${PGDATA}"]
