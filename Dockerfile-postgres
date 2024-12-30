@@ -3,6 +3,7 @@ FROM almalinux:8
 # Set environment variables
 ENV POSTGRES_VERSION=13
 ENV PGDATA=/var/lib/pgsql/data
+ENV PGSOCKET=/tmp
 
 # Accept UID and GID as build arguments
 ARG USER_ID=1000
@@ -38,4 +39,4 @@ USER pguser
 
 # Set the entrypoint and cmd
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
-CMD ["postgres", "-D", "/var/lib/pgsql/data"]
+CMD ["postgres", "-D", "/var/lib/pgsql/data", "-k", "/tmp"]

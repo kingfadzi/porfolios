@@ -3,7 +3,7 @@ set -e
 
 # Function to start PostgreSQL temporarily
 start_postgres_temp() {
-    pg_ctl -D "$PGDATA" -o "-c listen_addresses='localhost' -c logging_collector=off" -w start
+    pg_ctl -D "$PGDATA" -o "-c listen_addresses='localhost' -c logging_collector=off -k /tmp" -w start
 }
 
 # Function to stop PostgreSQL temporarily
