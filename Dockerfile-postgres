@@ -19,11 +19,14 @@ RUN dnf -y update && \
 RUN groupadd -g ${GROUP_ID} pggroup && \
     useradd -u ${USER_ID} -g pggroup -m pguser
 
-# Ensure the /var/lib/pgsql directory belongs to pguser
+# Prepare the directory structure
 RUN mkdir -p /var/lib/pgsql && \
     mkdir -p "${PGDATA}" && \
     mkdir -p "${PGDATA}/log" && \
+    # Ownership of everything under /var/lib/pgsql
     chown -R pguser:pggroup /var/lib/pgsql && \
+    # Permission best practice for Postgres data directories
+    chmod 700 "${PGDATA}" && \
     chmod 700 "${PGDATA}/log"
 
 # Copy your entrypoint script
@@ -33,8 +36,10 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 # Expose PostgreSQL port
 EXPOSE 5432
 
-# Switch to pguser (unprivileged) for runtime
+# Switch to the 'pguser' (non-root) for runtime
 USER pguser
 
+# By default, run our entry script, which checks for PG_VERSION
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
-CMD ["postgres", "-D", "${PGDATA}"]
+# Finally, run Postgres using PGDATA
+CMD ["postgres", "-D", "/var/lib/pgsql/data"]
