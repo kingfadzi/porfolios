@@ -15,7 +15,7 @@ services:
       HTTPS_PROXY: ${HTTPS_PROXY}
       NO_PROXY: ${NO_PROXY}
       # Use the IP or hostname of the PostgreSQL server
-      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:@{POSTGRES_HOST_PORT}/${POSTGRES_DB}
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:@${POSTGRES_HOST_PORT}/${POSTGRES_DB}
     volumes:
       - ./cloned_repositories:/mnt/cloned_repositories
       - ${SSH_KEYS_PATH:-~/.ssh/id_rsa}:/root/.ssh/id_rsa:ro
