@@ -3,7 +3,7 @@ FROM almalinux:8
 # Set environment variables
 ENV POSTGRES_VERSION=13
 ENV PGDATA=/var/lib/pgsql/data
-ENV PGSOCKET=/tmp  # Set socket directory to /tmp to avoid permission issues
+ENV PGSOCKET=/tmp
 
 # Accept UID and GID as build arguments
 ARG USER_ID=1000
