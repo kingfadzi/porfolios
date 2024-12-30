@@ -6,7 +6,7 @@ services:
       args:
         USER_ID: ${HOST_UID}
         GROUP_ID: ${HOST_GID}
-    container_name: postgres13e
+    container_name: postgres13d
     ports:
       - "5422:5432"
     volumes:
