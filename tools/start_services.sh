@@ -1,14 +1,18 @@
 #!/bin/bash
 
-# Ensure the Airflow database connection is correctly configured
+# Ensure the Airflow database connection string is set
 if [ -z "$AIRFLOW__DATABASE__SQL_ALCHEMY_CONN" ]; then
     echo "Environment variable AIRFLOW__DATABASE__SQL_ALCHEMY_CONN is not set. Exiting."
     exit 1
 fi
 
-# Wait for the PostgreSQL database to be ready
-echo "Waiting for PostgreSQL to be ready..."
-while ! nc -z $(echo $AIRFLOW__DATABASE__SQL_ALCHEMY_CONN | sed -e 's/^.*@//' -e 's/:.*$//') $(echo $AIRFLOW__DATABASE__SQL_ALCHEMY_CONN | sed -e 's/^.*://'); do
+# Extract hostname and port from the connection string
+POSTGRES_HOST=$(echo $AIRFLOW__DATABASE__SQL_ALCHEMY_CONN | sed -n 's/^.*@[^:]*:.*/\1/p')
+POSTGRES_PORT=$(echo $AIRFLOW__DATABASE__SQL_ALCHEMY_CONN | sed -n 's/^.*:[0-9]*\/.*/\1/p')
+
+# Wait for PostgreSQL to be ready
+echo "Waiting for PostgreSQL to be ready on $POSTGRES_HOST:$POSTGRES_PORT..."
+while ! nc -z $POSTGRES_HOST $POSTGRES_PORT; do
     sleep 2
     echo "Waiting..."
 done
@@ -33,7 +37,7 @@ else
     echo "Admin user already exists. Skipping user creation."
 fi
 
-# Remove any leftover PID files from previous runs
+# Remove leftover PID files
 rm -f /root/airflow/airflow-webserver.pid
 
 # Start the Airflow webserver and scheduler
