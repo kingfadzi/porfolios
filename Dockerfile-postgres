@@ -8,7 +8,6 @@ ENV PGDATA=/var/lib/pgsql/data
 ARG USER_ID=1000
 ARG GROUP_ID=1000
 
-
 # Install PostgreSQL
 RUN dnf -y update && \
     dnf -y install dnf-plugins-core && \
@@ -20,12 +19,12 @@ RUN dnf -y update && \
 RUN groupadd -g ${GROUP_ID} pggroup && \
     useradd -u ${USER_ID} -g pggroup -m pguser
 
-# Ensure the entire /var/lib/pgsql directory is owned by pguser
+# Ensure the /var/lib/pgsql directory belongs to pguser
 RUN mkdir -p /var/lib/pgsql && \
-    mkdir -p ${PGDATA} && \
-    mkdir -p ${PGDATA}/log && \
+    mkdir -p "${PGDATA}" && \
+    mkdir -p "${PGDATA}/log" && \
     chown -R pguser:pggroup /var/lib/pgsql && \
-    chmod 700 ${PGDATA}/log
+    chmod 700 "${PGDATA}/log"
 
 # Copy your entrypoint script
 COPY docker-entrypoint.sh /usr/local/bin/
@@ -34,7 +33,7 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 # Expose PostgreSQL port
 EXPOSE 5432
 
-# Switch to pguser
+# Switch to pguser (unprivileged) for runtime
 USER pguser
 
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
