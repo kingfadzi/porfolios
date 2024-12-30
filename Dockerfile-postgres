@@ -3,7 +3,7 @@ FROM almalinux:8
 # Set environment variables
 ENV POSTGRES_VERSION=13
 ENV PGDATA=/var/lib/pgsql/data
-ENV PGSOCKET=/tmp
+ENV PGSOCKET=/tmp  # Set socket directory to /tmp to avoid permission issues
 
 # Accept UID and GID as build arguments
 ARG USER_ID=1000
@@ -16,27 +16,26 @@ RUN dnf -y update && \
     dnf -y install postgresql-server postgresql-contrib && \
     dnf clean all
 
-# Create a group and user with the provided GID and UID
-RUN groupadd -g ${GROUP_ID} pggroup && \
-    useradd -u ${USER_ID} -g pggroup -m pguser
+# Create the 'postgres' user with the provided UID and GID
+RUN groupadd -g ${GROUP_ID} postgres && \
+    useradd -u ${USER_ID} -g postgres -m postgres
 
 # Prepare the directory structure
 RUN mkdir -p /var/lib/pgsql && \
     mkdir -p "${PGDATA}" && \
-    # Do NOT create "${PGDATA}/log" here to keep PGDATA empty for initdb
-    chown -R pguser:pggroup /var/lib/pgsql && \
+    chown -R postgres:postgres /var/lib/pgsql && \
     chmod 700 "${PGDATA}"
 
-# Copy your entrypoint script
+# Copy the entrypoint script
 COPY docker-entrypoint.sh /usr/local/bin/
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Expose PostgreSQL port
 EXPOSE 5432
 
-# Switch to the 'pguser' (non-root) for runtime
-USER pguser
+# Switch to the 'postgres' user for runtime
+USER postgres
 
-# Set the entrypoint and cmd
+# Set the entrypoint and command
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
 CMD ["postgres", "-D", "/var/lib/pgsql/data", "-k", "/tmp"]
