@@ -1,5 +1,15 @@
 #!/bin/bash
-set -e
+set -e  # Exit immediately if a command exits with a non-zero status
+
+# Ensure PGDATA has correct permissions
+if [ ! -d "$PGDATA" ]; then
+    echo "Creating PostgreSQL data directory at $PGDATA..."
+    mkdir -p "$PGDATA"
+fi
+
+echo "Ensuring correct ownership and permissions for $PGDATA..."
+chown -R postgres:postgres "$PGDATA"
+chmod 700 "$PGDATA"
 
 # Initialize the database if PG_VERSION does not exist
 if [ ! -f "$PGDATA/PG_VERSION" ]; then
