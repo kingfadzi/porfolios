@@ -19,9 +19,9 @@ if [ ! -f "$PGDATA/PG_VERSION" ]; then
         sleep 1
     done
 
-    # Create user if it doesn't exist
-    echo "Creating user 'postgres' if it does not exist..."
-    su postgres -c "psql --host=127.0.0.1 --username=postgres -tc \"SELECT 1 FROM pg_roles WHERE rolname = 'postgres'\" | grep -q 1 || psql --host=127.0.0.1 --username=postgres -c \"ALTER ROLE postgres WITH SUPERUSER LOGIN PASSWORD 'postgres';\""
+    # Reset the postgres user's password
+    echo "Setting password for user 'postgres'..."
+    su postgres -c "psql --host=127.0.0.1 --username=postgres -c \"ALTER ROLE postgres WITH PASSWORD 'postgres';\""
 
     # Create database if it doesn't exist
     echo "Creating database 'airflow' if it does not exist..."
