@@ -2,19 +2,19 @@ services:
   postgres:
     build:
       context: .
-      dockerfile: Dockerfile-postgres  # Adjust to your PostgreSQL Dockerfile
       args:
-        UID: ${UID:-1000}  # Default UID to 1000 if not provided
-        GID: ${GID:-1000}  # Default GID to 1000 if not provided
+        USER_ID: x12345
+        GROUP_ID: 20
     container_name: postgres_base
-    env_file:
-      - .env  # Shared environment file
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      - POSTGRES_USER=myuser
+      - POSTGRES_PASSWORD=mypassword
+      - POSTGRES_DB=mydb
     ports:
-      - "${POSTGRES_HOST_PORT:-5432}:5432"  # Expose PostgreSQL on its host machine
+      - "5422:5432"
     volumes:
-      - ${POSTGRES_DATA_DIR:-./tools/postgresql/data}:/var/lib/pgsql/data:Z
+      - ./pgdata:/var/lib/pgsql/data
+    user: "x12345:20"
 
+volumes:
+  pgdata:
