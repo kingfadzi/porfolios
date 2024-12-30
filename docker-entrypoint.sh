@@ -1,12 +1,12 @@
 #!/bin/bash
 set -e
 
-# Function to start PostgreSQL in the background
+# Function to start PostgreSQL temporarily
 start_postgres_temp() {
-    pg_ctl -D "$PGDATA" -o "-c listen_addresses='localhost'" -w start
+    pg_ctl -D "$PGDATA" -o "-c listen_addresses='localhost' -c logging_collector=off" -w start
 }
 
-# Function to stop PostgreSQL
+# Function to stop PostgreSQL temporarily
 stop_postgres_temp() {
     pg_ctl -D "$PGDATA" -m fast -w stop
 }

@@ -22,6 +22,7 @@ RUN groupadd -g ${GROUP_ID} pggroup && \
 # Prepare the directory structure
 RUN mkdir -p /var/lib/pgsql && \
     mkdir -p "${PGDATA}" && \
+    # Do NOT create "${PGDATA}/log" here to keep PGDATA empty for initdb
     chown -R pguser:pggroup /var/lib/pgsql && \
     chmod 700 "${PGDATA}"
 
@@ -35,7 +36,6 @@ EXPOSE 5432
 # Switch to the 'pguser' (non-root) for runtime
 USER pguser
 
-# By default, run our entry script, which checks for PG_VERSION
+# Set the entrypoint and cmd
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
-# Finally, run Postgres using PGDATA
 CMD ["postgres", "-D", "/var/lib/pgsql/data"]
