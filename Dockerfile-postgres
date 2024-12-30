@@ -22,9 +22,17 @@ su - postgres -c "initdb -D $PGDATA"
 RUN echo "listen_addresses = '*'" >> $PGDATA/postgresql.conf && \
 echo "host all all 0.0.0.0/0 md5" >> $PGDATA/pg_hba.conf
 
+# Copy initialization script
+COPY postgres-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 # Expose PostgreSQL port
 EXPOSE 5432
 
 # Run PostgreSQL
 USER postgres
+
+# Set entrypoint script
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+
 CMD ["postgres", "-D", "/var/lib/pgsql/data"]
