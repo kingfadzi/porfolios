@@ -2,7 +2,7 @@ services:
   postgres:
     build:
       context: .
-      dockerfile: Dockerfile  # Adjust to match your Dockerfile name
+      dockerfile: Dockerfile-postgres # Adjust to match your Dockerfile name
     container_name: postgres_base
     environment:
       POSTGRES_USER: postgres
