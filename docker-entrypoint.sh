@@ -40,4 +40,4 @@ EOSQL"
 fi
 
 # Start PostgreSQL in the foreground as 'postgres' user
-exec su postgres -c "$@"
+exec su postgres -c "$*"

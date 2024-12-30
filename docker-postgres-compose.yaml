@@ -2,14 +2,15 @@ services:
   postgres:
     build:
       context: .
+      dockerfile: Dockerfile-postgres
       args:
-        USER_ID: ${UID}
-        GROUP_ID: ${GID}
+        USER_ID: ${HOST_UID}
+        GROUP_ID: ${HOST_GID}
     container_name: postgres13e
     ports:
-      - "5432:5432"
+      - "5422:5432"
     volumes:
-      - ./pgdata:/var/lib/pgsql/data
+      - ./pgdata1:/var/lib/pgsql/data
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
