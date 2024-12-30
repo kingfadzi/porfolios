@@ -1,8 +1,11 @@
 #!/bin/bash
 
 set -e  # Exit immediately if a command exits with a non-zero status
-exec > >(tee -a "$AIRFLOW_HOME/entrypoint.log") 2>&1
-set -x  # Enable debug mode
+
+# Debugging: Log all environment variables
+echo "DEBUG: POSTGRES_HOST=${POSTGRES_HOST}"
+echo "DEBUG: POSTGRES_PORT=${POSTGRES_PORT}"
+echo "DEBUG: AIRFLOW__DATABASE__SQL_ALCHEMY_CONN=${AIRFLOW__DATABASE__SQL_ALCHEMY_CONN}"
 
 # Function to wait for a service to be ready
 wait_for_service() {
@@ -24,16 +27,16 @@ wait_for_service() {
 # Wait for PostgreSQL to be ready
 wait_for_service "$POSTGRES_HOST" "$POSTGRES_PORT"
 
-# Initialize the Airflow database
-if airflow db check; then
-    echo "Airflow database is already initialized."
-else
+# Initialize the Airflow database if needed
+if ! airflow db check; then
     echo "Initializing Airflow database..."
     airflow db init
+else
+    echo "Airflow database is already initialized."
 fi
 
 # Check if the admin user already exists
-if ! airflow users export | grep -q "\"username\": \"$AIRFLOW_ADMIN_USERNAME\""; then
+if ! airflow users list | grep -q "$AIRFLOW_ADMIN_USERNAME"; then
     echo "Creating Airflow admin user..."
     airflow users create \
         --username "$AIRFLOW_ADMIN_USERNAME" \
@@ -49,14 +52,11 @@ fi
 # Remove leftover PID files
 rm -f "$AIRFLOW_HOME/airflow-webserver.pid"
 
-# Start the Airflow webserver if enabled
-if [ "${START_WEBSERVER:-true}" = "true" ]; then
-    echo "Starting Airflow webserver on port ${AIRFLOW_HOST_PORT:-8088}..."
-    airflow webserver --port "${AIRFLOW_HOST_PORT:-8088}" &
-fi
+# Start the Airflow webserver
+echo "Starting Airflow webserver on port ${AIRFLOW_HOST_PORT:-8088}..."
+airflow webserver --port "${AIRFLOW_HOST_PORT:-8088}" &
+echo "Airflow webserver started."
 
-# Start the Airflow scheduler if enabled
-if [ "${START_SCHEDULER:-true}" = "true" ]; then
-    echo "Starting Airflow scheduler..."
-    airflow scheduler
-fi
+# Start the Airflow scheduler
+echo "Starting Airflow scheduler..."
+airflow scheduler
