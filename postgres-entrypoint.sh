@@ -26,3 +26,4 @@ if [ "$1" = "" ]; then
 else
     exec su - postgres -c "$*"
 fi
+
