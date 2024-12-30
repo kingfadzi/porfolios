@@ -21,7 +21,7 @@ if [ ! -f "$PGDATA/PG_VERSION" ]; then
 
     # Create user if it doesn't exist
     echo "Creating user 'postgres' if it does not exist..."
-    su postgres -c "psql --host=127.0.0.1 --username=postgres -tc \"SELECT 1 FROM pg_roles WHERE rolname = 'postgres'\" | grep -q 1 || psql --host=127.0.0.1 --username=postgres -c \"CREATE ROLE postgres WITH SUPERUSER LOGIN PASSWORD 'postgres';\""
+    su postgres -c "psql --host=127.0.0.1 --username=postgres -tc \"SELECT 1 FROM pg_roles WHERE rolname = 'postgres'\" | grep -q 1 || psql --host=127.0.0.1 --username=postgres -c \"ALTER ROLE postgres WITH SUPERUSER LOGIN PASSWORD 'postgres';\""
 
     # Create database if it doesn't exist
     echo "Creating database 'airflow' if it does not exist..."
@@ -34,4 +34,4 @@ if [ ! -f "$PGDATA/PG_VERSION" ]; then
 fi
 
 # Start PostgreSQL in the foreground as 'postgres' user
-exec su postgres -c "$*"
+exec su postgres -c "postgres -D \"$PGDATA\" -k /tmp"
