@@ -15,18 +15,11 @@ RUN dnf -y update && \
     dnf -y install postgresql-server postgresql-contrib && \
     dnf clean all
 
-# Create the 'postgres' group if it doesn't exist
-RUN if ! getent group postgres >/dev/null; then \
-        groupadd -g ${GROUP_ID} postgres; \
-    fi
-
-# Create the 'postgres' user if it doesn't exist
-RUN if ! id -u postgres >/dev/null 2>&1; then \
-        useradd -u ${USER_ID} -g postgres -m postgres; \
-    fi
-
-# Prepare the directory structure
-RUN mkdir -p /var/lib/pgsql/data && \
+# Modify the existing 'postgres' user and group to match host UID and GID
+RUN usermod -u ${USER_ID} postgres && \
+    groupmod -g ${GROUP_ID} postgres && \
+    # Ensure ownership and permissions
+    mkdir -p /var/lib/pgsql/data && \
     chown -R postgres:postgres /var/lib/pgsql && \
     chmod 700 /var/lib/pgsql/data
 
@@ -41,9 +34,6 @@ RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
 # Expose PostgreSQL port
 EXPOSE 5432
-
-# Do NOT switch to 'postgres' user here
-# USER postgres
 
 # Set the entrypoint and command
 ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
