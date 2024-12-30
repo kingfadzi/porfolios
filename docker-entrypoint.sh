@@ -19,19 +19,13 @@ if [ ! -f "$PGDATA/PG_VERSION" ]; then
         sleep 1
     done
 
-    if [ -n "$POSTGRES_USER" ] && [ -n "$POSTGRES_PASSWORD" ]; then
-        echo "Creating user '$POSTGRES_USER'..."
-        su postgres -c "psql --host=127.0.0.1 --username=postgres <<-EOSQL
-            CREATE USER \"$POSTGRES_USER\" WITH SUPERUSER PASSWORD '$POSTGRES_PASSWORD';
-EOSQL"
-    fi
+    # Create user if it doesn't exist
+    echo "Creating user 'postgres' if it does not exist..."
+    su postgres -c "psql --host=127.0.0.1 --username=postgres -tc \"SELECT 1 FROM pg_roles WHERE rolname = 'postgres'\" | grep -q 1 || psql --host=127.0.0.1 --username=postgres -c \"CREATE ROLE postgres WITH SUPERUSER LOGIN PASSWORD 'postgres';\""
 
-    if [ -n "$POSTGRES_DB" ]; then
-        echo "Creating database '$POSTGRES_DB'..."
-        su postgres -c "psql --host=127.0.0.1 --username=postgres <<-EOSQL
-            CREATE DATABASE \"$POSTGRES_DB\" WITH OWNER \"$POSTGRES_USER\";
-EOSQL"
-    fi
+    # Create database if it doesn't exist
+    echo "Creating database 'airflow' if it does not exist..."
+    su postgres -c "psql --host=127.0.0.1 --username=postgres -tc \"SELECT 1 FROM pg_database WHERE datname = 'airflow'\" | grep -q 1 || psql --host=127.0.0.1 --username=postgres -c \"CREATE DATABASE airflow WITH OWNER postgres;\""
 
     echo "Stopping temporary PostgreSQL..."
     su postgres -c "pg_ctl -D \"$PGDATA\" -m fast -w stop"
