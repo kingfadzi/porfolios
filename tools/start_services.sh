@@ -50,8 +50,8 @@ else
 fi
 
 # Start the Airflow webserver
-echo "Starting Airflow webserver on port ${AIRFLOW_HOST_PORT:-8088}..."
-airflow webserver --port "${AIRFLOW_HOST_PORT:-8088}" &
+echo "Starting Airflow webserver on port ${AIRFLOW_HOST_PORT:-8080}..."
+airflow webserver --port "${AIRFLOW_HOST_PORT:-8080}" &
 echo "Airflow webserver started."
 
 # Start the Airflow scheduler
