@@ -15,11 +15,16 @@ services:
       HTTPS_PROXY: ${HTTPS_PROXY}
       NO_PROXY: ${NO_PROXY}
       # Use the IP or hostname of the PostgreSQL server
-      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:@${POSTGRES_HOST_PORT}/${POSTGRES_DB}
+      POSTGRES_HOST: ${POSTGRES_HOST}
+      POSTGRES_PORT: ${POSTGRES_PORT}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
     volumes:
       - ./cloned_repositories:/mnt/cloned_repositories
       - ${SSH_KEYS_PATH:-~/.ssh/id_rsa}:/root/.ssh/id_rsa:ro
       - ${SSH_KEYS_PUB_PATH:-~/.ssh/id_rsa.pub}:/root/.ssh/id_rsa.pub:ro
       - ${CERT_PATH:-/dev/null}:/etc/pip/certs/self-signed-cert.pem:ro
     ports:
-      - "${AIRFLOW_HOST_PORT:-8088}:8080"  # Expose Airflow on its host machine
+      - "${AIRFLOW_HOST_PORT:-8080}:8080"  # Expose Airflow on its host machine
