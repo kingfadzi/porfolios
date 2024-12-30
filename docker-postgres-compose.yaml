@@ -2,21 +2,15 @@ services:
   postgres:
     build:
       context: .
-      dockerfile: Dockerfile-postgres
       args:
-        USER_ID: 1000
-        GROUP_ID: 1000
-    container_name: postgres13
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=airtflow
-      - PGDATA=/var/lib/pgsql/data
+        USER_ID: ${UID}
+        GROUP_ID: ${GID}
+    container_name: postgres13e
     ports:
-      - "5422:5432"
+      - "5432:5432"
     volumes:
       - ./pgdata:/var/lib/pgsql/data
-    user: "1000:1000"
-
-volumes:
-  pgdata:
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: airflow
