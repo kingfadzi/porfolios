@@ -16,7 +16,7 @@ services:
       - "5422:5432"
     volumes:
       - ./pgdata:/var/lib/pgsql/data
-    user: "x12345:20"
+    user: "fadzi:fadzi"
 
 volumes:
   pgdata:
