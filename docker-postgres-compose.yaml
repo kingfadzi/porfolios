@@ -3,6 +3,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile-postgres  # Adjust to your PostgreSQL Dockerfile
+      args:
+        UID: ${UID:-1000}  # Default UID to 1000 if not provided
+        GID: ${GID:-1000}  # Default GID to 1000 if not provided
     container_name: postgres_base
     env_file:
       - .env  # Shared environment file

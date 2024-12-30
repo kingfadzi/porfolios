@@ -14,6 +14,15 @@ postgresql-server \
 postgresql-contrib && \
 dnf clean all
 
+# Allow dynamic UID and GID
+ARG UID=1000
+ARG GID=1000
+
+# Create postgres group and user with dynamic UID/GID
+RUN groupadd -g $GID postgres && \
+    useradd -u $UID -g $GID -m -s /bin/bash postgres && \
+    chmod 700 $PGDATA
+
 # Initialize PostgreSQL
 RUN mkdir -p $PGDATA && chown -R postgres:postgres $PGDATA && \
 su - postgres -c "initdb -D $PGDATA"
