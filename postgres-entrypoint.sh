@@ -21,4 +21,8 @@ fi
 
 # 3. Finally, run Postgres as the postgres user
 echo "Starting PostgreSQL..."
-exec su - postgres -c "exec $*"
+if [ "$1" = "" ]; then
+    exec su - postgres -c "postgres -D /var/lib/pgsql/data"
+else
+    exec su - postgres -c "$*"
+fi
