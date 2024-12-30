@@ -7,16 +7,16 @@ chown -R postgres:postgres /var/lib/pgsql/data
 chmod 700 /var/lib/pgsql/data
 
 # Initialize PostgreSQL if not already initialized
-if [ ! -f /var/lib/pgsql/data/postgresql.conf ]; then
+if [ ! -f /var/lib/pgsql/data/PG_VERSION ]; then
     echo "Initializing PostgreSQL database..."
     initdb -D /var/lib/pgsql/data
 
     # Configure PostgreSQL for external connections
-    echo "listen_addresses = '*'" >> /var/lib/pgsql/data/postgresql.conf
     echo "host all all 0.0.0.0/0 md5" >> /var/lib/pgsql/data/pg_hba.conf
+    echo "listen_addresses = '*'" >> /var/lib/pgsql/data/postgresql.conf
     echo "PostgreSQL database initialized."
 else
-    echo "Database already initialized."
+    echo "PostgreSQL database already initialized."
 fi
 
 # Start PostgreSQL
