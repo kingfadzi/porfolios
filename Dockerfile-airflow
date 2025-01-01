@@ -4,8 +4,6 @@ FROM almalinux:8
 # Set environment variables
 ENV AIRFLOW_HOME=/home/airflow/airflow
 ENV AIRFLOW_DAGS_FOLDER=/home/airflow/airflow/dags
-ENV PYTHONIOENCODING=utf-8
-ENV LANG=C.UTF-8
 
 # Accept build arguments for pip configuration and user IDs
 ARG GLOBAL_CERT
@@ -21,6 +19,7 @@ RUN dnf update -y && \
     dnf install -y \
         bash \
         nc \
+        glibc-langpack-en \
         python3.11 \
         python3-pip \
         python3-devel \
@@ -31,6 +30,10 @@ RUN dnf update -y && \
         postgresql-libs \
         postgresql && \
     dnf clean all
+
+ENV PYTHONIOENCODING=utf-8
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
 
 # Set Python 3.11 as default and ensure pip is installed
 RUN alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1 && \
