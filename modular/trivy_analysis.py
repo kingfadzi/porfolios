@@ -2,6 +2,7 @@ import os
 import json
 import logging
 import subprocess
+import shutil
 from sqlalchemy.dialects.postgresql import insert
 from modular.execution_decorator import analyze_execution
 from modular.models import Session, TrivyVulnerability
