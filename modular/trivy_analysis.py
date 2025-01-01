@@ -32,6 +32,9 @@ def run_trivy_analysis(repo_dir, repo, session, run_id=None):
     # 2) Execute the Trivy command to scan the directory
     logger.info(f"Executing Trivy command in directory: {repo_dir}")
     try:
+        
+        prepare_trivyignore(repo_dir)
+        
         result = subprocess.run(
             ["trivy", "fs", "--skip-db-update", "--skip-java-db-update", "--offline-scan", "--format", "json", repo_dir],
             capture_output=True,
@@ -71,6 +74,19 @@ def run_trivy_analysis(repo_dir, repo, session, run_id=None):
 
     # Return a formatted success message
     return f"{total_vulnerabilities} vulnerabilities found."
+
+# Path to the central .trivyignore file
+TRIVYIGNORE_TEMPLATE = "/home/airflow/.trivy/.trivyignore"
+
+def prepare_trivyignore(repo_dir):
+    """Copy the .trivyignore file to the repository directory if it doesn't already exist."""
+    trivyignore_path = os.path.join(repo_dir, ".trivyignore")
+    if not os.path.exists(trivyignore_path):
+        logger.info(f"Copying .trivyignore to {repo_dir}")
+        shutil.copy(TRIVYIGNORE_TEMPLATE, trivyignore_path)
+    else:
+        logger.info(f".trivyignore already exists in {repo_dir}")
+
 
 
 def save_trivy_results(session, repo_id, results):

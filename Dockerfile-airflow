@@ -70,6 +70,7 @@ RUN mkdir -p $AIRFLOW_HOME && \
     mkdir -p /mnt/cloned_repositories && \
     mkdir -p /home/airflow/.syft && \
     mkdir -p /home/airflow/.grype && \
+    mkdir -p /home/airflow/.trivy && \
     mkdir -p /home/airflow/.cache/trivy && \
     chown -R airflow:airflow /home/airflow && \
     chown -R airflow:airflow /mnt/cloned_repositories
@@ -106,6 +107,7 @@ COPY --chown=airflow:airflow ./tools/syft/config.yaml /home/airflow/.syft/
 # trivy
 COPY --chown=airflow:airflow ./tools/trivy/trivy /usr/local/bin/trivy
 COPY --chown=airflow:airflow ./tools/trivy/db /home/airflow/.cache/trivy/db
+COPY --chown=airflow:airflow ./tools/trivy/.trivyignore /home/airflow/.trivy
 
 # Add and make start_services.sh executable
 COPY --chown=airflow:airflow ./tools/start_services.sh /usr/local/bin/start_services.sh
