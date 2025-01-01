@@ -14,6 +14,7 @@ class Repository(Base):
     repo_name = Column(String, nullable=False)
     repo_slug = Column(String, nullable=False)
     clone_url_ssh = Column(String)
+    host_name = Column(String)
     status = Column(String)
     comment = Column(String)
     updated_on = Column(DateTime)

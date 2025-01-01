@@ -42,6 +42,8 @@ def clone_repository(repo, timeout_seconds=300, run_id=None):
     repo_dir = f"{base_dir}/{repo.repo_slug}"
     os.makedirs(base_dir, exist_ok=True)
 
+    set_repo_hostname(repo)
+
     # Convert HTTP(S) -> SSH if needed
     clone_url = ensure_ssh_url(repo.clone_url_ssh)
 
@@ -64,6 +66,31 @@ def clone_repository(repo, timeout_seconds=300, run_id=None):
             error_msg = f"Error cloning repository {repo.repo_name}. Return code: {e.returncode}. Stderr: {e.stderr}"
             logger.error(error_msg)
             raise RuntimeError(error_msg)
+
+def set_repo_hostname(repo):
+    """
+    Extract the hostname from repo.clone_url_ssh and store it in repo.host_name.
+    Handles both HTTPS and SSH-based URLs for Bitbucket (or similar).
+    """
+    clone_url = repo.clone_url_ssh
+
+    # Attempt to match https://<domain>/scm/<project_key>/<repo_slug>.git
+    if clone_url.startswith("https://"):
+        match = re.match(r"https://([^/]+)/scm/(.*?)/(.*?\.git)", clone_url)
+        if match:
+            host_name = match.group(1)
+            repo.host_name = host_name
+            return
+
+    # Attempt to match ssh://git@<domain>:7999/<project_key>/<repo_slug>.git
+    elif clone_url.startswith("ssh://"):
+        match = re.match(r"ssh://git@([^:]+):\d+/(.*?)/(.*?\.git)", clone_url)
+        if match:
+            host_name = match.group(1)
+            repo.host_name = host_name
+            return
+
+    raise ValueError(f"Unsupported URL format for setting host_name: {clone_url}")
 
 def cleanup_repository_directory(repo_dir):
     """

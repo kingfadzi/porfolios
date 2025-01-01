@@ -14,6 +14,7 @@ CREATE TABLE bitbucket_repositories (
     repo_name VARCHAR NOT NULL,
     repo_slug VARCHAR NOT NULL,
     clone_url_ssh VARCHAR,
+    host_name VARCHAR,
     status VARCHAR,
     comment VARCHAR,
     updated_on TIMESTAMP
