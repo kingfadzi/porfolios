@@ -107,7 +107,7 @@ COPY --chown=airflow:airflow ./tools/syft/config.yaml /home/airflow/.syft/
 # trivy
 COPY --chown=airflow:airflow ./tools/trivy/trivy /usr/local/bin/trivy
 COPY --chown=airflow:airflow ./tools/trivy/db /home/airflow/.cache/trivy/db
-COPY --chown=airflow:airflow ./tools/trivy/.trivyignore /home/airflow/.trivy
+COPY --chown=airflow:airflow ./tools/trivy/.trivyignore /home/airflow/.trivy/.trivyignore
 
 # Add and make start_services.sh executable
 COPY --chown=airflow:airflow ./tools/start_services.sh /usr/local/bin/start_services.sh
