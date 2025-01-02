@@ -193,3 +193,15 @@ CREATE TABLE analysis_execution_log (
     execution_time TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     duration FLOAT NOT NULL
 );
+
+CREATE TABLE semgrep_results (
+    id SERIAL PRIMARY KEY,
+    repo_id VARCHAR NOT NULL,
+    path VARCHAR NOT NULL,
+    start_line INT NOT NULL,
+    end_line INT NOT NULL,
+    rule_id VARCHAR NOT NULL,
+    severity VARCHAR NOT NULL,
+    message TEXT,
+    UNIQUE (repo_id, path, start_line, rule_id)
+);
