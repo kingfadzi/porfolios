@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from modular.models import GoEnryAnalysis, SemgrepResult, Session
-from modular.execution_decorator import analyze_execution  # Added import
+from modular.execution_decorator import analyze_execution  # Ensure this is correctly imported
 from modular.config import Config
 
 # Configure logging
@@ -15,6 +15,17 @@ logger = logging.getLogger(__name__)
 
 # Retrieve SEMGREP_RULESET from Config class
 SEMGREP_RULESET = Config.SEMGREP_RULESET
+
+# Define a minimal translation table mapping detected language names to Semgrep language names
+LANGUAGE_TRANSLATION_TABLE = {
+    "shell": "bash",
+    "c#": "csharp",
+    "css": "html",
+    "scss": "html",
+    "java server pages": "java",
+    "hcl": "terraform",
+    # Add more mappings here as needed
+}
 
 class SemgrepAnalyzer:
     def __init__(self):
@@ -83,7 +94,6 @@ def run_semgrep_analysis(repo, repo_dir, session, run_id=None):
         logger.error(error_message)
         raise RuntimeError(error_message)
 
-
 def get_languages_from_db(repo_id, session):
     """
     Query the `GoEnryAnalysis` table to retrieve all languages for a given repo_id.
@@ -98,7 +108,6 @@ def get_languages_from_db(repo_id, session):
     if result:
         return [row.language for row in result]  # Extract the 'language' column from each row
     return []
-
 
 def construct_semgrep_command(repo_dir, languages):
     """
@@ -115,12 +124,15 @@ def construct_semgrep_command(repo_dir, languages):
     rulesets = []
     for lang in languages:
         lang_lower = lang.lower()
-        ruleset_path = os.path.join(SEMGREP_RULESET, lang_lower)
+        # Translate detected language to Semgrep language name if needed
+        semgrep_lang = LANGUAGE_TRANSLATION_TABLE.get(lang_lower, lang_lower)
+
+        ruleset_path = os.path.join(SEMGREP_RULESET, semgrep_lang)
         if os.path.exists(ruleset_path):
             rulesets.append(ruleset_path)
-            logger.info(f"Found Semgrep ruleset for language '{lang}': {ruleset_path}")
+            logger.info(f"Found Semgrep ruleset for language '{semgrep_lang}': {ruleset_path}")
         else:
-            logger.warning(f"Semgrep ruleset for language '{lang}' does not exist at path: {ruleset_path}. Skipping.")
+            logger.warning(f"Semgrep ruleset for language '{semgrep_lang}' does not exist at path: {ruleset_path}. Skipping.")
 
     if not rulesets:
         logger.warning(f"No valid Semgrep rulesets found for the detected languages: {languages}. Skipping Semgrep scan.")
@@ -132,7 +144,6 @@ def construct_semgrep_command(repo_dir, languages):
         command.extend(["--config", ruleset])
 
     return command
-
 
 def save_semgrep_results(session, repo_id, semgrep_data):
     """
@@ -203,7 +214,6 @@ def save_semgrep_results(session, repo_id, semgrep_data):
     session.commit()
     logger.info(f"Upserted {total_upserts} findings for repo_id: {repo_id}")
     return total_upserts
-
 
 if __name__ == "__main__":
     # Configure logging for standalone run
