@@ -1,4 +1,3 @@
-name: postgres-service
 services:
   postgres-service:
     build:
