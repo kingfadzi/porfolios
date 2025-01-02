@@ -19,4 +19,4 @@ class Config:
     TRIVYIGNORE_TEMPLATE = os.getenv("TRIVYIGNORE_TEMPLATE", "/home/airflow/.trivy/.trivyignore")
     SYFT_CONFIG_PATH = os.getenv("SYFT_CONFIG_PATH", "/root/.syft/config.yaml")
     GRYPE_CONFIG_PATH = os.getenv("GRYPE_CONFIG_PATH", "/root/.grype/config.yaml")
-    SEMGREP_RULESET = os.getenv("SEMGREP_RULES_DIR", "~/.semgrep/semgrep-rules")
+    SEMGREP_RULESET = os.getenv("SEMGREP_RULESET")
