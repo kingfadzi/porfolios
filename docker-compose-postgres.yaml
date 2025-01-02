@@ -7,6 +7,8 @@ services:
         USER_ID: ${HOST_UID}
         GROUP_ID: ${HOST_GID}
     container_name: postgres-service-db
+    env_file:
+      - ${ENV_FILE:-.env}
     ports:
       - "5422:5432"
     volumes:
