@@ -2,7 +2,7 @@
 set -e
 
 if [ "$#" -ne 3 ]; then
-  echo "Usage: $0 <start|stop> <env> <service>"
+  echo "Usage: $0 <start|stop|restart> <env> <service>"
   exit 1
 fi
 
@@ -43,8 +43,16 @@ case "$COMMAND" in
       -f "$COMPOSE_FILE" \
       down
     ;;
+  restart)
+    echo "Restarting project '$PROJECT_NAME'..."
+    docker compose \
+      --project-name "$PROJECT_NAME" \
+      --env-file "$ENV_FILE" \
+      -f "$COMPOSE_FILE" \
+      restart
+    ;;
   *)
-    echo "Invalid command: $COMMAND. Valid commands are 'start' or 'stop'."
+    echo "Invalid command: $COMMAND. Valid commands are 'start', 'stop', or 'restart'."
     exit 1
     ;;
 esac
