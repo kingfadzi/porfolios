@@ -59,6 +59,7 @@ RUN python3 -m pip install --no-cache-dir \
     numpy \
     lizard \
     semgrep \
+    python-dotenv \
     checkov \
     sqlalchemy
 
