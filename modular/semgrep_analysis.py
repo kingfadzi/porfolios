@@ -10,11 +10,11 @@ from modular.execution_decorator import analyze_execution  # Added import
 from modular.config import Config
 
 # Configure logging
-logging.basicConfig(level=logging.WARN)
+logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-# Path to the mapping file
-RULESET_MAPPING_FILE = Config.RULESET_MAPPING_FILE
+# Retrieve SEMGREP_RULESET from Config class
+SEMGREP_RULESET = Config.SEMGREP_RULESET
 
 class SemgrepAnalyzer:
     def __init__(self):
@@ -84,30 +84,6 @@ def run_semgrep_analysis(repo, repo_dir, session, run_id=None):
         raise RuntimeError(error_message)
 
 
-def load_language_ruleset_map():
-    """
-    Load the language-to-ruleset mapping from a text file.
-
-    :return: A dictionary with language-to-ruleset mappings.
-    """
-    mapping = {}
-    try:
-        with open(RULESET_MAPPING_FILE, "r") as file:
-            for line in file:
-                line = line.strip()
-                if line and "=" in line:  # Skip empty lines or invalid lines
-                    language, ruleset = line.split("=", 1)
-                    mapping[language.strip()] = ruleset.strip()
-        logger.info(f"Loaded language-to-ruleset mapping from {RULESET_MAPPING_FILE}")
-        return mapping
-    except FileNotFoundError:
-        logger.error(f"Ruleset mapping file not found: {RULESET_MAPPING_FILE}")
-        raise
-    except Exception as e:
-        logger.error(f"Failed to load ruleset mapping file: {e}")
-        raise
-
-
 def get_languages_from_db(repo_id, session):
     """
     Query the `GoEnryAnalysis` table to retrieve all languages for a given repo_id.
@@ -130,22 +106,27 @@ def construct_semgrep_command(repo_dir, languages):
 
     :param repo_dir: Directory of the repository.
     :param languages: List of languages detected in the repository.
-    :return: Semgrep CLI command as a list or None if no mapped rulesets are found.
+    :return: Semgrep CLI command as a list or None if no valid rulesets are found.
     """
-    # Load the dynamic mapping
-    language_ruleset_map = load_language_ruleset_map()
-
-    rulesets = [
-        language_ruleset_map[lang]
-        for lang in languages
-        if lang in language_ruleset_map
-    ]
-
-    if not rulesets:
-        logger.warning(f"No mapped rulesets found for the detected languages: {languages}. Skipping Semgrep scan.")
+    if not SEMGREP_RULESET:
+        logger.error("SEMGREP_RULESET environment variable is not set.")
         return None
 
-    # Add the --experimental flag to the command
+    rulesets = []
+    for lang in languages:
+        lang_lower = lang.lower()
+        ruleset_path = os.path.join(SEMGREP_RULESET, lang_lower)
+        if os.path.exists(ruleset_path):
+            rulesets.append(ruleset_path)
+            logger.info(f"Found Semgrep ruleset for language '{lang}': {ruleset_path}")
+        else:
+            logger.warning(f"Semgrep ruleset for language '{lang}' does not exist at path: {ruleset_path}. Skipping.")
+
+    if not rulesets:
+        logger.warning(f"No valid Semgrep rulesets found for the detected languages: {languages}. Skipping Semgrep scan.")
+        return None
+
+    # Construct the Semgrep command
     command = ["semgrep", "--experimental", "--json", "--skip-unknown", repo_dir, "--verbose"]
     for ruleset in rulesets:
         command.extend(["--config", ruleset])

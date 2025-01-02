@@ -30,7 +30,7 @@ services:
       TRIVYIGNORE_TEMPLATE: ${TRIVYIGNORE_TEMPLATE}
       SYFT_CONFIG_PATH: ${SYFT_CONFIG_PATH}
       GRYPE_CONFIG_PATH: ${GRYPE_CONFIG_PATH}
-      SEMGREP_RULES_DIR: ${SEMGREP_RULES_DIR}
+      SEMGREP_RULESET: ${SEMGREP_RULES_DIR}
     volumes:
       - ./cloned_repositories:${CLONED_REPOSITORIES_DIR}
       - ${SSH_KEYS_PATH:-~/.ssh/porfolios_github_key}:/home/airflow/.ssh/id_rsa:ro
