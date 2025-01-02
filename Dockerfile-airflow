@@ -58,6 +58,7 @@ RUN python3 -m pip install --no-cache-dir \
     pandas \
     numpy \
     lizard \
+    semgrep \
     checkov \
     sqlalchemy
 
@@ -72,6 +73,7 @@ RUN mkdir -p $AIRFLOW_HOME && \
     mkdir -p /home/airflow/.grype && \
     mkdir -p /home/airflow/.trivy && \
     mkdir -p /home/airflow/.cache/trivy && \
+    mkdir -p /home/airflow/.semgrep/semgrep-rules && \
     chown -R airflow:airflow /home/airflow && \
     chown -R airflow:airflow /mnt/cloned_repositories
 
@@ -108,6 +110,10 @@ COPY --chown=airflow:airflow ./tools/syft/config.yaml /home/airflow/.syft/
 COPY --chown=airflow:airflow ./tools/trivy/trivy /usr/local/bin/trivy
 COPY --chown=airflow:airflow ./tools/trivy/db /home/airflow/.cache/trivy/db
 COPY --chown=airflow:airflow ./tools/trivy/.trivyignore /home/airflow/.trivy/.trivyignore
+
+# semgrep
+COPY --chown=airflow:airflow ./tools/semgrep/semgrep-rules  /home/airflow/.semgrep/
+COPY --chown=airflow:airflow ./tools/semgrep/language_ruleset_map.txt /home/airflow/.semgrep/
 
 # Add and make start_services.sh executable
 COPY --chown=airflow:airflow ./tools/start_services.sh /usr/local/bin/start_services.sh
