@@ -162,6 +162,9 @@ def save_semgrep_results(session, repo_id, semgrep_data):
             "rule_id": result.get("check_id"),
             "severity": result["extra"].get("severity"),
             "message": result["extra"].get("message"),
+            "category": result["extra"].get("metadata", {}).get("category"),
+            "technology": result["extra"].get("metadata", {}).get("technology"),
+            "cwe": result["extra"].get("metadata", {}).get("cwe"),
         }
 
         try:
@@ -173,6 +176,9 @@ def save_semgrep_results(session, repo_id, semgrep_data):
                     "end_line": stmt.excluded.end_line,
                     "severity": stmt.excluded.severity,
                     "message": stmt.excluded.message,
+                    "category": stmt.excluded.category,
+                    "technology": stmt.excluded.technology,
+                    "cwe": stmt.excluded.cwe,
                 }
             )
             session.execute(stmt)
@@ -184,7 +190,6 @@ def save_semgrep_results(session, repo_id, semgrep_data):
     session.commit()
     logger.info(f"Upserted {total_upserts} findings for repo_id: {repo_id}")
     return total_upserts
-
 
 if __name__ == "__main__":
     # Configure logging for standalone run

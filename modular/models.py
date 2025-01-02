@@ -217,6 +217,7 @@ class AnalysisExecutionLog(Base):
     execution_time = Column(DateTime, default=datetime.utcnow, nullable=False)
     duration = Column(Float, nullable=False)
 
+
 class SemgrepResult(Base):
     __tablename__ = "semgrep_results"
 
@@ -228,6 +229,9 @@ class SemgrepResult(Base):
     rule_id = Column(String, nullable=False)
     severity = Column(String, nullable=False)
     message = Column(Text, nullable=True)
+    category = Column(String, nullable=True)  # Added field for category
+    technology = Column(String, nullable=True)  # Added field for technology
+    cwe = Column(String, nullable=True)  # Added field for CWE
 
     __table_args__ = (
         UniqueConstraint("repo_id", "path", "start_line", "rule_id", name="uq_semgrep_results"),
