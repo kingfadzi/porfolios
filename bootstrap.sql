@@ -28,7 +28,7 @@ INSERT INTO bitbucket_repositories (repo_id, repo_name, repo_slug, clone_url_ssh
 ('cpp-starter', 'C++ Starter', 'cpp-starter', 'ssh://git@github.com/TheAlgorithms/C-Plus-Plus.git', 'NEW', 'Starter project for C++', '2024-12-29 17:20:00'),
 ('bootstrap', 'Bootstrap', 'bootstrap', 'ssh://git@github.com/twbs/bootstrap.git', 'NEW', 'Frontend CSS framework', '2024-12-29 17:30:00'),
 ('jekyll', 'Jekyll', 'jekyll', 'ssh://git@github.com/jekyll/jekyll.git', 'NEW', 'Static site generator', '2024-12-29 17:40:00'),
-('dotnet-runtime', 'DotNet Runtime', 'dotnet-runtime', 'ssh://git@github.com/dotnet/runtime.git', 'NEW', '.NET runtime implementation', '2024-12-29 17:50:00');
+('dotnet-runtime', 'DotNet Runtime', 'dotnet-runtime', 'ssh://git@github.com/dotnet/runtime.git', 'NEW', '.NET runtime implementation', '2024-12-29 17:50:00'),
 ('docker-learn', 'Docker Learn', 'docker-learn', 'ssh://git@github.com/docker/labs.git', 'NEW', 'Example Dockerfiles for learning', '2024-12-29 13:30:00'),
 ('minimal-mistakes', 'Minimal Mistakes', 'minimal-mistakes', 'ssh://git@github.com/mmistakes/minimal-mistakes.git', 'NEW', 'Simple Jekyll theme for static sites', '2024-12-29 14:00:00'),
 ('json-server', 'JSON Server', 'json-server', 'ssh://git@github.com/typicode/json-server.git', 'NEW', 'Mock REST APIs with JSON', '2024-12-29 14:20:00'),

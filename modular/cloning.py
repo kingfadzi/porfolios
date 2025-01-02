@@ -16,12 +16,27 @@ logger = logging.getLogger(__name__)
 def ensure_ssh_url(clone_url):
     """
     Convert an HTTP(S)-based repository URL into an SSH-based URL if necessary.
+    Supports Bitbucket Server, GitHub, and self-hosted or hosted GitLab.
     """
     if clone_url.startswith("https://"):
-        match = re.match(r"https://(.*?)/scm/(.*?)/(.*?\.git)", clone_url)
-        if match:
-            domain, project_key, repo_slug = match.groups()
+        # Check for Bitbucket Server format
+        bitbucket_match = re.match(r"https://(.*?)/scm/(.*?)/(.*?\.git)", clone_url)
+        if bitbucket_match:
+            domain, project_key, repo_slug = bitbucket_match.groups()
             return f"ssh://git@{domain}:7999/{project_key}/{repo_slug}"
+
+        # Check for GitHub format
+        github_match = re.match(r"https://github\.com/(.*?)/(.*?\.git)", clone_url)
+        if github_match:
+            owner, repo_slug = github_match.groups()
+            return f"ssh://git@github.com/{owner}/{repo_slug}"
+
+        # Check for GitLab (hosted or self-hosted) format
+        gitlab_match = re.match(r"https://(.*?)/(.+?)/(.+?\.git)", clone_url)
+        if gitlab_match:
+            domain, group, repo_slug = gitlab_match.groups()
+            return f"ssh://git@{domain}/{group}/{repo_slug}"
+
     elif clone_url.startswith("ssh://"):
         return clone_url
 
