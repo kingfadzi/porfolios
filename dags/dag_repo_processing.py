@@ -28,13 +28,13 @@ def analyze_repositories(batch, run_id, **kwargs):
             logger.debug(f"Repository cloned to: {repo_dir}")
 
             # Run analyses
-            run_lizard_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
-            run_cloc_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
-            run_enry_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
-            run_gitlog_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
-            run_trivy_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
-            run_syft_and_grype_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
-            run_checkov_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
+          #  run_lizard_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
+          #  run_cloc_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
+          #  run_enry_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
+          #  run_gitlog_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
+          #  run_trivy_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
+          #  run_syft_and_grype_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
+          #  run_checkov_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
             run_semgrep_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
 
         except Exception as e:
