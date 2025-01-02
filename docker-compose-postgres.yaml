@@ -1,14 +1,14 @@
 version: '3.8'
 
 services:
-  postgres:
+  postgres-service:
     build:
       context: .
       dockerfile: Dockerfile-postgres
       args:
         USER_ID: ${HOST_UID}
         GROUP_ID: ${HOST_GID}
-    container_name: postgres13d
+    container_name: postgres-service-db
     ports:
       - "5422:5432"
     volumes:
@@ -17,3 +17,6 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: airflow
+networks:
+  default:
+    name: postgres_network

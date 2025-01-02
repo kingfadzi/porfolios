@@ -1,5 +1,5 @@
 services:
-  airflow:
+  airflow-webserver:
     build:
       context: .
       dockerfile: Dockerfile-airflow
@@ -11,6 +11,7 @@ services:
         HOST_GID: ${HOST_GID}
     env_file:
       - .env-local  # Use the appropriate .env file
+    container_name: airflow-webserver
     environment:
       POSTGRES_HOST: ${POSTGRES_HOST}
       POSTGRES_PORT: ${POSTGRES_PORT}
@@ -28,10 +29,8 @@ services:
       - ${CERT_PATH:-/dev/null}:/etc/pip/certs/self-signed-cert.pem:ro
     ports:
       - "8088:8080"  # Map host port 8088 to container port 8080
-    networks:
-      - airflow_network
     restart: always
 
 networks:
-  airflow_network:
-    driver: bridge
+  default:
+    name: airflow_network
