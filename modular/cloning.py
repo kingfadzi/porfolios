@@ -18,6 +18,7 @@ def ensure_ssh_url(clone_url):
     Convert an HTTP(S)-based repository URL into an SSH-based URL if necessary.
     Supports Bitbucket Server, GitHub, and self-hosted or hosted GitLab.
     """
+
     if clone_url.startswith("https://"):
         # Check for Bitbucket Server format
         bitbucket_match = re.match(r"https://(.*?)/scm/(.*?)/(.*?\.git)", clone_url)
