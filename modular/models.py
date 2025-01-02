@@ -3,7 +3,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 
-DB_URL = "postgresql+psycopg2://postgres:postgres@postgres:5432/gitlab-usage"
+DB_URL = "postgresql+psycopg2://postgres:postgres@192.168.1.188:5422/gitlab-usage"
 engine = create_engine(DB_URL)
 Session = sessionmaker(bind=engine)
 Base = declarative_base()
