@@ -5,7 +5,8 @@ import subprocess
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
-from modular.models import GoEnryAnalysis, SemgrepResult, Session  # Corrected model names
+from modular.models import GoEnryAnalysis, SemgrepResult, Session
+from modular.execution_decorator import analyze_execution  # Added import
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
