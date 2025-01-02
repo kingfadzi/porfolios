@@ -8,39 +8,44 @@ from modular.models import Session, Repository
 from modular.execution_decorator import analyze_execution  # Updated decorator import
 from modular.config import Config
 
+# Limit concurrent cloning
 clone_semaphore = threading.Semaphore(10)
 
+# Configure logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 def ensure_ssh_url(clone_url):
     """
-    Convert an HTTP(S)-based repository URL into an SSH-based URL if necessary.
-    Supports Bitbucket Server, GitHub, and self-hosted or hosted GitLab.
+    Ensure the given URL is in SSH format. GitHub URLs are assumed to be valid SSH.
+    Supports Bitbucket Server and GitLab (hosted and self-hosted).
     """
+    logger.debug(f"Processing URL: {clone_url}")
 
     if clone_url.startswith("https://"):
-        # Check for Bitbucket Server format
+        logger.debug("Detected HTTPS URL format.")
+        # Match Bitbucket Server URL
         bitbucket_match = re.match(r"https://(.*?)/scm/(.*?)/(.*?\.git)", clone_url)
         if bitbucket_match:
             domain, project_key, repo_slug = bitbucket_match.groups()
+            logger.debug(f"Matched Bitbucket Server URL: domain={domain}, project_key={project_key}, repo_slug={repo_slug}")
             return f"ssh://git@{domain}:7999/{project_key}/{repo_slug}"
 
-        # Check for GitHub format
-        github_match = re.match(r"https://github\.com/(.*?)/(.*?\.git)", clone_url)
-        if github_match:
-            owner, repo_slug = github_match.groups()
-            return f"ssh://git@github.com/{owner}/{repo_slug}"
-
-        # Check for GitLab (hosted or self-hosted) format
+        # Match GitLab (hosted or self-hosted) URL
         gitlab_match = re.match(r"https://(.*?)/(.+?)/(.+?\.git)", clone_url)
         if gitlab_match:
             domain, group, repo_slug = gitlab_match.groups()
+            logger.debug(f"Matched GitLab URL: domain={domain}, group={group}, repo_slug={repo_slug}")
             return f"ssh://git@{domain}/{group}/{repo_slug}"
 
-    elif clone_url.startswith("ssh://"):
-        return clone_url
+        logger.error(f"Unsupported HTTPS URL format: {clone_url}")
+        raise ValueError(f"Unsupported HTTPS URL format: {clone_url}")
 
+    elif clone_url.startswith("ssh://"):
+        logger.debug("Detected valid SSH URL format.")
+        return clone_url  # Valid SSH, return as-is
+
+    logger.error(f"Unsupported URL format: {clone_url}")
     raise ValueError(f"Unsupported URL format: {clone_url}")
 
 @analyze_execution(session_factory=Session, stage="Clone Repository")
@@ -59,54 +64,62 @@ def clone_repository(repo, timeout_seconds=300, run_id=None):
     repo_dir = f"{base_dir}/{repo.repo_slug}"
     os.makedirs(base_dir, exist_ok=True)
 
+    # Extract hostname for tracking
     set_repo_hostname(repo)
 
-    # Convert HTTP(S) -> SSH if needed
+    # Ensure the URL is in SSH format
     clone_url = ensure_ssh_url(repo.clone_url_ssh)
 
     with clone_semaphore:
         try:
             # Remove any existing directory before cloning
-            subprocess.run(
-                f"rm -rf {repo_dir} && GIT_SSH_COMMAND='ssh -o StrictHostKeyChecking=no' git clone {clone_url} {repo_dir}",
+            ssh_command = "ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o BatchMode=yes"
+            result = subprocess.run(
+                f"rm -rf {repo_dir} && GIT_SSH_COMMAND='{ssh_command}' git clone {clone_url} {repo_dir}",
                 shell=True,
                 check=True,
-                timeout=timeout_seconds
+                timeout=timeout_seconds,
+                capture_output=True,  # Capture stdout and stderr
+                text=True,  # Decode output as text
             )
-
+            logger.info(f"Successfully cloned repository '{repo.repo_name}' to {repo_dir}.")
             return repo_dir
         except subprocess.TimeoutExpired:
             error_msg = f"Cloning repository {repo.repo_name} took too long (>{timeout_seconds}s)."
             logger.error(error_msg)
             raise RuntimeError(error_msg)
         except subprocess.CalledProcessError as e:
-            error_msg = f"Error cloning repository {repo.repo_name}. Return code: {e.returncode}. Stderr: {e.stderr}"
+            # Capture and log stderr for detailed error context
+            error_msg = (
+                f"Error cloning repository {repo.repo_name}. "
+                f"Return code: {e.returncode}. Stderr: {e.stderr.strip()}"
+            )
             logger.error(error_msg)
             raise RuntimeError(error_msg)
+
 
 def set_repo_hostname(repo):
     """
     Extract the hostname from repo.clone_url_ssh and store it in repo.host_name.
-    Handles both HTTPS and SSH-based URLs for Bitbucket (or similar).
+    Handles SSH URLs for GitHub, Bitbucket, and GitLab.
     """
     clone_url = repo.clone_url_ssh
+    logger.debug(f"Setting host_name for URL: {clone_url}")
 
-    # Attempt to match https://<domain>/scm/<project_key>/<repo_slug>.git
-    if clone_url.startswith("https://"):
-        match = re.match(r"https://([^/]+)/scm/(.*?)/(.*?\.git)", clone_url)
-        if match:
-            host_name = match.group(1)
-            repo.host_name = host_name
-            return
+    # Match Bitbucket Server or GitLab SSH URL
+    match = re.match(r"ssh://git@([^:]+):\d*/.*", clone_url)
+    if match:
+        repo.host_name = match.group(1)
+        logger.debug(f"Set host_name: {repo.host_name}")
+        return
 
-    # Attempt to match ssh://git@<domain>:7999/<project_key>/<repo_slug>.git
-    elif clone_url.startswith("ssh://"):
-        match = re.match(r"ssh://git@([^:]+):\d+/(.*?)/(.*?\.git)", clone_url)
-        if match:
-            host_name = match.group(1)
-            repo.host_name = host_name
-            return
+    # Match GitHub-style SSH URL
+    if "github.com" in clone_url:
+        repo.host_name = "github.com"
+        logger.debug(f"Set host_name for GitHub: {repo.host_name}")
+        return
 
+    logger.error(f"Unsupported URL format for setting host_name: {clone_url}")
     raise ValueError(f"Unsupported URL format for setting host_name: {clone_url}")
 
 def cleanup_repository_directory(repo_dir):
@@ -115,6 +128,7 @@ def cleanup_repository_directory(repo_dir):
     """
     if os.path.exists(repo_dir):
         subprocess.run(f"rm -rf {repo_dir}", shell=True, check=True)
+        logger.info(f"Cleaned up repository directory: {repo_dir}")
 
 if __name__ == "__main__":
     session = Session()
@@ -124,8 +138,6 @@ if __name__ == "__main__":
     for repo in repositories:
         repo_dir = None
         try:
-            # Optionally provide a mock run_id if testing outside Airflow
-            # e.g., run_id="STANDALONE_RUN_001"
             repo_dir = clone_repository(repo, run_id="STANDALONE_RUN_001")
             print(f"Cloned repository: {repo_dir}")
         except Exception as e:
