@@ -13,7 +13,7 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 # Path to the mapping file
-RULESET_MAPPING_FILE = os.path.expanduser("~/semgrep/language_ruleset_map.txt")
+RULESET_MAPPING_FILE = os.path.expanduser("./semgrep/language_ruleset_map.txt")
 
 
 @analyze_execution(session_factory=Session, stage="Semgrep Analysis")
