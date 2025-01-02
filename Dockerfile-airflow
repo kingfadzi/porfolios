@@ -112,7 +112,7 @@ COPY --chown=airflow:airflow ./tools/trivy/db /home/airflow/.cache/trivy/db
 COPY --chown=airflow:airflow ./tools/trivy/.trivyignore /home/airflow/.trivy/.trivyignore
 
 # semgrep
-COPY --chown=airflow:airflow ./tools/semgrep/semgrep-rules  /home/airflow/.semgrep/
+COPY --chown=airflow:airflow ./tools/semgrep/semgrep-rules  /home/airflow/.semgrep/semgrep-rules
 COPY --chown=airflow:airflow ./tools/semgrep/language_ruleset_map.txt /home/airflow/.semgrep/
 
 # Add and make start_services.sh executable
