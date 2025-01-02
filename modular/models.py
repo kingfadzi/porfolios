@@ -229,9 +229,13 @@ class SemgrepResult(Base):
     rule_id = Column(String, nullable=False)
     severity = Column(String, nullable=False)
     message = Column(Text, nullable=True)
-    category = Column(String, nullable=True)  # Added field for category
-    technology = Column(String, nullable=True)  # Added field for technology
-    cwe = Column(String, nullable=True)  # Added field for CWE
+    category = Column(String, nullable=True)
+    subcategory = Column(Text, nullable=True)  # Added field for subcategory
+    technology = Column(String, nullable=True)
+    cwe = Column(Text, nullable=True)
+    likelihood = Column(String, nullable=True)  # Added field for likelihood
+    impact = Column(String, nullable=True)  # Added field for impact
+    confidence = Column(String, nullable=True)  # Added field for confidence
 
     __table_args__ = (
         UniqueConstraint("repo_id", "path", "start_line", "rule_id", name="uq_semgrep_results"),

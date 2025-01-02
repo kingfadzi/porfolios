@@ -195,16 +195,20 @@ CREATE TABLE analysis_execution_log (
 );
 
 CREATE TABLE semgrep_results (
-    id SERIAL PRIMARY KEY,
-    repo_id VARCHAR NOT NULL,
-    path VARCHAR NOT NULL,
-    start_line INT NOT NULL,
-    end_line INT NOT NULL,
-    rule_id VARCHAR NOT NULL,
-    severity VARCHAR NOT NULL,
-    message TEXT,
-    category VARCHAR,      -- New field for category
-    technology VARCHAR,    -- New field for technology
-    cwe VARCHAR,           -- New field for CWE
-    UNIQUE (repo_id, path, start_line, rule_id)
+     id SERIAL PRIMARY KEY,
+     repo_id VARCHAR NOT NULL,
+     path VARCHAR NOT NULL,
+     start_line INT NOT NULL,
+     end_line INT NOT NULL,
+     rule_id VARCHAR NOT NULL,
+     severity VARCHAR NOT NULL,
+     message TEXT,
+     category VARCHAR,
+     subcategory TEXT,
+     technology VARCHAR,
+     cwe TEXT,
+     likelihood VARCHAR,
+     impact VARCHAR,
+     confidence VARCHAR,
+     UNIQUE (repo_id, path, start_line, rule_id)
 );

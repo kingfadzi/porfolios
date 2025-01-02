@@ -154,6 +154,15 @@ def save_semgrep_results(session, repo_id, semgrep_data):
     total_upserts = 0
 
     for result in semgrep_data.get("results", []):
+        # Normalize fields
+        metadata = result["extra"].get("metadata", {})
+        technology = metadata.get("technology", "").strip("{}")
+        cwe = metadata.get("cwe", "").strip('"')
+        subcategory = ", ".join(metadata.get("subcategory", []))  # Convert list to comma-separated string
+        likelihood = metadata.get("likelihood", "")
+        impact = metadata.get("impact", "")
+        confidence = metadata.get("confidence", "")
+
         finding = {
             "repo_id": repo_id,
             "path": result.get("path"),
@@ -162,9 +171,13 @@ def save_semgrep_results(session, repo_id, semgrep_data):
             "rule_id": result.get("check_id"),
             "severity": result["extra"].get("severity"),
             "message": result["extra"].get("message"),
-            "category": result["extra"].get("metadata", {}).get("category"),
-            "technology": result["extra"].get("metadata", {}).get("technology"),
-            "cwe": result["extra"].get("metadata", {}).get("cwe"),
+            "category": metadata.get("category", ""),
+            "subcategory": subcategory,
+            "technology": technology,
+            "cwe": cwe,
+            "likelihood": likelihood,
+            "impact": impact,
+            "confidence": confidence,
         }
 
         try:
@@ -177,8 +190,12 @@ def save_semgrep_results(session, repo_id, semgrep_data):
                     "severity": stmt.excluded.severity,
                     "message": stmt.excluded.message,
                     "category": stmt.excluded.category,
+                    "subcategory": stmt.excluded.subcategory,
                     "technology": stmt.excluded.technology,
                     "cwe": stmt.excluded.cwe,
+                    "likelihood": stmt.excluded.likelihood,
+                    "impact": stmt.excluded.impact,
+                    "confidence": stmt.excluded.confidence,
                 }
             )
             session.execute(stmt)
@@ -190,6 +207,7 @@ def save_semgrep_results(session, repo_id, semgrep_data):
     session.commit()
     logger.info(f"Upserted {total_upserts} findings for repo_id: {repo_id}")
     return total_upserts
+
 
 if __name__ == "__main__":
     # Configure logging for standalone run
