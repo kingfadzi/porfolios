@@ -9,8 +9,6 @@ services:
         GLOBAL_INDEX_URL: ${GLOBAL_INDEX_URL}
         HOST_UID: ${HOST_UID}
         HOST_GID: ${HOST_GID}
-    env_file:
-      - ${ENV_FILE:-.env}
     container_name: airflow-webserver
     environment:
       POSTGRES_HOST: ${POSTGRES_HOST}

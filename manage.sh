@@ -22,7 +22,6 @@ COMMAND="$1"
 ENV_NAME="$2"
 SERVICE="$3"
 
-# This is the file we'll pass to docker-compose.yaml via the ENV_FILE variable
 ENV_FILE=".env-$ENV_NAME"
 COMPOSE_FILE="docker-compose-$SERVICE.yaml"
 PROJECT_NAME="${ENV_NAME}-${SERVICE}"
@@ -39,14 +38,12 @@ if [ ! -f "$COMPOSE_FILE" ]; then
   exit 1
 fi
 
-# Export ENV_FILE so docker-compose sees it in the ${ENV_FILE:-.env} reference
-export ENV_FILE
-
 case "$COMMAND" in
   start)
     echo "Starting project '$PROJECT_NAME' using '$ENV_FILE' and '$COMPOSE_FILE'..."
     docker compose \
       --project-name "$PROJECT_NAME" \
+      --env-file "$ENV_FILE" \
       -f "$COMPOSE_FILE" \
       up -d --build
     ;;
@@ -54,6 +51,7 @@ case "$COMMAND" in
     echo "Stopping project '$PROJECT_NAME' using '$ENV_FILE' and '$COMPOSE_FILE'..."
     docker compose \
       --project-name "$PROJECT_NAME" \
+      --env-file "$ENV_FILE" \
       -f "$COMPOSE_FILE" \
       down
     ;;
@@ -62,12 +60,14 @@ case "$COMMAND" in
     # First, do a stop/down
     docker compose \
       --project-name "$PROJECT_NAME" \
+      --env-file "$ENV_FILE" \
       -f "$COMPOSE_FILE" \
       down
 
     # Then, do a fresh start/up
     docker compose \
       --project-name "$PROJECT_NAME" \
+      --env-file "$ENV_FILE" \
       -f "$COMPOSE_FILE" \
       up -d --build
     ;;
