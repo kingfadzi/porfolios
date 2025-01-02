@@ -216,3 +216,19 @@ class AnalysisExecutionLog(Base):
     message = Column(String, nullable=True)  # Success message or error details
     execution_time = Column(DateTime, default=datetime.utcnow, nullable=False)
     duration = Column(Float, nullable=False)
+
+class SemgrepResult(Base):
+    __tablename__ = "semgrep_results"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    repo_id = Column(String, nullable=False)
+    path = Column(String, nullable=False)
+    start_line = Column(Integer, nullable=False)
+    end_line = Column(Integer, nullable=False)
+    rule_id = Column(String, nullable=False)
+    severity = Column(String, nullable=False)
+    message = Column(Text, nullable=True)
+
+    __table_args__ = (
+        UniqueConstraint("repo_id", "path", "start_line", "rule_id", name="uq_semgrep_results"),
+    )
