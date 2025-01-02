@@ -209,11 +209,12 @@ if __name__ == "__main__":
     session = Session()
     try:
         logger.info(f"Starting standalone Semgrep analysis for mock repo_id: {repo.repo_id}")
-        # Ensure repo is passed as a keyword argument
-        result = run_semgrep_analysis(repo.repo_id, repo_dir, session, run_id="STANDALONE_RUN_001")
+        # Pass the MockRepo object instead of repo.repo_id
+        result = run_semgrep_analysis(repo, repo_dir, session, run_id="STANDALONE_RUN_001")
         logger.info(f"Standalone Semgrep analysis result: {result}")
     except Exception as e:
         logger.error(f"Error during standalone Semgrep analysis: {e}")
     finally:
         session.close()
         logger.info(f"Database session closed for repo_id: {repo.repo_id}")
+
