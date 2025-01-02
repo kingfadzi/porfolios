@@ -70,6 +70,7 @@ RUN groupadd -g ${HOST_GID} airflow && \
 # Set ownership for Airflow directories
 RUN mkdir -p $AIRFLOW_HOME && \
     mkdir -p /mnt/cloned_repositories && \
+    mkdir -p /home/airflow/.ssh && \
     mkdir -p /home/airflow/.syft && \
     mkdir -p /home/airflow/.grype && \
     mkdir -p /home/airflow/.trivy && \
