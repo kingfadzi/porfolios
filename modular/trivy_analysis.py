@@ -83,6 +83,9 @@ def run_trivy_analysis(repo_dir, repo, session, run_id=None):
 def prepare_trivyignore(repo_dir):
     """Copy the .trivyignore file to the repository directory if it doesn't already exist."""
     trivyignore_path = os.path.join(repo_dir, ".trivyignore")
+
+    logger.info(f"Path for .trivyignore to {trivyignore_path}")
+
     try:
         if not os.path.exists(trivyignore_path):
             logger.info(f"Copying .trivyignore to {repo_dir}")
