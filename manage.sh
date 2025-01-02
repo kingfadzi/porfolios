@@ -1,6 +1,18 @@
 #!/usr/bin/env bash
 set -e
 
+##
+# Usage: ./manage.sh <start|stop|restart> <env> <service>
+#
+# - 'start':   docker compose up -d --build
+# - 'stop':    docker compose down
+# - 'restart': (stop + start)
+#
+# <env> is used to find the file ".env-<env>"
+# <service> is used to find the file "docker-compose-<service>.yaml"
+# Project name is "<env>-<service>"
+##
+
 if [ "$#" -ne 3 ]; then
   echo "Usage: $0 <start|stop|restart> <env> <service>"
   exit 1
@@ -44,12 +56,20 @@ case "$COMMAND" in
       down
     ;;
   restart)
-    echo "Restarting project '$PROJECT_NAME'..."
+    echo "Restarting project '$PROJECT_NAME' by stopping then starting..."
+    # First, do a stop/down
     docker compose \
       --project-name "$PROJECT_NAME" \
       --env-file "$ENV_FILE" \
       -f "$COMPOSE_FILE" \
-      restart
+      down
+
+    # Then, do a fresh start/up
+    docker compose \
+      --project-name "$PROJECT_NAME" \
+      --env-file "$ENV_FILE" \
+      -f "$COMPOSE_FILE" \
+      up -d --build
     ;;
   *)
     echo "Invalid command: $COMMAND. Valid commands are 'start', 'stop', or 'restart'."
