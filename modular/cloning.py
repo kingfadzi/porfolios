@@ -6,6 +6,7 @@ import logging
 from datetime import datetime, timezone
 from modular.models import Session, Repository
 from modular.execution_decorator import analyze_execution  # Updated decorator import
+from modular.config import Config
 
 clone_semaphore = threading.Semaphore(10)
 
@@ -38,7 +39,7 @@ def clone_repository(repo, timeout_seconds=300, run_id=None):
     :param run_id: (Optional) DAG run ID or similar unique execution identifier for logging/tracking.
     :return: Path to the cloned repository.
     """
-    base_dir = "/mnt/tmpfs/cloned_repositories"
+    base_dir = Config.CLONED_REPOSITORIES_DIR
     repo_dir = f"{base_dir}/{repo.repo_slug}"
     os.makedirs(base_dir, exist_ok=True)
 

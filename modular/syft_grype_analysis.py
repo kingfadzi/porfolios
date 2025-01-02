@@ -7,13 +7,14 @@ from datetime import datetime, timezone
 from sqlalchemy.dialects.postgresql import insert
 from modular.models import Session, GrypeResult
 from modular.execution_decorator import analyze_execution  # Updated import
+from modular.config import Config
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-SYFT_CONFIG_PATH = "/root/.syft/config.yaml"
-GRYPE_CONFIG_PATH = "/root/.grype/config.yaml"
+SYFT_CONFIG_PATH = Config.SYFT_CONFIG_PATH
+GRYPE_CONFIG_PATH = Config.GRYPE_CONFIG_PATH
 
 @analyze_execution(session_factory=Session, stage="Syft and Grype Analysis")
 def run_syft_and_grype_analysis(repo_dir, repo, session, run_id=None):

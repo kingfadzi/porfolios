@@ -2,8 +2,18 @@ from sqlalchemy import create_engine, Column, Integer, String, PrimaryKeyConstra
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from datetime import datetime
+from modular.config import Config
 
-DB_URL = "postgresql+psycopg2://postgres:postgres@192.168.1.188:5422/gitlab-usage"
+# Construct the database URL using Config
+DB_URL = (
+    f"postgresql+psycopg2://{Config.METRICS_DATABASE_USER}:"
+    f"{Config.METRICS_DATABASE_PASSWORD}@"
+    f"{Config.METRICS_DATABASE_HOST}:"
+    f"{Config.METRICS_DATABASE_PORT}/"
+    f"{Config.METRICS_DATABASE_NAME}"
+)
+
+# DB_URL = "postgresql+psycopg2://postgres:postgres@192.168.1.188:5422/gitlab-usage"
 engine = create_engine(DB_URL)
 Session = sessionmaker(bind=engine)
 Base = declarative_base()

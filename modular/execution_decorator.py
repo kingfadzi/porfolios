@@ -4,6 +4,7 @@ import functools
 from datetime import datetime
 from modular.models import AnalysisExecutionLog
 
+logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 def analyze_execution(session_factory, stage=None):

@@ -6,6 +6,7 @@ import shutil
 from sqlalchemy.dialects.postgresql import insert
 from modular.execution_decorator import analyze_execution
 from modular.models import Session, TrivyVulnerability
+from modular.config import Config
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -33,9 +34,9 @@ def run_trivy_analysis(repo_dir, repo, session, run_id=None):
     # 2) Execute the Trivy command to scan the directory
     logger.info(f"Executing Trivy command in directory: {repo_dir}")
     try:
-        
+
         prepare_trivyignore(repo_dir)
-        
+
         result = subprocess.run(
             ["trivy", "fs", "--skip-db-update", "--skip-java-db-update", "--offline-scan", "--format", "json", repo_dir],
             capture_output=True,
@@ -77,7 +78,7 @@ def run_trivy_analysis(repo_dir, repo, session, run_id=None):
     return f"{total_vulnerabilities} vulnerabilities found."
 
 # Path to the central .trivyignore file
-TRIVYIGNORE_TEMPLATE = "/home/airflow/.trivy/.trivyignore"
+TRIVYIGNORE_TEMPLATE = Config.TRIVYIGNORE_TEMPLATE
 
 def prepare_trivyignore(repo_dir):
     """Copy the .trivyignore file to the repository directory if it doesn't already exist."""

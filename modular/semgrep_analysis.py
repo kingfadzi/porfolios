@@ -7,14 +7,26 @@ from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from modular.models import GoEnryAnalysis, SemgrepResult, Session
 from modular.execution_decorator import analyze_execution  # Added import
+from modular.config import Config
 
 # Configure logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.WARN)
 logger = logging.getLogger(__name__)
 
 # Path to the mapping file
-RULESET_MAPPING_FILE = os.path.expanduser("./tools/semgrep/language_ruleset_map.txt")
+RULESET_MAPPING_FILE = Config.RULESET_MAPPING_FILE
 
+class SemgrepAnalyzer:
+    def __init__(self):
+        # Create a class-specific logger
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger.setLevel(logging.INFO)  # Set the desired log level for this class
+
+        # Create a handler (e.g., StreamHandler for console output)
+        handler = logging.StreamHandler()
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+        handler.setFormatter(formatter)
+        self.logger.addHandler(handler)
 
 @analyze_execution(session_factory=Session, stage="Semgrep Analysis")
 def run_semgrep_analysis(repo, repo_dir, session, run_id=None):
@@ -134,7 +146,7 @@ def construct_semgrep_command(repo_dir, languages):
         return None
 
     # Add the --experimental flag to the command
-    command = ["semgrep", "--experimental", "--json", repo_dir]
+    command = ["semgrep", "--experimental", "--json", "--skip-unknown", repo_dir, "--verbose"]
     for ruleset in rulesets:
         command.extend(["--config", ruleset])
 
@@ -214,8 +226,8 @@ def save_semgrep_results(session, repo_id, semgrep_data):
 
 if __name__ == "__main__":
     # Configure logging for standalone run
-    logging.basicConfig(level=logging.DEBUG)
-    logger = logging.getLogger(__name__)
+    # logging.basicConfig(level=logging.DEBUG)
+    # logger = logging.getLogger(__name__)
 
     # Hardcoded values for a standalone test
     repo_slug = "WebGoat"
