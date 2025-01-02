@@ -154,14 +154,17 @@ def save_semgrep_results(session, repo_id, semgrep_data):
     total_upserts = 0
 
     for result in semgrep_data.get("results", []):
-        # Normalize fields
+        # Extract metadata from the result
         metadata = result["extra"].get("metadata", {})
-        technology = metadata.get("technology", "").strip("{}")
-        cwe = metadata.get("cwe", "").strip('"')
+
+        # Normalize fields
+        technology = ", ".join(metadata.get("technology", []))  # Convert list to comma-separated string
+        cwe = ", ".join(metadata.get("cwe", []))  # Convert list to comma-separated string
         subcategory = ", ".join(metadata.get("subcategory", []))  # Convert list to comma-separated string
         likelihood = metadata.get("likelihood", "")
         impact = metadata.get("impact", "")
         confidence = metadata.get("confidence", "")
+        category = metadata.get("category", "")
 
         finding = {
             "repo_id": repo_id,
@@ -171,7 +174,7 @@ def save_semgrep_results(session, repo_id, semgrep_data):
             "rule_id": result.get("check_id"),
             "severity": result["extra"].get("severity"),
             "message": result["extra"].get("message"),
-            "category": metadata.get("category", ""),
+            "category": category,
             "subcategory": subcategory,
             "technology": technology,
             "cwe": cwe,
