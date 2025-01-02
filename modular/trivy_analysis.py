@@ -12,6 +12,9 @@ from modular.config import Config
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
+# Path to the central .trivyignore file
+TRIVYIGNORE_TEMPLATE = Config.TRIVYIGNORE_TEMPLATE
+
 @analyze_execution(session_factory=Session, stage="Trivy Analysis")
 def run_trivy_analysis(repo_dir, repo, session, run_id=None):
     """
@@ -77,18 +80,27 @@ def run_trivy_analysis(repo_dir, repo, session, run_id=None):
     # Return a formatted success message
     return f"{total_vulnerabilities} vulnerabilities found."
 
-# Path to the central .trivyignore file
-TRIVYIGNORE_TEMPLATE = Config.TRIVYIGNORE_TEMPLATE
-
 def prepare_trivyignore(repo_dir):
     """Copy the .trivyignore file to the repository directory if it doesn't already exist."""
     trivyignore_path = os.path.join(repo_dir, ".trivyignore")
-    if not os.path.exists(trivyignore_path):
-        logger.info(f"Copying .trivyignore to {repo_dir}")
-        shutil.copy(TRIVYIGNORE_TEMPLATE, trivyignore_path)
-    else:
-        logger.info(f".trivyignore already exists in {repo_dir}")
+    try:
+        if not os.path.exists(trivyignore_path):
+            logger.info(f"Copying .trivyignore to {repo_dir}")
+            shutil.copy(TRIVYIGNORE_TEMPLATE, trivyignore_path)
 
+            # Print the content of the TRIVYIGNORE_TEMPLATE
+            with open(TRIVYIGNORE_TEMPLATE, 'r') as template_file:
+                content = template_file.read()
+                print("Trivy Template Content:")
+                print(content)
+        else:
+            logger.info(f".trivyignore already exists in {repo_dir}")
+    except FileNotFoundError:
+        logger.error(f"Trivy template file not found: {TRIVYIGNORE_TEMPLATE}")
+    except PermissionError:
+        logger.error(f"Permission denied when accessing {TRIVYIGNORE_TEMPLATE} or {trivyignore_path}")
+    except Exception as e:
+        logger.error(f"An unexpected error occurred: {e}")
 
 
 def save_trivy_results(session, repo_id, results):
