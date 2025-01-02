@@ -81,30 +81,17 @@ def run_trivy_analysis(repo_dir, repo, session, run_id=None):
     return f"{total_vulnerabilities} vulnerabilities found."
 
 def prepare_trivyignore(repo_dir):
-    """Copy the .trivyignore file to the repository directory if it doesn't already exist."""
+    """Copy the global .trivyignore file to the repository if it doesn't exist."""
     trivyignore_path = os.path.join(repo_dir, ".trivyignore")
 
-    logger.info(f"Path for .trivyignore to {TRIVYIGNORE_TEMPLATE}")
-
+    if os.path.exists(trivyignore_path):
+        logger.info(f".trivyignore already exists in {repo_dir}")
+        return
     try:
-        if not os.path.exists(trivyignore_path):
-            logger.info(f"Copying .trivyignore to {repo_dir}")
-            shutil.copy(TRIVYIGNORE_TEMPLATE, trivyignore_path)
-
-            # Print the content of the TRIVYIGNORE_TEMPLATE
-            with open(TRIVYIGNORE_TEMPLATE, 'r') as template_file:
-                content = template_file.read()
-                print("Trivy Template Content:")
-                print(content)
-        else:
-            logger.info(f".trivyignore already exists in {repo_dir}")
-    except FileNotFoundError:
-        logger.error(f"Trivy template file not found: {TRIVYIGNORE_TEMPLATE}")
-    except PermissionError:
-        logger.error(f"Permission denied when accessing {TRIVYIGNORE_TEMPLATE} or {trivyignore_path}")
+        shutil.copy(TRIVYIGNORE_TEMPLATE, trivyignore_path)
+        logger.info(f"Copied .trivyignore to {repo_dir}")
     except Exception as e:
-        logger.error(f"An unexpected error occurred: {e}")
-
+        logger.error(f"Unexpected error: {e}")
 
 def save_trivy_results(session, repo_id, results):
     """

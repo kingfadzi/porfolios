@@ -11,6 +11,7 @@ from modular.syft_grype_analysis import run_syft_and_grype_analysis
 from modular.trivy_analysis import run_trivy_analysis
 from modular.checkov_analysis import run_checkov_analysis
 from modular.models import Session, Repository, AnalysisExecutionLog
+from modular.semgrep_analysis import run_semgrep_analysis
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -34,6 +35,7 @@ def analyze_repositories(batch, run_id, **kwargs):
             run_trivy_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
             run_syft_and_grype_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
             run_checkov_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
+            run_semgrep_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
 
         except Exception as e:
             logger.error(f"Error processing repository {repo.repo_name}: {e}")
