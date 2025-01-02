@@ -6,6 +6,8 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from modular.models import SemgrepResult, Session  # Updated model name
+from modular.execution_decorator import analyze_execution
+
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
