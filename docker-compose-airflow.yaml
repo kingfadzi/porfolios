@@ -1,3 +1,4 @@
+name: airflow-webserver
 services:
   airflow-webserver:
     build:
