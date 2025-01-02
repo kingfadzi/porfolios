@@ -5,9 +5,7 @@ import subprocess
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
-from modular.models import SemgrepResult, Session  # Updated model name
-from modular.execution_decorator import analyze_execution
-
+from modular.models import GoEnryAnalysis, SemgrepResult, Session  # Corrected model names
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -18,30 +16,30 @@ RULESET_MAPPING_FILE = os.path.expanduser("~/semgrep/language_ruleset_map.txt")
 
 
 @analyze_execution(session_factory=Session, stage="Semgrep Analysis")
-def run_semgrep_analysis(repo_id, repo_dir, session, run_id=None):
+def run_semgrep_analysis(repo, repo_dir, session, run_id=None):
     """
     Run Semgrep analysis dynamically based on the languages detected in the repository.
 
-    :param repo_id: Repository ID.
+    :param repo: Repository object containing repo_id and other metadata.
     :param repo_dir: Directory path of the repository to be scanned.
     :param session: Database session to query and persist results.
     :param run_id: DAG run ID passed for tracking.
     :return: Success message for logging or raises an exception for errors.
     """
-    logger.info(f"Starting Semgrep analysis for repo_id: {repo_id}")
+    logger.info(f"Starting Semgrep analysis for repo_id: {repo.repo_id}")
 
     try:
         # 1) Query languages for the repository
-        languages = get_languages_from_db(repo_id, session)
+        languages = get_languages_from_db(repo.repo_id, session)
         if not languages:
-            message = f"No languages detected for repo_id: {repo_id}. Skipping Semgrep scan."
+            message = f"No languages detected for repo_id: {repo.repo_id}. Skipping Semgrep scan."
             logger.warning(message)
             return message
 
         # 2) Construct the Semgrep command
         semgrep_command = construct_semgrep_command(repo_dir, languages)
         if not semgrep_command:
-            message = f"No valid Semgrep rulesets found for repo_id: {repo_id}. Skipping Semgrep scan."
+            message = f"No valid Semgrep rulesets found for repo_id: {repo.repo_id}. Skipping Semgrep scan."
             logger.warning(message)
             return message
 
@@ -51,24 +49,24 @@ def run_semgrep_analysis(repo_id, repo_dir, session, run_id=None):
         semgrep_data = json.loads(result.stdout.strip())
 
         # 4) Save results to the database
-        findings_count = save_semgrep_results(session, repo_id, semgrep_data)
+        findings_count = save_semgrep_results(session, repo.repo_id, semgrep_data)
 
-        message = f"Semgrep analysis completed for repo_id: {repo_id} with {findings_count} findings."
+        message = f"Semgrep analysis completed for repo_id: {repo.repo_id} with {findings_count} findings."
         logger.info(message)
         return message
 
     except subprocess.CalledProcessError as e:
-        error_message = f"Semgrep command failed for repo_id: {repo_id}. Error: {e.stderr.strip()}"
+        error_message = f"Semgrep command failed for repo_id: {repo.repo_id}. Error: {e.stderr.strip()}"
         logger.error(error_message)
         raise RuntimeError(error_message)
 
     except json.JSONDecodeError as e:
-        error_message = f"Failed to parse Semgrep output for repo_id: {repo_id}. Error: {str(e)}"
+        error_message = f"Failed to parse Semgrep output for repo_id: {repo.repo_id}. Error: {str(e)}"
         logger.error(error_message)
         raise ValueError(error_message)
 
     except Exception as e:
-        error_message = f"Unexpected error during Semgrep analysis for repo_id: {repo_id}. Error: {str(e)}"
+        error_message = f"Unexpected error during Semgrep analysis for repo_id: {repo.repo_id}. Error: {str(e)}"
         logger.error(error_message)
         raise RuntimeError(error_message)
 
@@ -99,14 +97,14 @@ def load_language_ruleset_map():
 
 def get_languages_from_db(repo_id, session):
     """
-    Query the `go_enry_analysis` table to retrieve all languages for a given repo_id.
+    Query the `GoEnryAnalysis` table to retrieve all languages for a given repo_id.
 
     :param repo_id: Repository ID.
     :param session: Database session.
     :return: List of languages for the repository.
     """
     logger.info(f"Querying languages for repo_id: {repo_id}")
-    stmt = select(go_enry_analysis.c.language).where(go_enry_analysis.c.repo_id == repo_id)
+    stmt = select(GoEnryAnalysis.language).where(GoEnryAnalysis.repo_id == repo_id)
     result = session.execute(stmt).fetchall()
     if result:
         return [row.language for row in result]  # Extract the 'language' column from each row
@@ -167,7 +165,7 @@ def save_semgrep_results(session, repo_id, semgrep_data):
 
         try:
             # Use PostgreSQL upsert
-            stmt = insert(SemgrepResult).values(**finding)  # Updated model name
+            stmt = insert(SemgrepResult).values(**finding)
             stmt = stmt.on_conflict_do_update(
                 index_elements=["repo_id", "path", "start_line", "rule_id"],  # Unique constraint
                 set_={
@@ -209,7 +207,7 @@ if __name__ == "__main__":
     session = Session()
     try:
         logger.info(f"Starting standalone Semgrep analysis for mock repo_id: {repo.repo_id}")
-        # Pass the MockRepo object instead of repo.repo_id
+        # Pass the MockRepo object
         result = run_semgrep_analysis(repo, repo_dir, session, run_id="STANDALONE_RUN_001")
         logger.info(f"Standalone Semgrep analysis result: {result}")
     except Exception as e:
@@ -217,4 +215,3 @@ if __name__ == "__main__":
     finally:
         session.close()
         logger.info(f"Database session closed for repo_id: {repo.repo_id}")
-
