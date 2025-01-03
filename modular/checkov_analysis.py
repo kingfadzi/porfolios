@@ -155,7 +155,7 @@ class CheckovAnalyzer(BaseLogger):
 if __name__ == "__main__":
     repo_slug = "sonar-metrics"
     repo_id = "sonar-metrics"
-    repo_dir = f"/tmp/spring-boot"
+    repo_dir = f"/tmp/WebGoat"
 
     class MockRepo:
         def __init__(self, repo_id, repo_slug):
