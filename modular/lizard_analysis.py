@@ -10,9 +10,9 @@ from modular.base_logger import BaseLogger  # Import BaseLogger
 
 class LizardAnalyzer(BaseLogger):
     """Class for running and processing Lizard analysis."""
-    
+
     def __init__(self):
-        super().__init__()  # Initialize the BaseLogger
+        super().__init__("LizardAnalyzer")  # Ensure logger is set up with the correct name
 
     @analyze_execution(session_factory=Session, stage="Lizard Analysis")
     def run_lizard_analysis(self, repo_dir, repo, session, run_id=None):
