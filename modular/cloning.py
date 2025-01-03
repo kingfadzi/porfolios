@@ -82,16 +82,20 @@ class CloningAnalyzer(BaseLogger):
             subprocess.run(f"rm -rf {repo_dir}", shell=True, check=True)
             self.logger.info(f"Cleaned up repository directory: {repo_dir}")
 
-
 if __name__ == "__main__":
     session = Session()
 
+    # Fetch repositories with status "NEW"
     repositories = session.query(Repository).filter_by(status="NEW").limit(1).all()
     analyzer = CloningAnalyzer()
 
     for repo in repositories:
+        # Print details of the repo object
+        print(f"Repo details: {repo.__dict__ if hasattr(repo, '__dict__') else repo}")
+
         repo_dir = None
         try:
+            # Call the clone_repository method
             repo_dir = analyzer.clone_repository(repo, run_id="STANDALONE_RUN_001")
             print(f"Cloned repository: {repo_dir}")
         except Exception as e:
