@@ -1,6 +1,7 @@
 import os
 import subprocess
 import threading
+import re
 from modular.models import Session, Repository
 from modular.execution_decorator import analyze_execution
 from modular.config import Config
