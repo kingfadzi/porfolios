@@ -1,15 +1,27 @@
-import time
 import logging
+import time
 import functools
 from datetime import datetime
 from modular.models import AnalysisExecutionLog
 
-# Configure logging
-logging.basicConfig(level=logging.DEBUG)
-decorator_logger = logging.getLogger("AnalyzeExecutionDecorator")
-decorator_logger.setLevel(logging.DEBUG)  # Log at DEBUG level for the decorator
+# Define a logger for the decorator
+decorator_logger = logging.getLogger("analyze_execution")
+if not decorator_logger.handlers:
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    decorator_logger.addHandler(handler)
+    decorator_logger.setLevel(logging.DEBUG)
+    decorator_logger.propagate = False
+
 
 def analyze_execution(session_factory, stage=None):
+    """
+    Decorator to track and log analysis execution details (status, duration, etc.) to the database.
+
+    :param session_factory: Callable that provides a database session (e.g., Session).
+    :param stage: Optional stage name for the function (e.g., "Trivy Analysis").
+    """
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
@@ -20,7 +32,7 @@ def analyze_execution(session_factory, stage=None):
             # Attempt to pull 'repo' from kwargs; if missing, fallback to args[0] if it exists
             repo = kwargs.get("repo") or (args[0] if args else None)
 
-            logger.debug(f"Decorator received repo: {repo.__dict__ if hasattr(repo, '__dict__') else repo}")
+            decorator_logger.debug(f"Decorator received repo: {repo.__dict__ if hasattr(repo, '__dict__') else repo}")
 
             if not repo:
                 session.close()
@@ -37,6 +49,7 @@ def analyze_execution(session_factory, stage=None):
             start_time = time.time()
 
             try:
+                # Log initial processing state to the database
                 session.add(AnalysisExecutionLog(
                     method_name=method_name,
                     stage=stage,
@@ -49,10 +62,12 @@ def analyze_execution(session_factory, stage=None):
                 ))
                 session.commit()
 
-                logger.info(
+                decorator_logger.info(
                     f"Starting analysis {method_name} "
                     f"(Stage: {stage}, Run ID: {run_id}, Repo ID: {repo_id})..."
                 )
+
+                # Execute the actual function
                 result_message = func(*args, **kwargs)
                 elapsed_time = time.time() - start_time
 
@@ -69,9 +84,10 @@ def analyze_execution(session_factory, stage=None):
                 ))
                 session.commit()
 
-                logger.info(
+                # Explicitly log duration on success
+                decorator_logger.info(
                     f"Analysis {method_name} (Stage: {stage}, Run ID: {run_id}, Repo ID: {repo_id}) "
-                    "completed successfully."
+                    f"completed successfully in {elapsed_time:.2f} seconds."
                 )
                 return result_message
 
@@ -92,11 +108,12 @@ def analyze_execution(session_factory, stage=None):
                 ))
                 session.commit()
 
-                logger.error(
+                # Explicitly log duration on failure
+                decorator_logger.error(
                     f"Analysis {method_name} (Stage: {stage}, Run ID: {run_id}, Repo ID: {repo_id}) "
-                    f"failed: {error_message}"
+                    f"failed in {elapsed_time:.2f} seconds: {error_message}"
                 )
-                return error_message
+                raise RuntimeError(error_message)
 
             finally:
                 session.close()
