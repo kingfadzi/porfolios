@@ -1,3 +1,20 @@
+import functools
+import logging
+import time
+from datetime import datetime
+from modular.models import AnalysisExecutionLog
+
+# Define a logger for the decorator
+decorator_logger = logging.getLogger("analyze_execution")
+if not decorator_logger.handlers:
+    handler = logging.StreamHandler()
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    handler.setFormatter(formatter)
+    decorator_logger.addHandler(handler)
+    decorator_logger.setLevel(logging.DEBUG)
+    decorator_logger.propagate = False
+
+
 def analyze_execution(session_factory, stage=None):
     """
     Decorator to track and log analysis execution details (status, duration, etc.) to the database.
@@ -6,7 +23,7 @@ def analyze_execution(session_factory, stage=None):
     :param stage: Optional stage name for the function (e.g., "Trivy Analysis").
     """
     def decorator(func):
-        @functools.wraps(func)
+        @functools.wraps(func)  # functools is imported here
         def wrapper(*args, **kwargs):
             session = session_factory()
             method_name = func.__name__
