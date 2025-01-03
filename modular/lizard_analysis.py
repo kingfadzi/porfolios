@@ -8,11 +8,15 @@ from modular.models import Session, LizardSummary
 from modular.execution_decorator import analyze_execution
 from modular.base_logger import BaseLogger  # Import BaseLogger
 
+
 class LizardAnalyzer(BaseLogger):
-    """Class for running and processing Lizard analysis."""
+    """
+    Analyzer for running Lizard and processing results.
+    """
 
     def __init__(self):
-        super().__init__("LizardAnalyzer")  # Ensure logger is set up with the correct name
+        self.logger = self.get_logger("LizardAnalyzer")
+        self.logger.setLevel(logging.WARN)  # Set default logging level to WARN
 
     @analyze_execution(session_factory=Session, stage="Lizard Analysis")
     def run_lizard_analysis(self, repo_dir, repo, session, run_id=None):
@@ -20,7 +24,6 @@ class LizardAnalyzer(BaseLogger):
         self.logger.info(f"Starting lizard analysis for repo_id: {repo.repo_id} (repo_slug: {repo.repo_slug})")
         analysis_file = os.path.join(repo_dir, "analysis.txt")
 
-        # Validate repository directory
         if not os.path.exists(repo_dir):
             error_message = f"Repository directory does not exist: {repo_dir}"
             self.logger.error(error_message)
@@ -64,19 +67,19 @@ class LizardAnalyzer(BaseLogger):
             f"{processed_metrics['total_ccn']} total CCN, "
             f"{processed_metrics['total_token_count']} total tokens, "
             f"{processed_metrics['function_count']} functions, "
-            f"average CCN: {processed_metrics['avg_ccn']}, "
-            f"last commit on {processed_metrics['last_commit_date']}."
+            f"average CCN: {processed_metrics['avg_ccn']}."
         )
 
     def parse_and_persist_lizard_results(self, repo_id, analysis_file_path, session):
-        """Parse and persist the Lizard analysis summary results."""
+        """
+        Parse the lizard analysis output and persist the summary results to the database.
+        """
         summary = {
             "total_nloc": 0,
             "total_ccn": 0,
             "total_token_count": 0,
             "function_count": 0,
-            "avg_ccn": 0.0,
-            "last_commit_date": None
+            "avg_ccn": 0.0
         }
 
         try:
