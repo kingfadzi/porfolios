@@ -1,20 +1,3 @@
-import logging
-import time
-import functools
-from datetime import datetime
-from modular.models import AnalysisExecutionLog
-
-# Define a logger for the decorator
-decorator_logger = logging.getLogger("analyze_execution")
-if not decorator_logger.handlers:
-    handler = logging.StreamHandler()
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    handler.setFormatter(formatter)
-    decorator_logger.addHandler(handler)
-    decorator_logger.setLevel(logging.DEBUG)
-    decorator_logger.propagate = False
-
-
 def analyze_execution(session_factory, stage=None):
     """
     Decorator to track and log analysis execution details (status, duration, etc.) to the database.
@@ -29,7 +12,11 @@ def analyze_execution(session_factory, stage=None):
             method_name = func.__name__
             run_id = kwargs.get("run_id", "N/A")  # Optional run_id from kwargs
 
-            # Attempt to pull 'repo' from kwargs; if missing, fallback to args[0] if it exists
+            # Check for `self` and adjust `args` if necessary
+            if len(args) > 0 and hasattr(args[0], "__class__"):  # Detect `self`
+                args = args[1:]  # Skip `self`
+
+            # Extract `repo` from kwargs or args
             repo = kwargs.get("repo") or (args[0] if args else None)
 
             decorator_logger.debug(f"Decorator received repo: {repo.__dict__ if hasattr(repo, '__dict__') else repo}")
@@ -49,7 +36,6 @@ def analyze_execution(session_factory, stage=None):
             start_time = time.time()
 
             try:
-                # Log initial processing state to the database
                 session.add(AnalysisExecutionLog(
                     method_name=method_name,
                     stage=stage,
@@ -84,7 +70,6 @@ def analyze_execution(session_factory, stage=None):
                 ))
                 session.commit()
 
-                # Explicitly log duration on success
                 decorator_logger.info(
                     f"Analysis {method_name} (Stage: {stage}, Run ID: {run_id}, Repo ID: {repo_id}) "
                     f"completed successfully in {elapsed_time:.2f} seconds."
@@ -108,7 +93,6 @@ def analyze_execution(session_factory, stage=None):
                 ))
                 session.commit()
 
-                # Explicitly log duration on failure
                 decorator_logger.error(
                     f"Analysis {method_name} (Stage: {stage}, Run ID: {run_id}, Repo ID: {repo_id}) "
                     f"failed in {elapsed_time:.2f} seconds: {error_message}"
