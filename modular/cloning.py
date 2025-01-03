@@ -135,7 +135,6 @@ class CloningAnalyzer(BaseLogger):
             subprocess.run(f"rm -rf {repo_dir}", shell=True, check=True)
             self.logger.info(f"Cleaned up repository directory: {repo_dir}")
 
-
 if __name__ == "__main__":
     session = Session()
 
@@ -144,6 +143,10 @@ if __name__ == "__main__":
     analyzer = CloningAnalyzer()  # Create a single instance of the analyzer
 
     for repo in repositories:
+        if not hasattr(repo, "repo_id"):
+            analyzer.logger.error(f"Repository object missing 'repo_id': {repo}")
+            continue
+
         repo_dir = None
         try:
             repo_dir = analyzer.clone_repository(repo, run_id="STANDALONE_RUN_001")
@@ -155,3 +158,4 @@ if __name__ == "__main__":
                 analyzer.cleanup_repository_directory(repo_dir)
 
     session.close()
+
