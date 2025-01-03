@@ -8,22 +8,26 @@ from base_logger import BaseLogger
 
 clone_semaphore = threading.Semaphore(10)
 
-
 class CloningAnalyzer(BaseLogger):
     def __init__(self):
         self.logger = self.get_logger()
 
     @analyze_execution(session_factory=Session, stage="Clone Repository")
     def clone_repository(self, repo, timeout_seconds=300, run_id=None):
-        self.logger.debug(f"Received repo object: {repo.__dict__ if hasattr(repo, '__dict__') else repo}")
-        if not hasattr(repo, "repo_id"):
-            raise ValueError(f"'repo_id' is missing in the provided repo object: {repo}")
+        """
+        Clone the specified repository into /mnt/tmpfs/cloned_repositories.
+        Logs execution details and accepts an optional run_id for tracking.
+        """
+        self.logger.info(f"Starting cloning for repo: {repo.repo_id}")
 
         base_dir = Config.CLONED_REPOSITORIES_DIR
         repo_dir = f"{base_dir}/{repo.repo_slug}"
         os.makedirs(base_dir, exist_ok=True)
 
+        # Extract hostname for tracking
         self.set_repo_hostname(repo)
+
+        # Ensure the URL is in SSH format
         clone_url = self.ensure_ssh_url(repo.clone_url_ssh)
 
         with clone_semaphore:
@@ -52,6 +56,9 @@ class CloningAnalyzer(BaseLogger):
                 raise RuntimeError(error_msg)
 
     def ensure_ssh_url(self, clone_url):
+        """
+        Ensure the given URL is in SSH format. GitHub URLs are assumed to be valid SSH.
+        """
         self.logger.debug(f"Processing URL: {clone_url}")
         if clone_url.startswith("https://"):
             domain = clone_url.replace("https://", "").split("/")[0]
@@ -60,6 +67,9 @@ class CloningAnalyzer(BaseLogger):
         return clone_url
 
     def set_repo_hostname(self, repo):
+        """
+        Extract the hostname from repo.clone_url_ssh and store it in repo.host_name.
+        """
         clone_url = repo.clone_url_ssh
         self.logger.debug(f"Setting host_name for URL: {clone_url}")
 
@@ -78,24 +88,26 @@ class CloningAnalyzer(BaseLogger):
         raise ValueError(f"Unsupported URL format for setting host_name: {clone_url}")
 
     def cleanup_repository_directory(self, repo_dir):
+        """
+        Remove the cloned repository directory to free up space.
+        """
         if os.path.exists(repo_dir):
             subprocess.run(f"rm -rf {repo_dir}", shell=True, check=True)
             self.logger.info(f"Cleaned up repository directory: {repo_dir}")
 
+
 if __name__ == "__main__":
     session = Session()
 
-    # Fetch repositories with status "NEW"
+    # Fetch a sample repository (status="NEW", just for demo)
     repositories = session.query(Repository).filter_by(status="NEW").limit(1).all()
     analyzer = CloningAnalyzer()
 
     for repo in repositories:
-        # Print details of the repo object
         print(f"Repo details: {repo.__dict__ if hasattr(repo, '__dict__') else repo}")
 
         repo_dir = None
         try:
-            # Call the clone_repository method
             repo_dir = analyzer.clone_repository(repo, run_id="STANDALONE_RUN_001")
             print(f"Cloned repository: {repo_dir}")
         except Exception as e:
