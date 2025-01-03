@@ -3,6 +3,7 @@ import logging
 import time
 from datetime import datetime
 from modular.models import AnalysisExecutionLog
+import re
 
 # Define a logger for the decorator
 decorator_logger = logging.getLogger("analyze_execution")
