@@ -36,8 +36,6 @@ def analyze_execution(session_factory, stage=None):
             # Extract `repo` from kwargs or args
             repo = kwargs.get("repo") or (args[1] if self_instance and len(args) > 1 else args[0])
 
-            decorator_logger.debug(f"Decorator received repo: {repo.__dict__ if hasattr(repo, '__dict__') else repo}")
-
             if not repo:
                 session.close()
                 raise ValueError(
