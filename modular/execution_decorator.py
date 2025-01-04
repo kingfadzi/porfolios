@@ -89,9 +89,13 @@ def analyze_execution(session_factory, stage=None):
                 session.commit()
 
                 decorator_logger.info(
-                    f"Analysis {method_name} (Stage: {stage}, Run ID: {run_id}, Repo ID: {repo_id}) "
-                    f"completed successfully in {elapsed_time:.2f} seconds."
+                    "Analysis completed successfully:\n"
+                    f"  stage={stage}\n"
+                    f"  run_id={run_id}\n"
+                    f"  repo_id={repo_id}\n"
+                    f"  duration={elapsed_time:.2f}s"
                 )
+
                 return result_message
 
             except Exception as e:
@@ -111,10 +115,17 @@ def analyze_execution(session_factory, stage=None):
                 ))
                 session.commit()
 
+
                 decorator_logger.error(
-                    f"Analysis {method_name} (Stage: {stage}, Run ID: {run_id}, Repo ID: {repo_id}) "
-                    f"failed in {elapsed_time:.2f} seconds: {error_message}"
+                    "Analysis failed:\n"
+                    f"  stage={stage}\n"
+                    f"  run_id={run_id}\n"
+                    f"  repo_id={repo_id}\n"
+                    f"  duration={elapsed_time:.2f}s\n"
+                    f"  error_message='{error_message}'"
                 )
+
+
                 raise RuntimeError(error_message)
 
             finally:
