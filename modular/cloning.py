@@ -70,16 +70,28 @@ class CloningAnalyzer(BaseLogger):
     def set_repo_hostname(self, repo):
         """
         Extract the hostname from repo.clone_url_ssh and store it in repo.host_name.
+        Supports generic SSH URLs like git@gitlab.com:org/level1/level2/project.git.
+
+        :param repo: Repository object with a clone_url_ssh attribute.
         """
         clone_url = repo.clone_url_ssh
         self.logger.debug(f"Setting host_name for URL: {clone_url}")
 
-        match = re.match(r"ssh://git@([^:]+):\d*/.*", clone_url)
+        # Match standard SSH URLs (e.g., git@gitlab.com:org/repo.git)
+        match = re.match(r"git@([^:]+):.*", clone_url)
         if match:
             repo.host_name = match.group(1)
             self.logger.debug(f"Set host_name: {repo.host_name}")
             return
 
+        # Match URLs with explicit SSH scheme (e.g., ssh://git@host:port/path)
+        match = re.match(r"ssh://git@([^:/]+):?\d*/.*", clone_url)
+        if match:
+            repo.host_name = match.group(1)
+            self.logger.debug(f"Set host_name: {repo.host_name}")
+            return
+
+        # Handle GitHub URLs
         if "github.com" in clone_url:
             repo.host_name = "github.com"
             self.logger.debug(f"Set host_name for GitHub: {repo.host_name}")
@@ -87,6 +99,7 @@ class CloningAnalyzer(BaseLogger):
 
         self.logger.error(f"Unsupported URL format for setting host_name: {clone_url}")
         raise ValueError(f"Unsupported URL format for setting host_name: {clone_url}")
+
 
     def cleanup_repository_directory(self, repo_dir):
         """
