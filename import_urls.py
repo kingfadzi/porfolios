@@ -2,7 +2,6 @@ import logging
 from datetime import datetime, timezone
 from urllib.parse import urlparse
 import pandas as pd
-import argparse
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import SQLAlchemyError
@@ -32,10 +31,16 @@ def parse_gitlab_https_url(url):
     """
     parsed = urlparse(url)
     path_parts = parsed.path.strip("/").split("/")
-    org, workspace, project = path_parts[:3]
+
+    if len(path_parts) < 2:
+        raise ValueError(f"Invalid URL format: {url}")
+
+    org = path_parts[0]  # Extract the organization
+    repo_path = "/".join(path_parts[1:])  # Extract the remaining path as repo_id
+    project = path_parts[-1]  # Extract the project name
 
     return {
-        "repo_id": f"{workspace}/{project}",
+        "repo_id": repo_path,
         "repo_name": project,
         "repo_slug": project,
         "host_name": parsed.netloc,
@@ -117,6 +122,7 @@ def upsert_repositories(repositories, engine):
 
 def main():
     # Parse command-line arguments
+    import argparse
     parser = argparse.ArgumentParser(description="Load repository data into the database.")
     parser.add_argument(
         "input_file",
