@@ -23,6 +23,7 @@ class Repository(Base):
     repo_id = Column(String, primary_key=True)
     repo_name = Column(String, nullable=False)
     repo_slug = Column(String, nullable=False)
+    app_id = Column(String)
     clone_url_ssh = Column(String)
     host_name = Column(String)
     status = Column(String)
