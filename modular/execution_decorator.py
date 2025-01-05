@@ -63,7 +63,7 @@ def analyze_execution(session_factory, stage=None):
 
                 decorator_logger.info(
                     f"Starting {stage} "
-                    f"(Run ID: {run_id}, Repo ID: {repo_id})..."
+                    f"(Repo ID: {repo_id})..."
                 )
 
                 # Execute the actual function
@@ -86,7 +86,6 @@ def analyze_execution(session_factory, stage=None):
                 decorator_logger.info(
                     f"\n"
                     f"{stage} completed successfully:\n"
-                    f"  run_id={run_id}\n"
                     f"  repo_id={repo_id}\n"
                     f"  duration={elapsed_time:.2f}s"
                 )
@@ -113,7 +112,6 @@ def analyze_execution(session_factory, stage=None):
                 decorator_logger.error(
                     f"\n"
                     f"{stage} failed:\n"
-                    f"  run_id={run_id}\n"
                     f"  repo_id={repo_id}\n"
                     f"  duration={elapsed_time:.2f}s\n"
                     f"  error_message='{error_message}'"
