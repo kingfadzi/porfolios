@@ -2,16 +2,16 @@ import logging
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 from datetime import datetime
-from modular.cloning import clone_repository, cleanup_repository_directory
-from modular.gitlog_analysis import run_gitlog_analysis
-from modular.go_enry_analysis import run_enry_analysis
-from modular.lizard_analysis import run_lizard_analysis
-from modular.cloc_analysis import run_cloc_analysis
-from modular.syft_grype_analysis import run_syft_and_grype_analysis
-from modular.trivy_analysis import run_trivy_analysis
-from modular.checkov_analysis import run_checkov_analysis
+from modular.cloning import CloningAnalyzer
+from modular.gitlog_analysis import GitLogAnalyzer
+from modular.go_enry_analysis import GoEnryAnalyzer
+from modular.lizard_analysis import LizardAnalyzer
+from modular.cloc_analysis import ClocAnalyzer
+from modular.syft_grype_analysis import SyftAndGrypeAnalyzer
+from modular.trivy_analysis import TrivyAnalyzer
+from modular.checkov_analysis import CheckovAnalyzer
+from modular.semgrep_analysis import SemgrepAnalyzer
 from modular.models import Session, Repository, AnalysisExecutionLog
-from modular.semgrep_analysis import run_semgrep_analysis
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -28,15 +28,21 @@ def analyze_repositories(batch, run_id, **kwargs):
             logger.debug(f"Repository cloned to: {repo_dir}")
 
             # Run analyses
-          #  run_lizard_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
-          #  run_cloc_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
-          #  run_enry_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
-          #  run_gitlog_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
-          #  run_trivy_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
-          #  run_syft_and_grype_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
-          #  run_checkov_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
-            run_semgrep_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
-
+   
+               # Instantiate and call each analyzer class
+            repo_dir = CloningAnalyzer().clone_repository(repo=repo, run_id=run_id)
+            logger.debug(f"Repository cloned to: {repo_dir}")
+            
+            LizardAnalyzer().run_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
+            ClocAnalyzer().run_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
+            GoEnryAnalyzer().run_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
+            GitLogAnalyzer().run_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
+            TrivyAnalyzer().run_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
+            SyftAndGrypeAnalyzer().run_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
+            CheckovAnalyzer().run_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
+            SemgrepAnalyzer().run_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
+           
+   
         except Exception as e:
             logger.error(f"Error processing repository {repo.repo_name}: {e}")
             # Update repository status to ERROR
