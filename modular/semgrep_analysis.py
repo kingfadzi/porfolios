@@ -9,7 +9,7 @@ from modular.models import GoEnryAnalysis, SemgrepResult, Session
 from modular.execution_decorator import analyze_execution
 from modular.config import Config
 from modular.base_logger import BaseLogger
-
+import configparser
 
 class SemgrepAnalyzer(BaseLogger):
     """
@@ -18,7 +18,7 @@ class SemgrepAnalyzer(BaseLogger):
 
     def __init__(self):
         self.logger = self.get_logger("SemgrepAnalyzer")
-        self.logger.setLevel(logging.WARN)  # Default logging level set to WARN
+        self.logger.setLevel(logging.DEBUG)  # Default logging level set to WARN
 
     @analyze_execution(session_factory=Session, stage="Semgrep Analysis")
     def run_semgrep_analysis(self, repo, repo_dir, session, run_id=None):
@@ -42,7 +42,10 @@ class SemgrepAnalyzer(BaseLogger):
 
             self.logger.info(f"Executing Semgrep command: {' '.join(semgrep_command)}")
             result = subprocess.run(semgrep_command, capture_output=True, text=True, check=True)
+
             semgrep_data = json.loads(result.stdout.strip())
+
+            self.logger.debug(semgrep_data)
 
             findings_count = self.save_semgrep_results(session, repo.repo_id, semgrep_data)
 
@@ -75,33 +78,31 @@ class SemgrepAnalyzer(BaseLogger):
         return [row.language for row in result] if result else []
 
     def construct_semgrep_command(self, repo_dir, languages):
-        """
-        Construct the Semgrep CLI command based on the languages.
-        """
-        if not Config.SEMGREP_RULESET:
-            self.logger.error("SEMGREP_RULESET environment variable is not set.")
+        config = configparser.ConfigParser()
+        config_file = os.path.join(Config.SEMGREP_CONFIG_DIR, "config.ini")
+        if not os.path.exists(config_file):
+            self.logger.error(f"Configuration file not found: {config_file}")
             return None
-
+        config.read(config_file)
         rulesets = []
         for lang in languages:
             lang_lower = lang.lower()
-            semgrep_lang = Config.LANGUAGE_TRANSLATION_TABLE.get(lang_lower, lang_lower)
-
-            ruleset_path = os.path.join(Config.SEMGREP_RULESET, semgrep_lang)
-            if os.path.exists(ruleset_path):
-                rulesets.append(ruleset_path)
-                self.logger.info(f"Found Semgrep ruleset for language '{semgrep_lang}': {ruleset_path}")
-            else:
-                self.logger.warning(f"Semgrep ruleset for language '{semgrep_lang}' does not exist. Skipping.")
-
+            try:
+                relative_path = config.get(lang_lower, 'path')
+                ruleset_path = os.path.join(Config.SEMGREP_CONFIG_DIR, relative_path)
+                if os.path.exists(ruleset_path):
+                    rulesets.append(ruleset_path)
+                    self.logger.info(f"Found Semgrep ruleset for language '{lang}': {ruleset_path}")
+                else:
+                    self.logger.warning(f"Semgrep ruleset for language '{lang}' does not exist at {ruleset_path}. Skipping.")
+            except (configparser.NoSectionError, configparser.NoOptionError) as e:
+                self.logger.warning(f"Configuration error for language '{lang}': {e}. Skipping.")
         if not rulesets:
             self.logger.warning(f"No valid Semgrep rulesets found for the detected languages: {languages}. Skipping.")
             return None
-
         command = ["semgrep", "--experimental", "--json", "--skip-unknown", repo_dir, "--verbose"]
         for ruleset in rulesets:
             command.extend(["--config", ruleset])
-
         return command
 
     def save_semgrep_results(self, session, repo_id, semgrep_data):
