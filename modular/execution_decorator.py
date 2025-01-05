@@ -20,6 +20,8 @@ def analyze_execution(session_factory, stage=None):
     :param session_factory: Callable that provides a database session (e.g., Session).
     :param stage: Optional stage name for the function (e.g., "Trivy Analysis").
     """
+    decorator_logger = AnalysisLogger().logger
+
     def decorator(func):
         @functools.wraps(func)  # functools is imported here
         def wrapper(*args, **kwargs):
