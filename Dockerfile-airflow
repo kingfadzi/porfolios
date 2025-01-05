@@ -62,18 +62,21 @@ RUN python3 -m pip install --no-cache-dir \
 #RUN groupadd -g ${HOST_GID} airflow && \
 #    useradd -m -u ${HOST_UID} -g airflow airflow
 
-# Ensure the airflow group and user exist with the correct GID and UID
-RUN if ! getent group airflow >/dev/null; then \
+# Ensure the airflow group exists, rename if GID is already taken
+RUN existing_group=$(getent group ${HOST_GID} | cut -d: -f1) && \
+    if [ -z "$existing_group" ]; then \
         groupadd -g ${HOST_GID} airflow; \
-    elif ! getent group airflow | grep -q ":${HOST_GID}$"; then \
-        groupmod -g ${HOST_GID} airflow; \
-    fi && \
-    if ! getent passwd airflow >/dev/null; then \
-        useradd -m -u ${HOST_UID} -g airflow airflow; \
-    elif ! getent passwd airflow | grep -q ":${HOST_UID}:"; then \
-        usermod -u ${HOST_UID} airflow; \
+    else \
+        groupmod -n airflow "$existing_group"; \
     fi
 
+# Ensure the airflow user exists, rename if UID is already taken
+RUN existing_user=$(getent passwd ${HOST_UID} | cut -d: -f1) && \
+    if [ -z "$existing_user" ]; then \
+        useradd -m -u ${HOST_UID} -g airflow airflow; \
+    else \
+        usermod -l airflow "$existing_user"; \
+    fi
 
 # Set ownership for Airflow directories
 RUN mkdir -p $AIRFLOW_HOME && \
