@@ -54,7 +54,7 @@ def analyze_repositories(batch, run_id, **kwargs):
             logger.info(f"Repository {repo.repo_name} marked as ERROR.")
         finally:
             # Cleanup repository directory
-            cleanup_repository_directory(repo_dir)
+            CloningAnalyzer().cleanup_repository_directory(repo_dir)
             logger.debug(f"Repository directory {repo_dir} cleaned up.")
 
         # Determine final status
