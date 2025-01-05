@@ -69,15 +69,15 @@ RUN groupadd -g ${HOST_GID} airflow && \
 
 # Set ownership for Airflow directories
 RUN mkdir -p $AIRFLOW_HOME && \
-    mkdir -p /mnt/cloned_repositories && \
+    mkdir -p /home/airflow/cloned_repositories && \
     mkdir -p /home/airflow/.ssh && \
     mkdir -p /home/airflow/.syft && \
     mkdir -p /home/airflow/.grype && \
     mkdir -p /home/airflow/.trivy && \
+    mkdir -p /home/airflow/.ssh && \
     mkdir -p /home/airflow/.cache/trivy && \
     mkdir -p /home/airflow/.semgrep/semgrep-rules && \
-    chown -R airflow:airflow /home/airflow && \
-    chown -R airflow:airflow /mnt/cloned_repositories
+    chown -R airflow:airflow /home/airflow &&
 
 # Configure pip with dynamic settings (user-level)
 RUN mkdir -p /home/airflow/.pip && \
@@ -102,7 +102,7 @@ COPY --chown=airflow:airflow ./tools/cloc/cloc /usr/local/bin/cloc
 COPY --chown=airflow:airflow ./tools/grype/grype /usr/local/bin/grype
 COPY --chown=airflow:airflow ./tools/grype/config.yaml /home/airflow/.grype/
 COPY --chown=airflow:airflow ./tools/grype/listing.json /home/airflow/.grype/
-COPY --chown=airflow:airflow ./tools/grype/db /home/airflow/.cache/grype/
+COPY --chown=airflow:airflow ./tools/grype/5 /home/airflow/.cache/grype/db/5
 
 # syft
 COPY --chown=airflow:airflow ./tools/syft/syft /usr/local/bin/syft
