@@ -61,13 +61,39 @@ class CloningAnalyzer(BaseLogger):
     def ensure_ssh_url(self, clone_url):
         """
         Ensure the given URL is in SSH format. GitHub URLs are assumed to be valid SSH.
+        Supports Bitbucket Server and GitLab (hosted and self-hosted).
         """
         self.logger.debug(f"Processing URL: {clone_url}")
+
         if clone_url.startswith("https://"):
-            domain = clone_url.replace("https://", "").split("/")[0]
-            repo_path = "/".join(clone_url.replace("https://", "").split("/")[1:])
-            return f"ssh://git@{domain}/{repo_path}"
-        return clone_url
+            self.logger.debug("Detected HTTPS URL format.")
+            # Match Bitbucket Server URL
+            bitbucket_match = re.match(r"https://(.*?)/scm/(.*?)/(.*?\.git)", clone_url)
+            if bitbucket_match:
+                domain, project_key, repo_slug = bitbucket_match.groups()
+                self.logger.debug(
+                    f"Matched Bitbucket Server URL: domain={domain}, project_key={project_key}, repo_slug={repo_slug}"
+                )
+                return f"ssh://git@{domain}:7999/{project_key}/{repo_slug}"
+
+            # Match GitLab (hosted or self-hosted) URL
+            gitlab_match = re.match(r"https://(.*?)/(.+?)/(.+?\.git)", clone_url)
+            if gitlab_match:
+                domain, group, repo_slug = gitlab_match.groups()
+                self.logger.debug(
+                    f"Matched GitLab URL: domain={domain}, group={group}, repo_slug={repo_slug}"
+                )
+                return f"ssh://git@{domain}/{group}/{repo_slug}"
+
+            self.logger.error(f"Unsupported HTTPS URL format: {clone_url}")
+            raise ValueError(f"Unsupported HTTPS URL format: {clone_url}")
+
+        elif clone_url.startswith("ssh://"):
+            self.logger.debug("Detected valid SSH URL format.")
+            return clone_url  # Valid SSH, return as-is
+
+        self.logger.error(f"Unsupported URL format: {clone_url}")
+        raise ValueError(f"Unsupported URL format: {clone_url}")
 
     def set_repo_hostname(self, repo):
         """
