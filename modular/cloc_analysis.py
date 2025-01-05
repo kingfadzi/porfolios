@@ -4,7 +4,7 @@ import json
 from sqlalchemy.dialects.postgresql import insert
 from modular.models import Session, ClocMetric
 from modular.execution_decorator import analyze_execution
-from base_logger import BaseLogger  # Import BaseLogger for consistent logging
+from modular.base_logger import BaseLogger  # Import BaseLogger for consistent logging
 import logging 
 
 class ClocAnalyzer(BaseLogger):

@@ -7,7 +7,7 @@ from sqlalchemy.dialects.postgresql import insert
 from modular.models import Session, GrypeResult
 from modular.execution_decorator import analyze_execution
 from modular.config import Config
-from base_logger import BaseLogger  # Assuming BaseLogger is correctly implemented and available
+from modular.base_logger import BaseLogger  # Assuming BaseLogger is correctly implemented and available
 import logging
 
 class SyftAndGrypeAnalyzer(BaseLogger):

@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from sqlalchemy.dialects.postgresql import insert
 from modular.models import Session, GoEnryAnalysis
 from modular.execution_decorator import analyze_execution
-from base_logger import BaseLogger
+from modular.base_logger import BaseLogger
 
 class GoEnryAnalyzer(BaseLogger):
     """

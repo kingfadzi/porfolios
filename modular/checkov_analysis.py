@@ -4,7 +4,7 @@ from sqlalchemy.dialects.postgresql import insert
 from modular.models import Session, CheckovSummary
 from modular.execution_decorator import analyze_execution
 from subprocess import run, DEVNULL
-from base_logger import BaseLogger  # BaseLogger for logging configuration
+from modular.base_logger import BaseLogger  # BaseLogger for logging configuration
 import logging
 
 class CheckovAnalyzer(BaseLogger):

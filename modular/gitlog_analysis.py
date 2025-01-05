@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from sqlalchemy.dialects.postgresql import insert
 from modular.models import Session, RepoMetrics
 from modular.execution_decorator import analyze_execution
-from base_logger import BaseLogger  # Import BaseLogger for logging
+from modular.base_logger import BaseLogger  # Import BaseLogger for logging
 import logging
 
 class GitLogAnalyzer(BaseLogger):
