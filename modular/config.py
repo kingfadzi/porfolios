@@ -15,7 +15,7 @@ class Config:
     METRICS_DATABASE_HOST = os.getenv("METRICS_DATABASE_HOST", "192.168.1.188")
     METRICS_DATABASE_PORT = os.getenv("METRICS_DATABASE_PORT", "5422")
     METRICS_DATABASE_NAME = os.getenv("METRICS_DATABASE_NAME", "gitlab-usage")
-    CLONED_REPOSITORIES_DIR = os.getenv("CLONED_REPOSITORIES_DIR", "/tmp/cloned_repositories")
+    CLONED_REPOSITORIES_DIR = os.getenv("CLONED_REPOSITORIES_DIR", ""./cloned_repositories")
     TRIVYIGNORE_TEMPLATE = os.getenv("TRIVYIGNORE_TEMPLATE", "./tools/trivy/.trivyignore")
     SYFT_CONFIG_PATH = os.getenv("SYFT_CONFIG_PATH", "/root/.syft/config.yaml")
     GRYPE_CONFIG_PATH = os.getenv("GRYPE_CONFIG_PATH", "/root/.grype/config.yaml")
