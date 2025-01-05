@@ -15,6 +15,7 @@ CREATE TABLE bitbucket_repositories (
     repo_slug VARCHAR NOT NULL,
     clone_url_ssh VARCHAR,
     host_name VARCHAR,
+    app_id VARCHAR,
     status VARCHAR,
     comment VARCHAR,
     updated_on TIMESTAMP
@@ -32,6 +33,7 @@ CREATE TABLE go_enry_analysis (
 CREATE TABLE repo_metrics (
     repo_id VARCHAR PRIMARY KEY,
     repo_size_bytes FLOAT NOT NULL,
+    activity_status VARCHAR,
     file_count INTEGER NOT NULL,
     total_commits INTEGER NOT NULL,
     number_of_contributors INTEGER NOT NULL,
@@ -123,6 +125,8 @@ CREATE TABLE grype_results (
     language VARCHAR NOT NULL,
     package VARCHAR NOT NULL,
     version VARCHAR NOT NULL,
+    fix_versions TEXT,
+    fix_state TEXT,
     file_path TEXT,
     cvss TEXT,
     CONSTRAINT grype_result_uc UNIQUE (repo_id, cve, package, version)

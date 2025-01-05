@@ -6,12 +6,14 @@ from modular.models import Session, Repository
 from modular.execution_decorator import analyze_execution
 from modular.config import Config
 from modular.base_logger import BaseLogger
+import logging
 
 clone_semaphore = threading.Semaphore(10)
 
 class CloningAnalyzer(BaseLogger):
     def __init__(self):
         self.logger = self.get_logger()
+        self.logger.setLevel(logging.DEBUG)
 
     @analyze_execution(session_factory=Session, stage="Clone Repository")
     def clone_repository(self, repo, timeout_seconds=300, run_id=None):
@@ -118,12 +120,11 @@ if __name__ == "__main__":
     analyzer = CloningAnalyzer()
 
     for repo in repositories:
-        print(f"Repo details: {repo.__dict__ if hasattr(repo, '__dict__') else repo}")
 
         repo_dir = None
         try:
             repo_dir = analyzer.clone_repository(repo, run_id="STANDALONE_RUN_001")
-            print(f"Cloned repository: {repo_dir}")
+
         except Exception as e:
             analyzer.logger.error(f"Cloning failed: {e}")
         finally:

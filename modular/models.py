@@ -13,7 +13,6 @@ DB_URL = (
     f"{Config.METRICS_DATABASE_NAME}"
 )
 
-# DB_URL = "postgresql+psycopg2://postgres:postgres@192.168.1.188:5422/gitlab-usage"
 engine = create_engine(DB_URL)
 Session = sessionmaker(bind=engine)
 Base = declarative_base()
@@ -46,6 +45,7 @@ class RepoMetrics(Base):
     file_count = Column(Integer, nullable=False)
     total_commits = Column(Integer, nullable=False)
     number_of_contributors = Column(Integer, nullable=False)
+    activity_status = Column(String)
     last_commit_date = Column(DateTime)
     repo_age_days = Column(Integer, nullable=False)
     active_branch_count = Column(Integer, nullable=False)
@@ -142,6 +142,8 @@ class GrypeResult(Base):
     language = Column(String, nullable=False)
     package = Column(String, nullable=False)  # Name of the affected package
     version = Column(String, nullable=False)  # Version of the affected package
+    fix_versions = Column(Text)
+    fix_state = Column(Text)
     file_path = Column(Text)  # File path of the affected artifact
     cvss = Column(Text)  # CVSS scores, serialized as a JSON string
     __table_args__ = (

@@ -17,7 +17,7 @@ class SyftAndGrypeAnalyzer(BaseLogger):
 
     def __init__(self):
         self.logger = self.get_logger("SyftAndGrypeAnalyzer")
-        self.logger.setLevel(logging.WARN)  # Default logging level
+        self.logger.setLevel(logging.DEBUG)  # Default logging level
 
     @analyze_execution(session_factory=Session, stage="Syft and Grype Analysis")
     def run_analysis(self, repo_dir, repo, session, run_id=None):
@@ -100,6 +100,14 @@ class SyftAndGrypeAnalyzer(BaseLogger):
                 file_path = locations[0].get("path", "N/A") if locations else "N/A"
                 language = artifact.get("language", "Unknown")
 
+                # Extract fix metadata
+                fix_data = vulnerability.get("fix", {})
+                fix_versions_list = fix_data.get("versions", [])
+                fix_versions = ", ".join(fix_versions_list)
+                fix_state = fix_data.get("state", "not fixed")
+
+                self.logger.debug(f"Extracted fix_versions for CVE {cve}: {fix_versions}")
+
                 session.execute(
                     insert(GrypeResult).values(
                         repo_id=repo_id,
@@ -109,14 +117,18 @@ class SyftAndGrypeAnalyzer(BaseLogger):
                         package=package,
                         version=version,
                         file_path=file_path,
-                        language=language
+                        language=language,
+                        fix_versions=fix_versions,
+                        fix_state=fix_state,
                     ).on_conflict_do_update(
                         index_elements=["repo_id", "cve", "package", "version"],
                         set_={
                             "description": description,
                             "severity": severity,
                             "file_path": file_path,
-                            "language": language
+                            "language": language,
+                            "fix_versions": fix_versions,
+                            "fix_state": fix_state,
                         },
                     )
                 )

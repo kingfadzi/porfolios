@@ -62,6 +62,8 @@ class GitLogAnalyzer(BaseLogger):
         repo_age_days = (datetime.now(timezone.utc) - first_commit_date).days
         active_branch_count = len(repo_obj.branches)
 
+        activity_status = "INACTIVE" if (datetime.now(timezone.utc) - last_commit_date).days > 365 else "ACTIVE"
+
         # Log calculated metrics
         self.logger.info(f"Metrics for {repo.repo_name} (ID: {repo.repo_id}):")
         self.logger.info(f"  Total Size: {total_size} bytes")
@@ -71,6 +73,7 @@ class GitLogAnalyzer(BaseLogger):
         self.logger.info(f"  Last Commit Date: {last_commit_date}")
         self.logger.info(f"  Repository Age: {repo_age_days} days")
         self.logger.info(f"  Active Branch Count: {active_branch_count}")
+        self.logger.info(f"  Activity Status: {activity_status}")
 
         # Persist metrics in the database
         session.execute(
@@ -82,12 +85,19 @@ class GitLogAnalyzer(BaseLogger):
                 number_of_contributors=len(contributors),
                 last_commit_date=last_commit_date,
                 repo_age_days=repo_age_days,
-                active_branch_count=active_branch_count
+                active_branch_count=active_branch_count,
+                activity_status=activity_status
             ).on_conflict_do_update(
                 index_elements=['repo_id'],
                 set_={
                     "repo_size_bytes": total_size,
                     "file_count": file_count,
+                    "total_commits": total_commits,
+                    "number_of_contributors": len(contributors),
+                    "last_commit_date": last_commit_date,
+                    "repo_age_days": repo_age_days,
+                    "active_branch_count": active_branch_count,
+                    "activity_status": activity_status,
                     "updated_at": datetime.now(timezone.utc)
                 }
             )
@@ -102,6 +112,7 @@ class GitLogAnalyzer(BaseLogger):
             f"{file_count} files, "
             f"{total_size} bytes, "
             f"{repo_age_days} days old, "
+            f"{activity_status} status, "
             f"{active_branch_count} branches, "
             f"last commit on {last_commit_date}."
         )
@@ -128,6 +139,7 @@ class GitLogAnalyzer(BaseLogger):
 if __name__ == "__main__":
     repo_slug = "WebGoat"
     repo_id = "WebGoat"
+    activity_status = "ACTIVE"
     repo_dir = f"/tmp/{repo_slug}"
 
     class MockRepo:
