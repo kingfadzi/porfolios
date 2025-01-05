@@ -23,13 +23,7 @@ def analyze_repositories(batch, run_id, **kwargs):
         try:
             logger.info(f"Processing repository: {repo.repo_name} (ID: {repo.repo_id})")
 
-            # Clone repository
-            repo_dir = clone_repository(repo=repo, run_id=run_id)
-            logger.debug(f"Repository cloned to: {repo_dir}")
-
-            # Run analyses
-   
-               # Instantiate and call each analyzer class
+            # Instantiate and call each analyzer class
             repo_dir = CloningAnalyzer().clone_repository(repo=repo, run_id=run_id)
             logger.debug(f"Repository cloned to: {repo_dir}")
             
