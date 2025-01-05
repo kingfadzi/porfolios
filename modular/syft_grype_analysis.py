@@ -17,7 +17,7 @@ class SyftAndGrypeAnalyzer(BaseLogger):
 
     def __init__(self):
         self.logger = self.get_logger("SyftAndGrypeAnalyzer")
-        self.logger.setLevel(logging.DEBUG)  # Default logging level
+        self.logger.setLevel(logging.WARN)  # Default logging level
 
     @analyze_execution(session_factory=Session, stage="Syft and Grype Analysis")
     def run_analysis(self, repo_dir, repo, session, run_id=None):
