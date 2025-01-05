@@ -17,7 +17,7 @@ class CheckovAnalyzer(BaseLogger):
         self.logger.setLevel(logging.WARN)  # Set default logging level to WARN
 
     @analyze_execution(session_factory=Session, stage="Checkov Analysis")
-    def run_checkov_analysis(self, repo_dir, repo, session, run_id=None):
+    def run_analysis(self, repo_dir, repo, session, run_id=None):
         self.logger.info(f"Starting Checkov analysis for repo_id: {repo.repo_id} (repo_slug: {repo.repo_slug}).")
 
         if not os.path.exists(repo_dir):
@@ -173,7 +173,7 @@ if __name__ == "__main__":
     try:
         analyzer.logger.info(f"Starting standalone Checkov analysis for mock repo_id: {repo.repo_id}")
         # Explicitly pass the repo object
-        result = analyzer.run_checkov_analysis(repo_dir, repo=repo, session=session, run_id="STANDALONE_RUN_001")
+        result = analyzer.run_analysis(repo_dir, repo=repo, session=session, run_id="STANDALONE_RUN_001")
         analyzer.logger.info(f"Standalone Checkov analysis result: {result}")
     except Exception as e:
         analyzer.logger.error(f"Error during standalone Checkov analysis: {e}")

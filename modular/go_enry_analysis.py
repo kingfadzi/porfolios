@@ -17,7 +17,7 @@ class GoEnryAnalyzer(BaseLogger):
         self.logger.setLevel(logging.WARN)  # Default logging level
 
     @analyze_execution(session_factory=Session, stage="Go Enry Analysis")
-    def run_enry_analysis(self, repo_dir, repo, session, run_id=None):
+    def run_analysis(self, repo_dir, repo, session, run_id=None):
         """Perform language analysis using go-enry and persist results."""
         self.logger.info(f"Starting language analysis for repository: {repo.repo_name} (ID: {repo.repo_id})")
         analysis_file = os.path.join(repo_dir, "analysis.txt")
@@ -126,7 +126,7 @@ if __name__ == "__main__":
 
     try:
         analyzer.logger.info(f"Running language analysis for hardcoded repo_id: {repo.repo_id}, repo_slug: {repo.repo_slug}")
-        result = analyzer.run_enry_analysis(repo_dir, repo=repo, session=session, run_id="STANDALONE_RUN_001")
+        result = analyzer.run_analysis(repo_dir, repo=repo, session=session, run_id="STANDALONE_RUN_001")
         analyzer.logger.info(f"Standalone language analysis result: {result}")
     except Exception as e:
         analyzer.logger.error(f"Error during standalone language analysis execution: {e}")

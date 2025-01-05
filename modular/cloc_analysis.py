@@ -17,7 +17,7 @@ class ClocAnalyzer(BaseLogger):
         self.logger.setLevel(logging.WARN)  # Default logging level
 
     @analyze_execution(session_factory=Session, stage="CLOC Analysis")
-    def run_cloc_analysis(self, repo_dir, repo, session, run_id=None):
+    def run_analysis(self, repo_dir, repo, session, run_id=None):
         """
         Run CLOC analysis on the given repo_dir and persist results to the database.
 
@@ -131,7 +131,7 @@ if __name__ == "__main__":
 
     try:
         analyzer.logger.info(f"Starting standalone CLOC analysis for mock repo_id: {repo.repo_id}")
-        result = analyzer.run_cloc_analysis(repo_dir, repo=repo, session=session, run_id="STANDALONE_RUN_001")
+        result = analyzer.run_analysis(repo_dir, repo=repo, session=session, run_id="STANDALONE_RUN_001")
         analyzer.logger.info(f"Standalone CLOC analysis result: {result}")
     except Exception as e:
         analyzer.logger.error(f"Error during standalone CLOC analysis: {e}")

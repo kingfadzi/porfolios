@@ -17,7 +17,7 @@ class GitLogAnalyzer(BaseLogger):
         self.logger.setLevel(logging.WARN)  # Default logging level
 
     @analyze_execution(session_factory=Session, stage="Git Log Analysis")
-    def run_gitlog_analysis(self, repo_dir, repo, session, run_id=None):
+    def run_analysis(self, repo_dir, repo, session, run_id=None):
         """
         Calculate and persist repository metrics.
 
@@ -143,7 +143,7 @@ if __name__ == "__main__":
 
     try:
         analyzer.logger.info(f"Running metrics calculation for hardcoded repo_id: {repo.repo_id}, repo_slug: {repo.repo_slug}")
-        result = analyzer.run_gitlog_analysis(repo_dir, repo=repo, session=session, run_id="STANDALONE_RUN_001")
+        result = analyzer.run_analysis(repo_dir, repo=repo, session=session, run_id="STANDALONE_RUN_001")
         analyzer.logger.info(f"Standalone metrics calculation result: {result}")
     except Exception as e:
         analyzer.logger.error(f"Error during standalone metrics calculation: {e}")

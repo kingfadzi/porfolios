@@ -19,7 +19,7 @@ class TrivyAnalyzer(BaseLogger):
         self.logger.setLevel(logging.WARN)  # Set default logging level
 
     @analyze_execution(session_factory=Session, stage="Trivy Analysis")
-    def run_trivy_analysis(self, repo_dir, repo, session, run_id=None):
+    def run_analysis(self, repo_dir, repo, session, run_id=None):
         self.logger.info(f"Starting Trivy analysis for repo_id: {repo.repo_id} (repo_slug: {repo.repo_slug}).")
 
         if not os.path.exists(repo_dir):
@@ -146,7 +146,7 @@ if __name__ == "__main__":
 
     try:
         analyzer.logger.info(f"Starting standalone Trivy analysis for repo_id: {repo.repo_id}")
-        result = analyzer.run_trivy_analysis(repo_dir, repo=repo, session=session, run_id="STANDALONE_RUN_001")
+        result = analyzer.run_analysis(repo_dir, repo=repo, session=session, run_id="STANDALONE_RUN_001")
         analyzer.logger.info(f"Standalone Trivy analysis result: {result}")
     except Exception as e:
         analyzer.logger.error(f"Error during standalone Trivy analysis: {e}")

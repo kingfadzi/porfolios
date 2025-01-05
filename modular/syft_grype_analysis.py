@@ -20,7 +20,7 @@ class SyftAndGrypeAnalyzer(BaseLogger):
         self.logger.setLevel(logging.WARN)  # Default logging level
 
     @analyze_execution(session_factory=Session, stage="Syft and Grype Analysis")
-    def run_syft_and_grype_analysis(self, repo_dir, repo, session, run_id=None):
+    def run_analysis(self, repo_dir, repo, session, run_id=None):
         self.logger.info(f"Starting Syft and Grype analysis for repo_id: {repo.repo_id} (repo_slug: {repo.repo_slug}).")
 
         if not os.path.exists(repo_dir):
@@ -148,7 +148,7 @@ if __name__ == "__main__":
 
     try:
         analyzer.logger.info(f"Starting standalone Syft and Grype analysis for repo_id: {repo.repo_id}.")
-        result = analyzer.run_syft_and_grype_analysis(repo_dir, repo=repo, session=session, run_id="STANDALONE_RUN_001")
+        result = analyzer.run_analysis(repo_dir, repo=repo, session=session, run_id="STANDALONE_RUN_001")
         analyzer.logger.info(f"Standalone Syft and Grype analysis result: {result}")
     except Exception as e:
         analyzer.logger.error(f"Error during standalone Syft and Grype analysis: {e}")

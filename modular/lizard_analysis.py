@@ -19,7 +19,7 @@ class LizardAnalyzer(BaseLogger):
         self.logger.setLevel(logging.WARN)  # Set default logging level to WARN
 
     @analyze_execution(session_factory=Session, stage="Lizard Analysis")
-    def run_lizard_analysis(self, repo_dir, repo, session, run_id=None):
+    def run_analysis(self, repo_dir, repo, session, run_id=None):
         """Run lizard analysis and persist only the summary results."""
         self.logger.info(f"Starting lizard analysis for repo_id: {repo.repo_id} (repo_slug: {repo.repo_slug})")
         analysis_file = os.path.join(repo_dir, "analysis.txt")
@@ -163,7 +163,7 @@ if __name__ == "__main__":
 
     try:
         analyzer.logger.info(f"Running lizard analysis for hardcoded repo_id: {repo.repo_id}, repo_slug: {repo.repo_slug}")
-        result = analyzer.run_lizard_analysis(repo_dir, repo=repo, session=session, run_id="STANDALONE_RUN_001")
+        result = analyzer.run_analysis(repo_dir, repo=repo, session=session, run_id="STANDALONE_RUN_001")
         analyzer.logger.info(f"Standalone lizard analysis result: {result}")
     except Exception as e:
         analyzer.logger.error(f"Error during standalone lizard analysis: {e}")
