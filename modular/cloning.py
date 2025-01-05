@@ -5,7 +5,7 @@ import re
 from modular.models import Session, Repository
 from modular.execution_decorator import analyze_execution
 from modular.config import Config
-from base_logger import BaseLogger
+from mofular.base_logger import BaseLogger
 
 clone_semaphore = threading.Semaphore(10)
 
