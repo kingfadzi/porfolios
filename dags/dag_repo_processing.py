@@ -11,7 +11,7 @@ from modular.syft_grype_analysis import SyftAndGrypeAnalyzer
 from modular.trivy_analysis import TrivyAnalyzer
 from modular.checkov_analysis import CheckovAnalyzer
 from modular.semgrep_analysis import SemgrepAnalyzer
-from modular.models import Session, Repository, AnalysisExecutionLog
+from modular.models import Session, Repository, AnalysisExecutionLog, RepoMetrics
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG)
@@ -26,7 +26,7 @@ def analyze_repositories(batch, run_id, **kwargs):
             # Instantiate and call each analyzer class
             repo_dir = CloningAnalyzer().clone_repository(repo=repo, run_id=run_id)
             logger.debug(f"Repository cloned to: {repo_dir}")
-            
+
             LizardAnalyzer().run_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
             ClocAnalyzer().run_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
             GoEnryAnalyzer().run_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
@@ -35,8 +35,8 @@ def analyze_repositories(batch, run_id, **kwargs):
             SyftAndGrypeAnalyzer().run_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
             CheckovAnalyzer().run_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
             SemgrepAnalyzer().run_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
-           
-   
+
+
         except Exception as e:
             logger.error(f"Error processing repository {repo.repo_name}: {e}")
             # Update repository status to ERROR
@@ -103,7 +103,15 @@ def fetch_repositories(batch_size=1000):
     session = Session()
     offset = 0
     while True:
-        batch = session.query(Repository).filter_by(status="NEW").offset(offset).limit(batch_size).all()
+        # batch = session.query(Repository).filter_by(status="NEW").offset(offset).limit(batch_size).all()
+        batch = (
+            session.query(Repository)
+            .join(RepoMetrics, Repository.repo_id == RepoMetrics.repo_id)  # Explicit join condition
+            .filter(RepoMetrics.activity_status == 'ACTIVE')
+            .offset(offset)
+            .limit(batch_size)
+            .all()
+        )
         if not batch:
             break
         yield batch
