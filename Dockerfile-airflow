@@ -59,8 +59,19 @@ RUN python3 -m pip install --no-cache-dir \
     sqlalchemy
 
 # Create a group and user with specified UID and GID
-RUN groupadd -g ${HOST_GID} airflow && \
-    useradd -m -u ${HOST_UID} -g airflow airflow
+#RUN groupadd -g ${HOST_GID} airflow && \
+#    useradd -m -u ${HOST_UID} -g airflow airflow
+
+# Ensure the airflow group exists
+RUN getent group airflow || groupadd -g ${HOST_GID} airflow
+
+# Ensure the airflow user exists
+RUN getent passwd airflow || useradd -m -u ${HOST_UID} -g airflow airflow
+
+# Update UID and GID if necessary
+RUN getent group airflow | grep -q ":${HOST_GID}$" || groupmod -g ${HOST_GID} airflow && \
+    getent passwd airflow | grep -q ":${HOST_UID}:" || usermod -u ${HOST_UID} airflow
+
 
 # Set ownership for Airflow directories
 RUN mkdir -p $AIRFLOW_HOME && \
