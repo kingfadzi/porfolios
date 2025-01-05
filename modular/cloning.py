@@ -27,11 +27,12 @@ class CloningAnalyzer(BaseLogger):
         repo_dir = f"{base_dir}/{repo.repo_slug}"
         os.makedirs(base_dir, exist_ok=True)
 
-        # Extract hostname for tracking
-        self.set_repo_hostname(repo)
-
         # Ensure the URL is in SSH format
         clone_url = self.ensure_ssh_url(repo.clone_url_ssh)
+        repo.clone_url_ssh = clone_url
+
+        # Extract hostname for tracking
+        self.set_repo_hostname(repo)
 
         with clone_semaphore:
             try:
