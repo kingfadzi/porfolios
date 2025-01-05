@@ -5,15 +5,12 @@ from datetime import datetime
 from modular.models import AnalysisExecutionLog
 import re
 
-# Define a logger for the decorator
-decorator_logger = logging.getLogger("analyze_execution")
-if not decorator_logger.handlers:
-    handler = logging.StreamHandler()
-    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-    handler.setFormatter(formatter)
-    decorator_logger.addHandler(handler)
-    decorator_logger.setLevel(logging.DEBUG)
-    decorator_logger.propagate = False
+from modular.base_logger import BaseLogger
+
+class AnalysisLogger(BaseLogger):
+    def __init__(self):
+        self.logger = self.get_logger("AnalyzeExecution")
+        self.logger.setLevel(logging.DEBUG)
 
 
 def analyze_execution(session_factory, stage=None):
@@ -113,7 +110,6 @@ def analyze_execution(session_factory, stage=None):
                 ))
                 session.commit()
 
-
                 decorator_logger.error(
                     "Analysis failed:\n"
                     f"  stage={stage}\n"
@@ -122,8 +118,6 @@ def analyze_execution(session_factory, stage=None):
                     f"  duration={elapsed_time:.2f}s\n"
                     f"  error_message='{error_message}'"
                 )
-
-
                 raise RuntimeError(error_message)
 
             finally:
