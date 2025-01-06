@@ -93,6 +93,10 @@ class CloningAnalyzer(BaseLogger):
             self.logger.debug("Detected valid SSH URL format.")
             return clone_url  # Valid SSH, return as-is
 
+        elif clone_url.startswith("git@"):
+            self.logger.debug("Detected GitLab-style SSH URL.")
+            return clone_url  # GitLab SSH URL is already valid, return as-is
+
         self.logger.error(f"Unsupported URL format: {clone_url}")
         raise ValueError(f"Unsupported URL format: {clone_url}")
 
