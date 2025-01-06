@@ -78,13 +78,13 @@ class CloningAnalyzer(BaseLogger):
                 return f"ssh://git@{domain}:7999/{project_key}/{repo_slug}"
 
             # Match GitLab (hosted or self-hosted) URL
-            gitlab_match = re.match(r"https://(.*?)/(.+?)/(.+?\.git)", clone_url)
+            gitlab_match = re.match(r"https://(.*?)/([^/]+(?:/[^/]+)*)/(.+?\.git)", clone_url)
             if gitlab_match:
                 domain, group, repo_slug = gitlab_match.groups()
                 self.logger.debug(
                     f"Matched GitLab URL: domain={domain}, group={group}, repo_slug={repo_slug}"
                 )
-                return f"ssh://git@{domain}/{group}/{repo_slug}"
+                return f"git@{domain}:{group}/{repo_slug}"
 
             self.logger.error(f"Unsupported HTTPS URL format: {clone_url}")
             raise ValueError(f"Unsupported HTTPS URL format: {clone_url}")
