@@ -1,66 +1,65 @@
 -- Step 1: Create the Partitioned Table
 CREATE TABLE uber_dataset_partitioned (
-    repo_id TEXT NOT NULL,
-    repo_name TEXT,
-    repo_slug TEXT,
-    repo_status TEXT, -- For ingestion status
-    activity_status TEXT NOT NULL, -- Partition key (active/inactive)
-    last_updated TIMESTAMP,
-    primary_language TEXT,
-    language_usage_percent FLOAT,
-    repo_size_bytes NUMERIC,
-    file_count INT,
-    total_commits INT,
-    number_of_contributors INT,
-    last_commit_date TIMESTAMP,
-    repo_age_days INT,
-    active_branch_count INT,
-    total_lines_of_code INT,
-    avg_complexity_score FLOAT,
-    total_complexity_score INT,
-    total_functions INT,
-    cloc_language TEXT,
-    cloc_code_lines INT,
-    cloc_comment_lines INT,
-    cloc_blank_lines INT,
-    grype_id INT,
-    grype_cve TEXT,
-    grype_severity TEXT,
-    grype_package TEXT,
-    grype_version TEXT,
-    grype_language TEXT,
-    checkov_id INT,
-    check_type TEXT,
-    checkov_language TEXT,
-    passed INT,
-    failed INT,
-    skipped INT,
-    resource_count INT,
-    trivy_id INT,
-    trivy_target TEXT,
-    trivy_resource_class TEXT,
-    trivy_resource_type TEXT,
-    trivy_vulnerability_id TEXT,
-    trivy_pkg_name TEXT,
-    trivy_installed_version TEXT,
-    trivy_fixed_version TEXT,
-    trivy_severity TEXT,
-    semgrep_id INT,
-    semgrep_path TEXT,
-    semgrep_start_line INT,
-    semgrep_end_line INT,
-    semgrep_rule_id TEXT,
-    semgrep_severity TEXT,
-    semgrep_message TEXT,
-    semgrep_category TEXT
+                                          repo_id TEXT NOT NULL,
+                                          repo_name TEXT,
+                                          repo_slug TEXT,
+                                          repo_status TEXT, -- For ingestion status
+                                          activity_status TEXT NOT NULL, -- Partition key (active/inactive)
+                                          last_updated TIMESTAMP,
+                                          primary_language TEXT,
+                                          language_usage_percent FLOAT,
+                                          repo_size_bytes NUMERIC,
+                                          file_count INT,
+                                          total_commits INT,
+                                          number_of_contributors INT,
+                                          last_commit_date TIMESTAMP,
+                                          repo_age_days INT,
+                                          active_branch_count INT,
+                                          total_lines_of_code INT,
+                                          avg_complexity_score FLOAT,
+                                          total_complexity_score INT,
+                                          total_functions INT,
+                                          cloc_language TEXT,
+                                          cloc_code_lines INT,
+                                          cloc_comment_lines INT,
+                                          cloc_blank_lines INT,
+                                          grype_id INT,
+                                          grype_cve TEXT,
+                                          grype_severity TEXT,
+                                          grype_package TEXT,
+                                          grype_version TEXT,
+                                          grype_language TEXT,
+                                          checkov_id INT,
+                                          check_type TEXT,
+                                          passed INT,
+                                          failed INT,
+                                          skipped INT,
+                                          resource_count INT,
+                                          trivy_id INT,
+                                          trivy_target TEXT,
+                                          trivy_resource_class TEXT,
+                                          trivy_resource_type TEXT,
+                                          trivy_vulnerability_id TEXT,
+                                          trivy_pkg_name TEXT,
+                                          trivy_installed_version TEXT,
+                                          trivy_fixed_version TEXT,
+                                          trivy_severity TEXT,
+                                          semgrep_id INT,
+                                          semgrep_path TEXT,
+                                          semgrep_start_line INT,
+                                          semgrep_end_line INT,
+                                          semgrep_rule_id TEXT,
+                                          semgrep_severity TEXT,
+                                          semgrep_message TEXT,
+                                          semgrep_category TEXT
 ) PARTITION BY LIST (activity_status);
 
 -- Step 2: Create Partitions
 CREATE TABLE uber_dataset_active PARTITION OF uber_dataset_partitioned
-FOR VALUES IN ('active');
+    FOR VALUES IN ('active');
 
 CREATE TABLE uber_dataset_inactive PARTITION OF uber_dataset_partitioned
-FOR VALUES IN ('inactive');
+    FOR VALUES IN ('inactive');
 
 -- Step 3: Populate the Partitioned Table
 INSERT INTO uber_dataset_partitioned (
@@ -95,7 +94,6 @@ INSERT INTO uber_dataset_partitioned (
     grype_language,
     checkov_id,
     check_type,
-    checkov_language,
     passed,
     failed,
     skipped,
@@ -118,15 +116,12 @@ INSERT INTO uber_dataset_partitioned (
     semgrep_message,
     semgrep_category
 )
-SELECT 
+SELECT
     r.repo_id,
     r.repo_name,
     r.repo_slug,
     r.status AS repo_status,
-    CASE 
-        WHEN rm.last_commit_date >= CURRENT_DATE - INTERVAL '12 months' THEN 'active'
-        ELSE 'inactive'
-    END AS activity_status,
+    rm.activity_status,  -- replaced the CASE block with rm.activity_status
     r.updated_on AS last_updated,
     gm.language AS primary_language,
     gm.percent_usage AS language_usage_percent,
@@ -152,12 +147,11 @@ SELECT
     gr.version AS grype_version,
     gr.language AS grype_language,
     cs.id AS checkov_id,
-    cs.check_type AS checkov_check_type,
-    cs.language AS checkov_language,
-    cs.passed AS checkov_passed,
-    cs.failed AS checkov_failed,
-    cs.skipped AS checkov_skipped,
-    cs.resource_count AS checkov_resource_count,
+    cs.check_type AS check_type,
+    cs.passed AS passed,
+    cs.failed AS failed,
+    cs.skipped AS skipped,
+    cs.resource_count AS resource_count,
     tv.id AS trivy_id,
     tv.target AS trivy_target,
     tv.resource_class AS trivy_resource_class,
@@ -175,23 +169,23 @@ SELECT
     sr.severity AS semgrep_severity,
     sr.message AS semgrep_message,
     sr.category AS semgrep_category
-FROM 
+FROM
     repository r
-LEFT JOIN 
+        LEFT JOIN
     go_enry_analysis gm ON r.repo_id = gm.repo_id
-LEFT JOIN 
+        LEFT JOIN
     repo_metrics rm ON r.repo_id = rm.repo_id
-LEFT JOIN 
+        LEFT JOIN
     lizard_summary ls ON r.repo_id = ls.repo_id
-LEFT JOIN 
+        LEFT JOIN
     cloc_metrics cm ON r.repo_id = cm.repo_id
-LEFT JOIN 
+        LEFT JOIN
     grype_results gr ON r.repo_id = gr.repo_id
-LEFT JOIN 
+        LEFT JOIN
     checkov_summary cs ON r.repo_id = cs.repo_id
-LEFT JOIN 
+        LEFT JOIN
     trivy_vulnerability tv ON r.repo_id = tv.repo_id
-LEFT JOIN 
+        LEFT JOIN
     semgrep_results sr ON r.repo_id = sr.repo_id;
 
 -- Step 4: Add Indexes
