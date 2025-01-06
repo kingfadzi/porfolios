@@ -28,11 +28,8 @@ class CloningAnalyzer(BaseLogger):
         os.makedirs(base_dir, exist_ok=True)
 
         # Ensure the URL is in SSH format
-        clone_url = self.ensure_ssh_url(repo.clone_url_ssh)
+        clone_url = self.ensure_ssh_url(repo)
         repo.clone_url_ssh = clone_url
-
-        # Extract hostname for tracking
-        self.set_repo_hostname(repo)
 
         with clone_semaphore:
             try:
@@ -59,66 +56,44 @@ class CloningAnalyzer(BaseLogger):
                 self.logger.error(error_msg)
                 raise RuntimeError(error_msg)
 
-    def ensure_ssh_url(self, clone_url):
-        """
-        Ensure the given URL is in SSH format. GitHub URLs are assumed to be valid SSH.
-        Supports Bitbucket Server and GitLab (hosted and self-hosted).
-        """
-        self.logger.debug(f"Processing URL: {clone_url}")
 
-        if clone_url.startswith("https://"):
-            self.logger.debug("Detected HTTPS URL format.")
-            # Match Bitbucket Server URL
-            bitbucket_match = re.match(r"https://(.*?)/scm/(.*?)/(.*?\.git)", clone_url)
-            if bitbucket_match:
-                domain, project_key, repo_slug = bitbucket_match.groups()
-                self.logger.debug(
-                    f"Matched Bitbucket Server URL: domain={domain}, project_key={project_key}, repo_slug={repo_slug}"
-                )
-                return f"ssh://git@{domain}:7999/{project_key}/{repo_slug}"
+    def ensure_ssh_url(self, repo):
+        clone_url_ssh = repo.clone_url_ssh
+        host_name = repo.host_name
 
-            # Match GitLab (hosted or self-hosted) URL
-            gitlab_match = re.match(r"https://(.*?)/([^/]+(?:/[^/]+)*)/(.+?\.git)", clone_url)
-            if gitlab_match:
-                domain, group, repo_slug = gitlab_match.groups()
-                self.logger.debug(
-                    f"Matched GitLab URL: domain={domain}, group={group}, repo_slug={repo_slug}"
-                )
-                return f"git@{domain}:{group}/{repo_slug}"
+        if not host_name:
+            raise ValueError("repo.host_name is required")
 
-            self.logger.error(f"Unsupported HTTPS URL format: {clone_url}")
-            raise ValueError(f"Unsupported HTTPS URL format: {clone_url}")
+        if clone_url_ssh.startswith("ssh://") or clone_url_ssh.startswith("git@"):
+            return clone_url_ssh
 
-        elif clone_url.startswith("ssh://"):
-            self.logger.debug("Detected valid SSH URL format.")
-            return clone_url  # Valid SSH, return as-is
+        if not clone_url_ssh.startswith("https://"):
+            raise ValueError(f"Unsupported URL format: {clone_url_ssh}")
 
-        elif clone_url.startswith("git@"):
-            self.logger.debug("Detected GitLab-style SSH URL.")
-            return clone_url  # GitLab SSH URL is already valid, return as-is
+        if host_name == "github.com":
+            match = re.match(r"https://github\.com/([^/]+)/(.+?)(\.git)?$", clone_url_ssh)
+            if not match:
+                raise ValueError(f"URL not recognized as a valid GitHub URL: {clone_url_ssh}")
+            owner_or_org, repo_slug, _ = match.groups()
+            return f"git@github.com:{owner_or_org}/{repo_slug}.git"
 
-        self.logger.error(f"Unsupported URL format: {clone_url}")
-        raise ValueError(f"Unsupported URL format: {clone_url}")
+        elif host_name == "bitbucket":
+            match = re.match(r"https://([^/]+)/scm/([^/]+)/(.+?)(\.git)?$", clone_url_ssh)
+            if not match:
+                raise ValueError(f"URL not recognized as a valid Bitbucket URL: {clone_url_ssh}")
+            domain, project_key, repo_slug, _ = match.groups()
+            return f"ssh://git@{domain}:7999/{project_key}/{repo_slug}.git"
 
-    def set_repo_hostname(self, repo):
-        """
-        Extract the hostname from repo.clone_url_ssh and store it in repo.host_name.
-        Supports SSH URLs like ssh://git@host:port/path/to/repo.git.
+        elif host_name == "gitlab":
+            match = re.match(r"https://([^/]+)/([^/]+(?:/[^/]+)*)/(.+?)(\.git)?$", clone_url_ssh)
+            if not match:
+                raise ValueError(f"URL not recognized as a valid GitLab URL: {clone_url_ssh}")
+            domain, group_path, repo_slug, _ = match.groups()
+            return f"git@{domain}:{group_path}/{repo_slug}.git"
 
-        :param repo: Repository object with a clone_url_ssh attribute.
-        """
-        clone_url = repo.clone_url_ssh
-        self.logger.debug(f"Setting host_name for URL: {clone_url}")
+        else:
+            raise ValueError(f"Unsupported host_name '{host_name}' for URL: {clone_url_ssh}")
 
-        # Match URLs with explicit SSH scheme (e.g., ssh://git@sub.sub.company.com:22/org/path/to/repo.git)
-        match = re.match(r"ssh://git@([^:/]+):?.*", clone_url)
-        if match:
-            repo.host_name = match.group(1)
-            self.logger.debug(f"Set host_name: {repo.host_name}")
-            return
-
-        self.logger.error(f"Unsupported URL format for setting host_name: {clone_url}")
-        raise ValueError(f"Unsupported URL format for setting host_name: {clone_url}")
 
     def cleanup_repository_directory(self, repo_dir):
         """
