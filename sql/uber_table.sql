@@ -70,3 +70,14 @@ FROM
     trivy_vulnerability tv ON r.repo_id = tv.repo_id
         LEFT JOIN
     semgrep_results sr ON r.repo_id = sr.repo_id;
+
+
+CREATE INDEX idx_repository_repo_id ON repository(repo_id);
+CREATE INDEX idx_go_enry_analysis_repo_id ON go_enry_analysis(repo_id);
+CREATE INDEX idx_repo_metrics_repo_id ON repo_metrics(repo_id);
+CREATE INDEX idx_lizard_summary_repo_id ON lizard_summary(repo_id);
+CREATE INDEX idx_cloc_metrics_repo_id ON cloc_metrics(repo_id);
+CREATE INDEX idx_grype_results_repo_id ON grype_results(repo_id);
+CREATE INDEX idx_checkov_summary_repo_id ON checkov_summary(repo_id);
+CREATE INDEX idx_trivy_vulnerability_repo_id ON trivy_vulnerability(repo_id);
+CREATE INDEX idx_semgrep_results_repo_id ON semgrep_results(repo_id);
