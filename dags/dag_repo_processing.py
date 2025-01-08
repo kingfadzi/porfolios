@@ -112,6 +112,7 @@ def fetch_repositories(batch_size=1000):
         #    .limit(batch_size)
         #    .all()
         #)
+
         if not batch:
             break
         yield batch
