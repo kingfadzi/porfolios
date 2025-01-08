@@ -1,4 +1,6 @@
-CREATE OR REPLACE VIEW combined_repo_metrics AS
+DROP MATERIALIZED VIEW IF EXISTS combined_repo_metrics;
+
+CREATE MATERIALIZED VIEW combined_repo_metrics AS
 WITH
 all_repos AS (
     SELECT repo_id FROM lizard_summary
@@ -16,6 +18,8 @@ all_repos AS (
     SELECT repo_id FROM repo_metrics
     UNION
     SELECT repo_id FROM go_enry_analysis
+    UNION
+    SELECT repo_id FROM bitbucket_repositories
 ),
 cloc_agg AS (
     SELECT
@@ -150,7 +154,12 @@ SELECT
     rm.last_commit_date,
     rm.repo_age_days,
     rm.active_branch_count,
-    rm.updated_at
+    rm.updated_at,
+    b.host_name,
+    b.app_id,
+    b.clone_url_ssh,
+    b.status,
+    b.comment
 FROM all_repos r
          LEFT JOIN lizard_summary l ON r.repo_id = l.repo_id
          LEFT JOIN cloc_agg c ON r.repo_id = c.repo_id
@@ -160,4 +169,5 @@ FROM all_repos r
          LEFT JOIN semgrep_agg s ON r.repo_id = s.repo_id
          LEFT JOIN go_enry_agg e ON r.repo_id = e.repo_id
          LEFT JOIN repo_metrics rm ON r.repo_id = rm.repo_id
+         LEFT JOIN bitbucket_repositories b ON r.repo_id = b.repo_id
 ORDER BY r.repo_id;
