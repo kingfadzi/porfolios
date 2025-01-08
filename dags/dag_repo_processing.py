@@ -103,15 +103,15 @@ def fetch_repositories(batch_size=1000):
     session = Session()
     offset = 0
     while True:
-        # batch = session.query(Repository).filter_by(status="NEW").offset(offset).limit(batch_size).all()
-        batch = (
-            session.query(Repository)
-            .join(RepoMetrics, Repository.repo_id == RepoMetrics.repo_id)  # Explicit join condition
-            .filter(RepoMetrics.activity_status == 'ACTIVE')
-            .offset(offset)
-            .limit(batch_size)
-            .all()
-        )
+        batch = session.query(Repository).filter_by(status="NEW").offset(offset).limit(batch_size).all()
+        #batch = (
+        #    session.query(Repository)
+        #    .join(RepoMetrics, Repository.repo_id == RepoMetrics.repo_id)  # Explicit join condition
+        #    .filter(RepoMetrics.activity_status == 'ACTIVE')
+        #    .offset(offset)
+        #    .limit(batch_size)
+        #    .all()
+        #)
         if not batch:
             break
         yield batch
