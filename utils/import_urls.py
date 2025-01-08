@@ -52,20 +52,20 @@ def parse_gitlab_url(url):
         }
 
     elif url.startswith("git@"):
-        # Parse SSH URLs (e.g., git@host:org/repo.git)
-        match = re.match(r"git@([\w\.\-]+):([\w\-/]+)\.git", url)
+        # Enhanced SSH URL Parsing (e.g., git@github.com:org/repo.git)
+        match = re.match(r"git@([\w\.\-]+):([\w\-/\.]+)(?:\.git)?", url)
         if not match:
             raise ValueError(f"Invalid SSH URL format: {url}")
 
-        host_name = match.group(1)
-        repo_path = match.group(2)
+        host_name = match.group(1)  # e.g., github.com
+        repo_path = match.group(2)  # e.g., org/repo
         path_parts = repo_path.split("/")
 
         if len(path_parts) < 2:
             raise ValueError(f"Invalid SSH URL format: {url}")
 
-        org = path_parts[0]
-        project = path_parts[-1]
+        org = path_parts[0]  # e.g., "org"
+        project = path_parts[-1].replace(".git", "")  # e.g., "repo" (remove .git if present)
 
         return {
             "repo_id": repo_path,
@@ -77,7 +77,6 @@ def parse_gitlab_url(url):
 
     else:
         raise ValueError(f"Unsupported URL format: {url}")
-
 
 def read_urls(input_file):
     """
