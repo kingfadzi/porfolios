@@ -117,19 +117,24 @@ def read_urls(input_file):
 
 def create_repository_objects(dataframe):
     """
-    Converts DataFrame rows into unique repository dictionaries.
+    Converts DataFrame rows into unique repository dictionaries based on `repo_id`.
 
     :param dataframe: Pandas DataFrame with app_id (optional) and url columns.
     :return: List of unique repository dictionaries.
     """
     repositories = []
-    dataframe = dataframe.drop_duplicates(subset=["url"])  # Ensure unique URLs at the DataFrame level
+    unique_repo_ids = set()  # Track unique repo_ids to prevent duplicates
 
     for _, row in dataframe.iterrows():
         parsed = parse_gitlab_url(row["url"])
 
         # Generate the SSH clone URL
         ssh_url = f"git@{parsed['host_name']}:{parsed['org']}/{parsed['repo_id']}.git"
+
+        # Check if `repo_id` is unique
+        if parsed["repo_id"] in unique_repo_ids:
+            logger.warning(f"Duplicate repo_id skipped: {parsed['repo_id']}")
+            continue  # Skip duplicates based on `repo_id`
 
         repositories.append({
             "repo_id": parsed["repo_id"],
@@ -142,6 +147,8 @@ def create_repository_objects(dataframe):
             "comment": None,
             "updated_on": datetime.now(timezone.utc)
         })
+
+        unique_repo_ids.add(parsed["repo_id"])  # Mark this `repo_id` as processed
 
     logger.info(f"Prepared {len(repositories)} unique repository records for upsert")
     return repositories
