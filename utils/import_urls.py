@@ -1,6 +1,7 @@
 import logging
 from datetime import datetime, timezone
 from urllib.parse import urlparse
+import re
 import pandas as pd
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 from sqlalchemy.orm import sessionmaker
@@ -22,55 +23,96 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-def parse_gitlab_https_url(url):
-    """
-    Parses the GitLab HTTPS URL and extracts necessary components.
 
-    :param url: The GitLab HTTPS URL.
+def parse_gitlab_url(url):
+    """
+    Parses Git URLs (HTTPS or SSH) and extracts necessary components.
+
+    :param url: The Git URL (either HTTPS or SSH).
     :return: A dictionary with parsed components.
     """
-    parsed = urlparse(url)
-    path_parts = parsed.path.strip("/").split("/")
+    if url.startswith("https://"):
+        # Parse HTTPS URLs
+        parsed = urlparse(url)
+        path_parts = parsed.path.strip("/").split("/")
 
-    if len(path_parts) < 2:
-        raise ValueError(f"Invalid URL format: {url}")
+        if len(path_parts) < 2:
+            raise ValueError(f"Invalid URL format: {url}")
 
-    org = path_parts[0]  # Extract the organization
-    repo_path = "/".join(path_parts[1:])  # Extract the remaining path as repo_id
-    project = path_parts[-1]  # Extract the project name
+        org = path_parts[0]  # Extract the organization
+        repo_path = "/".join(path_parts[1:])  # Extract the remaining path as repo_id
+        project = path_parts[-1].replace(".git", "")  # Extract the project name, removing '.git'
 
-    return {
-        "repo_id": repo_path,
-        "repo_name": project,
-        "repo_slug": project,
-        "host_name": parsed.netloc,
-        "org": org
-    }
+        return {
+            "repo_id": repo_path,
+            "repo_name": project,
+            "repo_slug": project,
+            "host_name": parsed.netloc,
+            "org": org
+        }
+
+    elif url.startswith("git@"):
+        # Parse SSH URLs (e.g., git@host:org/repo.git)
+        match = re.match(r"git@([\w\.\-]+):([\w\-/]+)\.git", url)
+        if not match:
+            raise ValueError(f"Invalid SSH URL format: {url}")
+
+        host_name = match.group(1)
+        repo_path = match.group(2)
+        path_parts = repo_path.split("/")
+
+        if len(path_parts) < 2:
+            raise ValueError(f"Invalid SSH URL format: {url}")
+
+        org = path_parts[0]
+        project = path_parts[-1]
+
+        return {
+            "repo_id": repo_path,
+            "repo_name": project,
+            "repo_slug": project,
+            "host_name": host_name,
+            "org": org
+        }
+
+    else:
+        raise ValueError(f"Unsupported URL format: {url}")
+
 
 def read_urls(input_file):
     """
     Reads the CSV input file using Pandas.
 
     :param input_file: Path to the input CSV file.
-    :return: Pandas DataFrame with app_id and url columns.
+    :return: Pandas DataFrame with app_id (if present) and url columns.
     """
-    return pd.read_csv(input_file, header=None, names=["app_id", "url"], dtype=str)
+    # Use "app_id" and "url" if both are present; default "app_id" to None if not
+    df = pd.read_csv(input_file, header=None, names=["app_id", "url"], dtype=str)
+
+    # Ensure "app_id" is optional by filling missing values with None
+    if "app_id" not in df or df["app_id"].isnull().all():
+        df["app_id"] = None
+
+    return df
+
 
 def create_repository_objects(dataframe):
     """
     Converts DataFrame rows into repository dictionaries.
 
-    :param dataframe: Pandas DataFrame with app_id and url columns.
+    :param dataframe: Pandas DataFrame with app_id (optional) and url columns.
     :return: List of repository dictionaries.
     """
     repositories = []
     for _, row in dataframe.iterrows():
-        parsed = parse_gitlab_https_url(row["url"])
+        parsed = parse_gitlab_url(row["url"])
+
+        # Generate the SSH clone URL
         ssh_url = f"git@{parsed['host_name']}:{parsed['org']}/{parsed['repo_id']}.git"
 
         repositories.append({
             "repo_id": parsed["repo_id"],
-            "app_id": row["app_id"],
+            "app_id": row["app_id"],  # Will be None if app_id is missing
             "repo_name": parsed["repo_name"],
             "repo_slug": parsed["repo_slug"],
             "host_name": parsed["host_name"],
@@ -81,6 +123,7 @@ def create_repository_objects(dataframe):
         })
     logger.info(f"Prepared {len(repositories)} repository records for upsert")
     return repositories
+
 
 def upsert_repositories(repositories, engine):
     """
@@ -120,6 +163,7 @@ def upsert_repositories(repositories, engine):
     finally:
         session.close()
 
+
 def main():
     # Parse command-line arguments
     import argparse
@@ -127,7 +171,7 @@ def main():
     parser.add_argument(
         "input_file",
         type=str,
-        help="Path to the input CSV file containing app_id and repository URLs."
+        help="Path to the input CSV file containing app_id (optional) and repository URLs."
     )
     args = parser.parse_args()
     input_file = args.input_file
@@ -144,6 +188,7 @@ def main():
     df = read_urls(input_file)
     repositories = create_repository_objects(df)
     upsert_repositories(repositories, engine)
+
 
 if __name__ == "__main__":
     main()
