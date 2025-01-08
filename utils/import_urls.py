@@ -24,6 +24,22 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+def deduplicate_file(input_file, output_file):
+    """
+    Removes duplicate lines from a file and saves the result.
+
+    :param input_file: Path to the input file.
+    :param output_file: Path to the output file.
+    """
+    with open(input_file, "r") as infile:
+        unique_lines = set(infile.readlines())
+
+    with open(output_file, "w") as outfile:
+        outfile.writelines(sorted(unique_lines))
+
+    logger.info(f"Deduplicated file saved to {output_file}")
+
+
 def parse_gitlab_url(url):
     """
     Parses Git URLs (HTTPS or SSH) and extracts necessary components.
@@ -78,6 +94,7 @@ def parse_gitlab_url(url):
     else:
         raise ValueError(f"Unsupported URL format: {url}")
 
+
 def read_urls(input_file):
     """
     Reads the input file containing one URL per line.
@@ -97,15 +114,21 @@ def read_urls(input_file):
 
     return df
 
+
 def create_repository_objects(dataframe):
     """
-    Converts DataFrame rows into repository dictionaries.
+    Converts DataFrame rows into unique repository dictionaries.
 
     :param dataframe: Pandas DataFrame with app_id (optional) and url columns.
-    :return: List of repository dictionaries.
+    :return: List of unique repository dictionaries.
     """
     repositories = []
+    unique_urls = set()  # Track unique URLs to prevent duplicates
+
     for _, row in dataframe.iterrows():
+        if row["url"] in unique_urls:
+            continue  # Skip duplicate URLs
+
         parsed = parse_gitlab_url(row["url"])
 
         # Generate the SSH clone URL
@@ -122,7 +145,10 @@ def create_repository_objects(dataframe):
             "comment": None,
             "updated_on": datetime.now(timezone.utc)
         })
-    logger.info(f"Prepared {len(repositories)} repository records for upsert")
+
+        unique_urls.add(row["url"])  # Mark this URL as processed
+
+    logger.info(f"Prepared {len(repositories)} unique repository records for upsert")
     return repositories
 
 
@@ -172,11 +198,16 @@ def main():
     parser.add_argument(
         "input_file",
         type=str,
-        help="Path to the input CSV file containing app_id (optional) and repository URLs."
+        help="Path to the input file containing repository URLs."
     )
     args = parser.parse_args()
     input_file = args.input_file
 
+    # Deduplicate the input file
+    deduplicated_file = f"{input_file}.deduplicated"
+    deduplicate_file(input_file, deduplicated_file)
+
+    # Process deduplicated file
     db_url = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
 
     try:
@@ -186,7 +217,7 @@ def main():
         logger.error(f"Failed to create database engine: {e}")
         return
 
-    df = read_urls(input_file)
+    df = read_urls(deduplicated_file)
     repositories = create_repository_objects(df)
     upsert_repositories(repositories, engine)
 
