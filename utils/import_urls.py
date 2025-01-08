@@ -123,12 +123,9 @@ def create_repository_objects(dataframe):
     :return: List of unique repository dictionaries.
     """
     repositories = []
-    unique_urls = set()  # Track unique URLs to prevent duplicates
+    dataframe = dataframe.drop_duplicates(subset=["url"])  # Ensure unique URLs at the DataFrame level
 
     for _, row in dataframe.iterrows():
-        if row["url"] in unique_urls:
-            continue  # Skip duplicate URLs
-
         parsed = parse_gitlab_url(row["url"])
 
         # Generate the SSH clone URL
@@ -145,8 +142,6 @@ def create_repository_objects(dataframe):
             "comment": None,
             "updated_on": datetime.now(timezone.utc)
         })
-
-        unique_urls.add(row["url"])  # Mark this URL as processed
 
     logger.info(f"Prepared {len(repositories)} unique repository records for upsert")
     return repositories
