@@ -81,20 +81,20 @@ def parse_gitlab_url(url):
 
 def read_urls(input_file):
     """
-    Reads the CSV input file using Pandas.
+    Reads the input file containing one URL per line.
 
-    :param input_file: Path to the input CSV file.
-    :return: Pandas DataFrame with app_id (optional) and url columns.
+    :param input_file: Path to the input file.
+    :return: Pandas DataFrame with a single 'url' column.
     """
-    df = pd.read_csv(input_file, header=None, names=["app_id", "url"], dtype=str)
+    # Read the file as a single-column DataFrame
+    df = pd.read_csv(input_file, header=None, names=["url"], dtype=str)
 
     # Drop rows where 'url' is NaN or empty
     df = df.dropna(subset=["url"])
     df = df[df["url"].str.strip() != ""]
 
-    # Ensure 'app_id' is optional
-    if "app_id" not in df:
-        df["app_id"] = None
+    # Add a placeholder 'app_id' column (optional)
+    df["app_id"] = None
 
     return df
 
