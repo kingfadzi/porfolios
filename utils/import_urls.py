@@ -84,17 +84,19 @@ def read_urls(input_file):
     Reads the CSV input file using Pandas.
 
     :param input_file: Path to the input CSV file.
-    :return: Pandas DataFrame with app_id (if present) and url columns.
+    :return: Pandas DataFrame with app_id (optional) and url columns.
     """
-    # Use "app_id" and "url" if both are present; default "app_id" to None if not
     df = pd.read_csv(input_file, header=None, names=["app_id", "url"], dtype=str)
 
-    # Ensure "app_id" is optional by filling missing values with None
-    if "app_id" not in df or df["app_id"].isnull().all():
+    # Drop rows where 'url' is NaN or empty
+    df = df.dropna(subset=["url"])
+    df = df[df["url"].str.strip() != ""]
+
+    # Ensure 'app_id' is optional
+    if "app_id" not in df:
         df["app_id"] = None
 
     return df
-
 
 def create_repository_objects(dataframe):
     """
