@@ -1,228 +1,241 @@
 import logging
+import re
 from datetime import datetime, timezone
 from urllib.parse import urlparse
-import re
+
 import pandas as pd
-from sqlalchemy.dialects.postgresql import insert as pg_insert
-from sqlalchemy.orm import sessionmaker
-from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import create_engine
-from modular.models import Repository  # Importing the Repository model
+from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
-# PostgreSQL credentials
-DB_USER = "postgres"
-DB_PASSWORD = "postgres"
-DB_HOST = "192.168.1.188"
-DB_PORT = "5422"
-DB_NAME = "gitlab-usage"
+# Example SQLAlchemy model (update with your actual import)
+from modular.models import Repository
 
-# Configure logging
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s [%(levelname)s] %(message)s"
 )
 logger = logging.getLogger(__name__)
 
+class RepositoryLoader:
+    # Hardcoded DB URL; adjust as needed
+    DB_URL = "postgresql://postgres:postgres@192.168.1.188:5422/gitlab-usage"
 
-def deduplicate_file(input_file, output_file):
-    """
-    Removes duplicate lines from a file and saves the result.
+    def __init__(self):
+        """
+        Creates the database engine and sessionmaker using the hardcoded DB URL.
+        """
+        try:
+            self.engine = create_engine(self.DB_URL)
+            self.Session = sessionmaker(bind=self.engine)
+            logger.info(f"Connected to database: {self.DB_URL}")
+        except SQLAlchemyError as e:
+            logger.error(f"Failed to create database engine: {e}")
+            raise
 
-    :param input_file: Path to the input file.
-    :param output_file: Path to the output file.
-    """
-    with open(input_file, "r") as infile:
-        unique_lines = set(infile.readlines())
+    def deduplicate_file(self, input_file, output_file):
+        """
+        Removes duplicate lines from a file and saves the result.
+        """
+        with open(input_file, "r") as infile:
+            unique_lines = set(infile.readlines())
 
-    with open(output_file, "w") as outfile:
-        outfile.writelines(sorted(unique_lines))
+        with open(output_file, "w") as outfile:
+            outfile.writelines(sorted(unique_lines))
 
-    logger.info(f"Deduplicated file saved to {output_file}")
+        logger.info(f"Deduplicated file saved to {output_file}")
 
+    def read_urls(self, file_path):
+        """
+        Reads the (deduplicated) file into a DataFrame with a single 'url' column.
+        """
+        df = pd.read_csv(file_path, header=None, names=["url"], dtype=str)
+        df = df.dropna(subset=["url"])
+        df = df[df["url"].str.strip() != ""]
+        return df
 
-def parse_gitlab_url(url):
-    """
-    Parses Git URLs (HTTPS or SSH) and extracts necessary components.
+    def ensure_ssh_url(self, url):
+        """
+        Ensures the given URL is in SSH format.
 
-    :param url: The Git URL (either HTTPS or SSH).
-    :return: A dictionary with parsed components.
-    """
-    if url.startswith("https://"):
-        # Parse HTTPS URLs
+        - If it's already SSH (git@ or ssh://), return it as is.
+        - If it's HTTPS for GitHub, Bitbucket, or GitLab, convert it to SSH.
+        - Otherwise, raise ValueError.
+        """
+        # Already SSH?
+        if url.startswith("ssh://") or url.startswith("git@"):
+            return url
+
+        # Must be HTTPS if not SSH
+        if not url.startswith("https://"):
+            raise ValueError(f"Unsupported URL format (not SSH or HTTPS): {url}")
+
         parsed = urlparse(url)
-        path_parts = parsed.path.strip("/").split("/")
+        host_name = parsed.netloc.lower()
 
-        if len(path_parts) < 2:
-            raise ValueError(f"Invalid URL format: {url}")
+        # GITHUB
+        if host_name == "github.com":
+            match = re.match(r"https://github\.com/([^/]+)/(.+?)(\.git)?$", url)
+            if not match:
+                raise ValueError(f"URL not recognized as valid GitHub URL: {url}")
+            owner_or_org, repo_slug, _ = match.groups()
+            return f"git@github.com:{owner_or_org}/{repo_slug}.git"
 
-        org = path_parts[0]  # Extract the organization
-        repo_path = "/".join(path_parts[1:])  # Extract the remaining path as repo_id
-        project = path_parts[-1].replace(".git", "")  # Extract the project name, removing '.git'
+        # BITBUCKET (sample pattern; adjust if your Bitbucket URLs differ)
+        elif "bitbucket" in host_name:
+            # Example: https://bitbucket.org/<workspace>/<repo>.git
+            match = re.match(r"https://([^/]+)/([^/]+)/(.+?)(\.git)?$", url)
+            if not match:
+                raise ValueError(f"URL not recognized as valid Bitbucket URL: {url}")
+            domain, workspace, repo_slug, _ = match.groups()
+            # For some setups, you might need a different port or path
+            return f"git@{domain}:{workspace}/{repo_slug}.git"
 
-        return {
-            "repo_id": repo_path,
-            "repo_name": project,
-            "repo_slug": project,
-            "host_name": parsed.netloc,
-            "org": org
-        }
+        # GITLAB
+        elif host_name == "gitlab.com":
+            # Supports nested groups: group/subgroup/subsubgroup
+            match = re.match(r"https://gitlab\.com/([^/]+(?:/[^/]+)*)/(.+?)(\.git)?$", url)
+            if not match:
+                raise ValueError(f"URL not recognized as valid GitLab URL: {url}")
+            group_path, repo_slug, _ = match.groups()
+            return f"git@gitlab.com:{group_path}/{repo_slug}.git"
 
-    elif url.startswith("git@"):
-        # Enhanced SSH URL Parsing (e.g., git@github.com:org/repo.git)
-        match = re.match(r"git@([\w\.\-]+):([\w\-/\.]+)(?:\.git)?", url)
+        else:
+            raise ValueError(f"Unsupported host '{host_name}' for URL: {url}")
+
+    def parse_ssh_url(self, ssh_url):
+        """
+        Parses an SSH URL of the form:
+            git@<host_name>:<nested_path>/<repo>[.git]
+        and extracts the host_name and repo_path (repo_id).
+        Raises ValueError if the URL is not valid SSH.
+        """
+        if not ssh_url.startswith("git@"):
+            raise ValueError(f"Expected an SSH URL (git@...), got: {ssh_url}")
+
+        match = re.match(r"git@([\w.\-]+):([\w\-/\.]+)(?:\.git)?", ssh_url)
         if not match:
-            raise ValueError(f"Invalid SSH URL format: {url}")
+            raise ValueError(f"Invalid SSH URL format: {ssh_url}")
 
-        host_name = match.group(1)  # e.g., github.com
-        repo_path = match.group(2)  # e.g., org/repo
-        path_parts = repo_path.split("/")
-
-        if len(path_parts) < 2:
-            raise ValueError(f"Invalid SSH URL format: {url}")
-
-        org = path_parts[0]  # e.g., "org"
-        project = path_parts[-1].replace(".git", "")  # e.g., "repo" (remove .git if present)
-
+        host_name = match.group(1)
+        repo_path = match.group(2)  # e.g. org/suborg/subsuborg/repo
         return {
-            "repo_id": repo_path,
-            "repo_name": project,
-            "repo_slug": project,
             "host_name": host_name,
-            "org": org
+            "repo_id": repo_path
         }
 
-    else:
-        raise ValueError(f"Unsupported URL format: {url}")
+    def build_repository_object(self, raw_url):
+        # Convert to SSH if needed
+        ssh_url = self.ensure_ssh_url(raw_url)
+        # Example result of ssh_url: "git@github.com:foo/bar/baz.git"
 
+        components = self.parse_ssh_url(ssh_url)
+        # components["repo_id"] might be "foo/bar/baz.git"
 
-def read_urls(input_file):
-    """
-    Reads the input file containing one URL per line.
+        # Split on "/"
+        path_parts = components["repo_id"].split("/")
+        # e.g. ["foo", "bar", "baz.git"]
 
-    :param input_file: Path to the input file.
-    :return: Pandas DataFrame with a single 'url' column.
-    """
-    # Read the file as a single-column DataFrame
-    df = pd.read_csv(input_file, header=None, names=["url"], dtype=str)
+        if len(path_parts) < 2:
+            raise ValueError(f"Expected at least two path segments for {components['repo_id']}")
 
-    # Drop rows where 'url' is NaN or empty
-    df = df.dropna(subset=["url"])
-    df = df[df["url"].str.strip() != ""]
+        # Take the last 2 segments
+        second_last = path_parts[-2]
+        last = path_parts[-1].replace(".git", "")  # remove .git if present
 
-    # Add a placeholder 'app_id' column (optional)
-    df["app_id"] = None
+        # Construct the new repo_id (xxx/yyy)
+        repo_id = f"{second_last}/{last}"
+        # e.g. "bar/baz"
 
-    return df
+        # For the slug, you might just use the last segment
+        repo_slug = last
 
+        # For the name, you could do the same or something else
+        # Here, let's say it's also last
+        repo_name = last
 
-def create_repository_objects(dataframe):
-    """
-    Converts DataFrame rows into unique repository dictionaries based on `repo_id`.
-
-    :param dataframe: Pandas DataFrame with app_id (optional) and url columns.
-    :return: List of unique repository dictionaries.
-    """
-    repositories = []
-    unique_repo_ids = set()  # Track unique repo_ids to prevent duplicates
-
-    for _, row in dataframe.iterrows():
-        parsed = parse_gitlab_url(row["url"])
-
-        # Generate the SSH clone URL
-        ssh_url = f"git@{parsed['host_name']}:{parsed['org']}/{parsed['repo_id']}.git"
-
-        # Check if `repo_id` is unique
-        if parsed["repo_id"] in unique_repo_ids:
-            logger.warning(f"Duplicate repo_id skipped: {parsed['repo_id']}")
-            continue  # Skip duplicates based on `repo_id`
-
-        repositories.append({
-            "repo_id": parsed["repo_id"],
-            "app_id": row["app_id"],  # Will be None if app_id is missing
-            "repo_name": parsed["repo_name"],
-            "repo_slug": parsed["repo_slug"],
-            "host_name": parsed["host_name"],
+        repository_data = {
+            "repo_id": repo_id,                   # "bar/baz"
+            "repo_name": repo_name,               # "baz"
+            "repo_slug": repo_slug,               # "baz"
+            "clone_url_ssh": ssh_url,             # "git@github.com:foo/bar/baz.git"
+            "host_name": components["host_name"], # "github.com"
             "status": "NEW",
-            "clone_url_ssh": ssh_url,
-            "comment": None,
-            "updated_on": datetime.now(timezone.utc)
-        })
+            "updated_on": datetime.now(timezone.utc),
+        }
+        return repository_data
 
-        unique_repo_ids.add(parsed["repo_id"])  # Mark this `repo_id` as processed
+    def upsert_repositories(self, repositories):
+        """
+        Perform an upsert (insert or update) of repository records into the database.
+        """
+        if not repositories:
+            logger.warning("No repositories to upsert.")
+            return
 
-    logger.info(f"Prepared {len(repositories)} unique repository records for upsert")
-    return repositories
+        session = self.Session()
+        try:
+            stmt = pg_insert(Repository).values(repositories)
+            stmt = stmt.on_conflict_do_update(
+                index_elements=["repo_id"],
+                set_={
+                    "host_name": stmt.excluded.host_name,
+                    "clone_url_ssh": stmt.excluded.clone_url_ssh,
+                    "status": stmt.excluded.status,
+                    "updated_on": stmt.excluded.updated_on,
+                }
+            )
+            session.execute(stmt)
+            session.commit()
+            logger.info(f"Upserted {len(repositories)} repositories into the database.")
+        except SQLAlchemyError as e:
+            session.rollback()
+            logger.error(f"Database error during upsert: {e}")
+        finally:
+            session.close()
 
+    def run(self, input_file):
+        """
+        Main entry point:
+          1. Deduplicate the input file
+          2. Read and parse each URL (convert HTTPS -> SSH if needed)
+          3. Build a list of unique repo objects
+          4. Upsert them into the DB
+        """
+        # 1. Deduplicate
+        deduplicated_file = f"{input_file}.deduplicated"
+        self.deduplicate_file(input_file, deduplicated_file)
 
-def upsert_repositories(repositories, engine):
-    """
-    Performs an upsert (insert or update) of repository records into the database.
+        # 2. Read URLs
+        df = self.read_urls(deduplicated_file)
 
-    :param repositories: List of repository dictionaries.
-    :param engine: SQLAlchemy engine connected to the database.
-    """
-    if not repositories:
-        logger.warning("No repositories to upsert.")
-        return
+        # 3. Validate / convert / parse -> build repository objects
+        repositories = []
+        seen_repo_ids = set()
+        for url in df["url"]:
+            try:
+                repo_obj = self.build_repository_object(url)
+                if repo_obj["repo_id"] in seen_repo_ids:
+                    logger.warning(f"Duplicate repo_id skipped: {repo_obj['repo_id']}")
+                    continue
+                repositories.append(repo_obj)
+                seen_repo_ids.add(repo_obj["repo_id"])
+            except ValueError as e:
+                logger.warning(f"Skipping invalid or unsupported URL {url}: {e}")
+                continue
 
-    Session = sessionmaker(bind=engine)
-    session = Session()
-
-    try:
-        stmt = pg_insert(Repository).values(repositories)
-        stmt = stmt.on_conflict_do_update(
-            index_elements=['repo_id'],
-            set_={
-                "app_id": stmt.excluded.app_id,
-                "repo_name": stmt.excluded.repo_name,
-                "repo_slug": stmt.excluded.repo_slug,
-                "clone_url_ssh": stmt.excluded.clone_url_ssh,
-                "host_name": stmt.excluded.host_name,
-                "status": stmt.excluded.status,
-                "comment": stmt.excluded.comment,
-                "updated_on": stmt.excluded.updated_on
-            }
-        )
-        session.execute(stmt)
-        session.commit()
-        logger.info(f"Upserted {len(repositories)} repositories into the database.")
-    except SQLAlchemyError as e:
-        session.rollback()
-        logger.error(f"Database error during upsert: {e}")
-    finally:
-        session.close()
-
+        # 4. Upsert
+        self.upsert_repositories(repositories)
 
 def main():
-    # Parse command-line arguments
     import argparse
     parser = argparse.ArgumentParser(description="Load repository data into the database.")
-    parser.add_argument(
-        "input_file",
-        type=str,
-        help="Path to the input file containing repository URLs."
-    )
+    parser.add_argument("input_file", type=str, help="Path to the input file containing repository URLs.")
     args = parser.parse_args()
-    input_file = args.input_file
 
-    # Deduplicate the input file
-    deduplicated_file = f"{input_file}.deduplicated"
-    deduplicate_file(input_file, deduplicated_file)
-
-    # Process deduplicated file
-    db_url = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-
-    try:
-        engine = create_engine(db_url)
-        logger.info("Connected to the PostgreSQL database.")
-    except SQLAlchemyError as e:
-        logger.error(f"Failed to create database engine: {e}")
-        return
-
-    df = read_urls(deduplicated_file)
-    repositories = create_repository_objects(df)
-    upsert_repositories(repositories, engine)
-
+    loader = RepositoryLoader()
+    loader.run(args.input_file)
 
 if __name__ == "__main__":
     main()
