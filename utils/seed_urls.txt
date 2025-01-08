@@ -1,0 +1,4 @@
+https://github.com/vavkamil/awesome-vulnerable-apps?tab=readme-ov-file
+https://github.com/geeksonsecurity/vuln-web-apps
+https://github.com/vulnerable-apps/awesome-vulnerable
+https://github.com/kaiiyer/awesome-vulnerable
