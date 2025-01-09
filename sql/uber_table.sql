@@ -7,8 +7,6 @@ all_repos AS (
     UNION
     SELECT repo_id FROM cloc_metrics
     UNION
-    SELECT repo_id FROM grype_results
-    UNION
     SELECT repo_id FROM checkov_summary
     UNION
     SELECT repo_id FROM trivy_vulnerability
@@ -29,17 +27,6 @@ cloc_agg AS (
         SUM(comment) AS total_comment,
         SUM(code)    AS total_code
     FROM cloc_metrics
-    GROUP BY repo_id
-),
-grype_agg AS (
-    SELECT
-        repo_id,
-        COUNT(*) AS total_grype_vulns,
-        COUNT(*) FILTER (WHERE severity = 'Critical') AS critical_vulns,
-        COUNT(*) FILTER (WHERE severity = 'High')     AS high_vulns,
-        COUNT(*) FILTER (WHERE severity = 'Medium')   AS medium_vulns,
-        COUNT(*) FILTER (WHERE severity = 'Low')      AS low_vulns
-    FROM grype_results
     GROUP BY repo_id
 ),
 checkov_agg AS (
@@ -112,11 +99,6 @@ SELECT
     c.total_blank,
     c.total_comment,
     c.total_code,
-    g.total_grype_vulns,
-    g.critical_vulns,
-    g.high_vulns,
-    g.medium_vulns,
-    g.low_vulns,
     ck.iac_ansible,
     ck.iac_azure_pipelines,
     ck.iac_bitbucket_pipelines,
@@ -163,7 +145,6 @@ SELECT
 FROM all_repos r
          LEFT JOIN lizard_summary l ON r.repo_id = l.repo_id
          LEFT JOIN cloc_agg c ON r.repo_id = c.repo_id
-         LEFT JOIN grype_agg g ON r.repo_id = g.repo_id
          LEFT JOIN checkov_agg ck ON r.repo_id = ck.repo_id
          LEFT JOIN trivy_agg t ON r.repo_id = t.repo_id
          LEFT JOIN semgrep_agg s ON r.repo_id = s.repo_id
