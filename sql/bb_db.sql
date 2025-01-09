@@ -8,13 +8,12 @@ CREATE TABLE bitbucket_projects (
     updated_on TIMESTAMP
 );
 
-UPDATE your_table_name
-SET repo_id =
-        REGEXP_REPLACE(
-                gitlab_project_url,
-                '.*/([^/]+/[^/]+)/?$',
-                '\1'
-        );
+UPDATE projects
+SET repo_id = REGEXP_REPLACE(
+        gitlab_project_url,
+        '^https?://[^/]+/org/(.*?)/?$',
+        '\1'
+              );
 
 UPDATE repositories r
 SET
