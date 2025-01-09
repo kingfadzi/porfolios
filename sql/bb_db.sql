@@ -16,14 +16,14 @@ SET repo_id =
                 '\1'
         );
 
-INSERT INTO repositories (tc_cluster, tc, app_id, repo_id)
-SELECT p.tc_cluster, p.tc, p.app_id, p.repo_id
-FROM projects p
-    ON CONFLICT (repo_id)
-DO UPDATE SET
-    tc_cluster = EXCLUDED.tc_cluster,
-           tc = EXCLUDED.tc,
-           app_id = EXCLUDED.app_id;
+UPDATE repositories r
+SET
+    tc_cluster = p.tc_cluster,
+    tc         = p.tc,
+    app_id     = p.app_id
+    FROM projects p
+WHERE r.repo_id = p.repo_id;
+
 
 -- Table for repositories
 CREATE TABLE bitbucket_repositories (
