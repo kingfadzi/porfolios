@@ -27,14 +27,16 @@ def analyze_repositories(batch, run_id, **kwargs):
             repo_dir = CloningAnalyzer().clone_repository(repo=repo, run_id=run_id)
             logger.debug(f"Repository cloned to: {repo_dir}")
 
-            LizardAnalyzer().run_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
-            ClocAnalyzer().run_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
-            GoEnryAnalyzer().run_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
-            GitLogAnalyzer().run_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
+            #LizardAnalyzer().run_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
+            #ClocAnalyzer().run_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
+            #GoEnryAnalyzer().run_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
+            #GitLogAnalyzer().run_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
+
             TrivyAnalyzer().run_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
-            SyftAndGrypeAnalyzer().run_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
-            CheckovAnalyzer().run_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
-            SemgrepAnalyzer().run_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
+
+            #SyftAndGrypeAnalyzer().run_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
+            #CheckovAnalyzer().run_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
+            #SemgrepAnalyzer().run_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id=run_id)
 
 
         except Exception as e:
@@ -103,7 +105,9 @@ def fetch_repositories(batch_size=1000):
     session = Session()
     offset = 0
     while True:
+
         batch = session.query(Repository).filter_by(status="NEW").offset(offset).limit(batch_size).all()
+
         #batch = (
         #    session.query(Repository)
         #    .join(RepoMetrics, Repository.repo_id == RepoMetrics.repo_id)  # Explicit join condition

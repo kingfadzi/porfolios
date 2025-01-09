@@ -32,7 +32,7 @@ class TrivyAnalyzer(BaseLogger):
             self.prepare_trivyignore(repo_dir)
 
             result = subprocess.run(
-                ["trivy", "fs", "--skip-db-update", "--skip-java-db-update", "--offline-scan", "--format", "json", repo_dir],
+                ["trivy", "repo", "--skip-db-update", "--skip-java-db-update", "--offline-scan", "--format", "json", repo_dir],
                 capture_output=True,
                 text=True,
                 check=True

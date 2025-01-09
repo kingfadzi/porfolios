@@ -16,22 +16,23 @@ log:
 # Match configuration for supported languages
 match:
   java:
-    using-cpes: true
+    using-cpes: false
   python:
-    using-cpes: true
+    using-cpes: false
   ruby:
-    using-cpes: true
+    using-cpes: false
   javascript:
-    using-cpes: true
+    using-cpes: false
   go:
-    using-cpes: true
+    using-cpes: false
   rust:
-    using-cpes: true
+    using-cpes: false
   c:
     using-cpes: true
   cpp:
-    using-cpes: true
+    using-cpes: false
   dotnet:
+    using-cpes: false
+  stock:
     using-cpes: true
-
 
