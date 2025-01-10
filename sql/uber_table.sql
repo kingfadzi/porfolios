@@ -22,7 +22,8 @@ all_repos AS (
 cloc_agg AS (
     SELECT
         repo_id,
-        SUM(files)   AS total_files,
+        -- Renamed from total_files to source_code_file_count
+        SUM(files)   AS source_code_file_count,
         SUM(blank)   AS total_blank,
         SUM(comment) AS total_comment,
         -- Renamed from total_code to total_lines_of_code
@@ -99,10 +100,9 @@ SELECT
     l.function_count,
     -- Renamed from total_ccn to total_cyclomatic_complexity
     l.total_ccn AS total_cyclomatic_complexity,
-    c.total_files,
+    c.source_code_file_count,
     c.total_blank,
     c.total_comment,
-    -- Renamed from total_code to total_lines_of_code
     c.total_lines_of_code,
     ck.iac_ansible,
     ck.iac_azure_pipelines,
@@ -134,7 +134,8 @@ SELECT
     e.language_count,
     e.main_language,
     rm.repo_size_bytes,
-    rm.file_count,
+    -- Renamed from rm.file_count to repo_file_count
+    rm.file_count AS repo_file_count,
     rm.total_commits,
     rm.number_of_contributors,
     rm.activity_status,

@@ -5,7 +5,7 @@ from sqlalchemy.dialects.postgresql import insert
 from modular.models import Session, ClocMetric
 from modular.execution_decorator import analyze_execution
 from modular.base_logger import BaseLogger  # Import BaseLogger for consistent logging
-import logging 
+import logging
 
 class ClocAnalyzer(BaseLogger):
     """
@@ -37,7 +37,7 @@ class ClocAnalyzer(BaseLogger):
         try:
             self.logger.info(f"Executing CLOC command for repo_id: {repo.repo_id}")
             result = subprocess.run(
-                ["cloc", "--json", str(repo_dir)],
+                ["cloc", "--vcs=git", "--json", str(repo_dir)],
                 capture_output=True,
                 text=True,
                 check=False
