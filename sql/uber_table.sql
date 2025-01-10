@@ -22,13 +22,13 @@ all_repos AS (
 cloc_agg AS (
     SELECT
         repo_id,
-        -- Renamed from total_files to source_code_file_count
         SUM(files)   AS source_code_file_count,
         SUM(blank)   AS total_blank,
         SUM(comment) AS total_comment,
-        -- Renamed from total_code to total_lines_of_code
         SUM(code)    AS total_lines_of_code
     FROM cloc_metrics
+    -- Exclude rows where language = 'SUM'
+    WHERE language != 'SUM'
     GROUP BY repo_id
 ),
 checkov_agg AS (

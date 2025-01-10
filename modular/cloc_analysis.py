@@ -14,7 +14,7 @@ class ClocAnalyzer(BaseLogger):
 
     def __init__(self):
         self.logger = self.get_logger("ClocAnalyzer")
-        self.logger.setLevel(logging.WARN)  # Default logging level
+        self.logger.setLevel(logging.DEBUG)  # Default logging level
 
     @analyze_execution(session_factory=Session, stage="CLOC Analysis")
     def run_analysis(self, repo_dir, repo, session, run_id=None):
@@ -85,6 +85,7 @@ class ClocAnalyzer(BaseLogger):
                     continue
 
                 self.logger.debug(f"Saving metrics for language: {language} in repo_id: {repo_id}")
+                self.logger.debug(f"nFiles: {metrics["nFiles"]}")
                 session.execute(
                     insert(ClocMetric).values(
                         repo_id=repo_id,
@@ -115,8 +116,8 @@ class ClocAnalyzer(BaseLogger):
 
 
 if __name__ == "__main__":
-    repo_slug = "WebGoat"
-    repo_id = "WebGoat"
+    repo_slug = "VulnerableLightApp"
+    repo_id = "VulnerableLightApp"
     repo_dir = f"/tmp/{repo_slug}"
 
     class MockRepo:
