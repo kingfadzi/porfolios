@@ -25,7 +25,8 @@ cloc_agg AS (
         SUM(files)   AS total_files,
         SUM(blank)   AS total_blank,
         SUM(comment) AS total_comment,
-        SUM(code)    AS total_code
+        -- Renamed from total_code to total_lines_of_code
+        SUM(code)    AS total_lines_of_code
     FROM cloc_metrics
     GROUP BY repo_id
 ),
@@ -90,15 +91,19 @@ go_enry_agg AS (
 )
 SELECT
     r.repo_id,
-    l.total_nloc,
-    l.avg_ccn,
+    -- Renamed from total_nloc to executable_lines_of_code
+    l.total_nloc AS executable_lines_of_code,
+    -- Renamed from avg_ccn to avg_cyclomatic_complexity
+    l.avg_ccn AS avg_cyclomatic_complexity,
     l.total_token_count,
     l.function_count,
-    l.total_ccn AS total_ccn_lizard,
+    -- Renamed from total_ccn to total_cyclomatic_complexity
+    l.total_ccn AS total_cyclomatic_complexity,
     c.total_files,
     c.total_blank,
     c.total_comment,
-    c.total_code,
+    -- Renamed from total_code to total_lines_of_code
+    c.total_lines_of_code,
     ck.iac_ansible,
     ck.iac_azure_pipelines,
     ck.iac_bitbucket_pipelines,
