@@ -85,7 +85,7 @@ class ClocAnalyzer(BaseLogger):
                     continue
 
                 self.logger.debug(f"Saving metrics for language: {language} in repo_id: {repo_id}")
-                self.logger.debug(f"nFiles: {metrics["nFiles"]}")
+                
                 session.execute(
                     insert(ClocMetric).values(
                         repo_id=repo_id,
