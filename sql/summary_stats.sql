@@ -96,3 +96,152 @@ SELECT
     COUNT(*) FILTER (WHERE main_language = 'Python') AS python_repos,
     COUNT(*) FILTER (WHERE main_language = 'Go') AS go_repos
 FROM combined_repo_metrics;
+
+-- 1. Overall Repository Summary (ACTIVE Only)
+SELECT 
+    COUNT(*) AS total_active_repos,
+    AVG(repo_size_bytes) AS avg_repo_size,
+    AVG(number_of_files) AS avg_number_of_files,
+    AVG(number_of_contributors) AS avg_number_of_contributors,
+    MAX(last_commit_date) AS most_recent_commit
+FROM combined_repo_metrics
+WHERE ACTIVITY_STATUS = 'ACTIVE';
+
+-- 2. Semgrep Coverage (ACTIVE Only)
+SELECT 
+    COUNT(*) AS total_active_repos,
+    COUNT(*) FILTER (WHERE total_semgrep_findings > 0) AS active_repos_with_semgrep,
+    (COUNT(*) FILTER (WHERE total_semgrep_findings > 0) * 100.0 / COUNT(*)) AS active_semgrep_coverage_percentage
+FROM combined_repo_metrics
+WHERE ACTIVITY_STATUS = 'ACTIVE';
+
+-- 3. Distribution of Semgrep Findings (ACTIVE Only)
+SELECT 
+    PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY total_semgrep_findings) AS median_findings,
+    PERCENTILE_CONT(0.9) WITHIN GROUP (ORDER BY total_semgrep_findings) AS p90_findings,
+    PERCENTILE_CONT(0.99) WITHIN GROUP (ORDER BY total_semgrep_findings) AS p99_findings,
+    COUNT(*) FILTER (WHERE total_semgrep_findings = 0) AS active_repos_without_findings
+FROM combined_repo_metrics
+WHERE ACTIVITY_STATUS = 'ACTIVE';
+
+-- 4. Aggregate Semgrep Findings (ACTIVE Only)
+SELECT 
+    SUM(total_semgrep_findings) AS total_findings,
+    SUM(cat_security) AS total_security_findings,
+    SUM(cat_correctness) AS total_correctness_findings,
+    SUM(cat_maintainability) AS total_maintainability_findings,
+    SUM(cat_performance) AS total_performance_findings,
+    SUM(cat_portability) AS total_portability_findings,
+    SUM(cat_best_practice) AS total_best_practice_findings
+FROM combined_repo_metrics
+WHERE ACTIVITY_STATUS = 'ACTIVE';
+
+-- 5. IaC Adoption Summary (ACTIVE Only)
+SELECT 
+    COUNT(*) AS total_active_repos,
+    COUNT(*) FILTER (WHERE iac_dockerfile = 1) AS dockerfile_repos,
+    COUNT(*) FILTER (WHERE iac_kubernetes = 1) AS kubernetes_repos,
+    COUNT(*) FILTER (WHERE iac_terraform = 1) AS terraform_repos,
+    COUNT(*) FILTER (WHERE iac_github_actions = 1) AS github_actions_repos,
+    COUNT(*) FILTER (WHERE iac_terraform_plan = 1) AS terraform_plan_repos
+FROM combined_repo_metrics
+WHERE ACTIVITY_STATUS = 'ACTIVE';
+
+-- 6. High-Risk Repositories (ACTIVE Only)
+SELECT 
+    repo_id,
+    total_code,
+    avg_ccn,
+    total_trivy_vulns,
+    total_semgrep_findings,
+    number_of_contributors,
+    repo_size_bytes,
+    total_commits
+FROM combined_repo_metrics
+WHERE ACTIVITY_STATUS = 'ACTIVE'
+  AND (total_trivy_vulns > 10 OR avg_ccn > 5 OR total_semgrep_findings > 50)
+ORDER BY total_trivy_vulns DESC, avg_ccn DESC;
+
+-- 7. File Size and Code Relationships (ACTIVE Only)
+SELECT 
+    repo_id,
+    repo_size_bytes,
+    number_of_files,
+    total_code,
+    repo_size_bytes / NULLIF(number_of_files, 1) AS size_per_file,
+    total_code / NULLIF(number_of_files, 1) AS code_per_file
+FROM combined_repo_metrics
+WHERE ACTIVITY_STATUS = 'ACTIVE'
+ORDER BY size_per_file DESC;
+
+-- 8. Commit Activity (ACTIVE Only)
+SELECT 
+    repo_id,
+    total_commits,
+    number_of_contributors,
+    total_commits / NULLIF(number_of_contributors, 1) AS commits_per_contributor,
+    last_commit_date
+FROM combined_repo_metrics
+WHERE ACTIVITY_STATUS = 'ACTIVE'
+ORDER BY total_commits DESC;
+
+-- 9. Repositories Without Semgrep Findings (ACTIVE Only)
+SELECT 
+    repo_id,
+    total_code,
+    number_of_files,
+    number_of_contributors,
+    repo_size_bytes,
+    last_commit_date
+FROM combined_repo_metrics
+WHERE ACTIVITY_STATUS = 'ACTIVE'
+  AND total_semgrep_findings = 0
+ORDER BY last_commit_date DESC;
+
+-- 10. Correlation Analysis (ACTIVE Only)
+SELECT 
+    CORR(number_of_contributors, total_semgrep_findings) AS contributors_findings_corr,
+    CORR(number_of_contributors, total_code) AS contributors_code_corr,
+    CORR(total_code, total_semgrep_findings) AS code_findings_corr
+FROM combined_repo_metrics
+WHERE ACTIVITY_STATUS = 'ACTIVE';
+
+-- 11. Age of Repositories (ACTIVE Only)
+SELECT 
+    repo_id,
+    repo_age_days,
+    total_commits,
+    total_semgrep_findings,
+    last_commit_date,
+    CASE 
+        WHEN repo_age_days > 1000 THEN 'Legacy'
+        ELSE 'Modern'
+    END AS age_category
+FROM combined_repo_metrics
+WHERE ACTIVITY_STATUS = 'ACTIVE'
+ORDER BY repo_age_days DESC;
+
+-- 12. Semgrep Findings by Repository Age (ACTIVE Only)
+SELECT 
+    repo_id,
+    repo_age_days,
+    total_semgrep_findings,
+    cat_security,
+    cat_correctness,
+    total_code
+FROM combined_repo_metrics
+WHERE ACTIVITY_STATUS = 'ACTIVE'
+ORDER BY repo_age_days DESC, total_semgrep_findings DESC;
+
+-- 13. Aggregate IaC and Semgrep Data (ACTIVE Only)
+SELECT 
+    COUNT(*) AS total_active_repos,
+    COUNT(*) FILTER (WHERE iac_dockerfile = 1) AS dockerfile_repos,
+    COUNT(*) FILTER (WHERE iac_kubernetes = 1) AS kubernetes_repos,
+    COUNT(*) FILTER (WHERE total_semgrep_findings > 0) AS repos_with_semgrep,
+    SUM(total_semgrep_findings) AS total_semgrep_findings,
+    AVG(total_code) AS avg_code_size,
+    AVG(total_commits) AS avg_commits,
+    AVG(repo_size_bytes) AS avg_repo_size
+FROM combined_repo_metrics
+WHERE ACTIVITY_STATUS = 'ACTIVE';
