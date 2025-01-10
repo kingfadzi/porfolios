@@ -29,7 +29,7 @@ class TrivyAnalyzer(BaseLogger):
 
         self.logger.info(f"Executing Trivy command in directory: {repo_dir}")
         try:
-            self.prepare_trivyignore(repo_dir)
+            # self.prepare_trivyignore(repo_dir)
 
             result = subprocess.run(
                 ["trivy", "repo", "--skip-db-update", "--skip-java-db-update", "--offline-scan", "--format", "json", repo_dir],
