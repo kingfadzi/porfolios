@@ -361,3 +361,59 @@ WHERE ACTIVITY_STATUS = 'ACTIVE'
   AND total_code = 0
   AND total_semgrep_findings = 0
 ORDER BY repo_size_bytes DESC;
+
+-- 1. Compare Characteristics of Repositories With and Without Main Language Detected
+SELECT
+    CASE
+        WHEN main_language IS NULL THEN 'No Main Language Detected'
+        ELSE 'Main Language Detected'
+        END AS language_status,
+    COUNT(*) AS repo_count,
+    AVG(file_count) AS avg_file_count,
+    AVG(repo_size_bytes) AS avg_repo_size,
+    AVG(number_of_contributors) AS avg_contributors,
+    AVG(total_commits) AS avg_commits,
+    AVG(total_code) AS avg_code_lines
+FROM combined_repo_metrics
+WHERE ACTIVITY_STATUS = 'ACTIVE'
+GROUP BY language_status
+ORDER BY language_status;
+
+-- 2. Detailed Breakdown of Repositories Without Main Language
+SELECT
+    repo_id,
+    file_count,
+    repo_size_bytes,
+    number_of_contributors,
+    total_commits,
+    total_code,
+    last_commit_date
+FROM combined_repo_metrics
+WHERE ACTIVITY_STATUS = 'ACTIVE'
+  AND main_language IS NULL
+ORDER BY repo_size_bytes DESC;
+
+-- 3. File Count Distribution for Repositories Without Main Language
+SELECT
+    file_count,
+    COUNT(*) AS repo_count
+FROM combined_repo_metrics
+WHERE ACTIVITY_STATUS = 'ACTIVE'
+  AND main_language IS NULL
+GROUP BY file_count
+ORDER BY file_count DESC;
+
+-- 4. Repositories With Main Language Detected
+SELECT
+    main_language,
+    COUNT(*) AS repo_count,
+    AVG(file_count) AS avg_file_count,
+    AVG(repo_size_bytes) AS avg_repo_size,
+    AVG(number_of_contributors) AS avg_contributors,
+    AVG(total_commits) AS avg_commits,
+    AVG(total_code) AS avg_code_lines
+FROM combined_repo_metrics
+WHERE ACTIVITY_STATUS = 'ACTIVE'
+  AND main_language IS NOT NULL
+GROUP BY main_language
+ORDER BY repo_count DESC;
