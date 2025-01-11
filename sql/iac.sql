@@ -31,33 +31,87 @@ ORDER BY 2 DESC;
 -- 2) Tool-by-Tool Usage
 -- Bar Chart: Compare usage counts of each IaC tool
 -- =============================================================================
-SELECT 'Ansible'               AS iac_tool, SUM(iac_ansible)               AS usage_count FROM combined_repo_metrics
+SELECT 'Ansible' AS iac_tool, SUM(iac_ansible) AS usage_count
+FROM combined_repo_metrics
+WHERE activity_status = 'ACTIVE'
+
 UNION ALL
-SELECT 'Terraform'             AS iac_tool, SUM(iac_terraform)             AS usage_count FROM combined_repo_metrics
+
+SELECT 'Terraform' AS iac_tool, SUM(iac_terraform) AS usage_count
+FROM combined_repo_metrics
+WHERE activity_status = 'ACTIVE'
+
 UNION ALL
-SELECT 'Kubernetes'            AS iac_tool, SUM(iac_kubernetes)            AS usage_count FROM combined_repo_metrics
+
+SELECT 'Kubernetes' AS iac_tool, SUM(iac_kubernetes) AS usage_count
+FROM combined_repo_metrics
+WHERE activity_status = 'ACTIVE'
+
 UNION ALL
-SELECT 'Dockerfile'            AS iac_tool, SUM(iac_dockerfile)            AS usage_count FROM combined_repo_metrics
+
+SELECT 'Dockerfile' AS iac_tool, SUM(iac_dockerfile) AS usage_count
+FROM combined_repo_metrics
+WHERE activity_status = 'ACTIVE'
+
 UNION ALL
-SELECT 'Secrets'               AS iac_tool, SUM(iac_secrets)               AS usage_count FROM combined_repo_metrics
+
+SELECT 'Secrets' AS iac_tool, SUM(iac_secrets) AS usage_count
+FROM combined_repo_metrics
+WHERE activity_status = 'ACTIVE'
+
 UNION ALL
-SELECT 'OpenAPI'               AS iac_tool, SUM(iac_openapi)               AS usage_count FROM combined_repo_metrics
+
+SELECT 'OpenAPI' AS iac_tool, SUM(iac_openapi) AS usage_count
+FROM combined_repo_metrics
+WHERE activity_status = 'ACTIVE'
+
 UNION ALL
-SELECT 'CloudFormation'        AS iac_tool, SUM(iac_cloudformation)        AS usage_count FROM combined_repo_metrics
+
+SELECT 'CloudFormation' AS iac_tool, SUM(iac_cloudformation) AS usage_count
+FROM combined_repo_metrics
+WHERE activity_status = 'ACTIVE'
+
 UNION ALL
-SELECT 'Azure Pipelines'       AS iac_tool, SUM(iac_azure_pipelines)       AS usage_count FROM combined_repo_metrics
+
+SELECT 'Azure Pipelines' AS iac_tool, SUM(iac_azure_pipelines) AS usage_count
+FROM combined_repo_metrics
+WHERE activity_status = 'ACTIVE'
+
 UNION ALL
-SELECT 'Bitbucket Pipelines'   AS iac_tool, SUM(iac_bitbucket_pipelines)   AS usage_count FROM combined_repo_metrics
+
+SELECT 'Bitbucket Pipelines' AS iac_tool, SUM(iac_bitbucket_pipelines) AS usage_count
+FROM combined_repo_metrics
+WHERE activity_status = 'ACTIVE'
+
 UNION ALL
-SELECT 'CircleCI Pipelines'    AS iac_tool, SUM(iac_circleci_pipelines)    AS usage_count FROM combined_repo_metrics
+
+SELECT 'CircleCI Pipelines' AS iac_tool, SUM(iac_circleci_pipelines) AS usage_count
+FROM combined_repo_metrics
+WHERE activity_status = 'ACTIVE'
+
 UNION ALL
-SELECT 'GitHub Actions'        AS iac_tool, SUM(iac_github_actions)        AS usage_count FROM combined_repo_metrics
+
+SELECT 'GitHub Actions' AS iac_tool, SUM(iac_github_actions) AS usage_count
+FROM combined_repo_metrics
+WHERE activity_status = 'ACTIVE'
+
 UNION ALL
-SELECT 'GitLab CI'             AS iac_tool, SUM(iac_gitlab_ci)             AS usage_count FROM combined_repo_metrics
+
+SELECT 'GitLab CI' AS iac_tool, SUM(iac_gitlab_ci) AS usage_count
+FROM combined_repo_metrics
+WHERE activity_status = 'ACTIVE'
+
 UNION ALL
-SELECT 'Terraform Plan'        AS iac_tool, SUM(iac_terraform_plan)        AS usage_count FROM combined_repo_metrics
+
+SELECT 'Terraform Plan' AS iac_tool, SUM(iac_terraform_plan) AS usage_count
+FROM combined_repo_metrics
+WHERE activity_status = 'ACTIVE'
+
 UNION ALL
-SELECT 'No Checks'             AS iac_tool, SUM(iac_no_checks)             AS usage_count FROM combined_repo_metrics
+
+SELECT 'No Checks' AS iac_tool, SUM(iac_no_checks) AS usage_count
+FROM combined_repo_metrics
+WHERE activity_status = 'ACTIVE'
 ;
 
 
