@@ -420,17 +420,19 @@ ORDER BY repo_count DESC;
 
 SELECT
     repo_id,
-    total_lines_of_code,
+    executable_lines_of_code,
     avg_cyclomatic_complexity,
     COALESCE(total_trivy_vulns, 0) AS total_trivy_vulns,
     language_count,
     main_language,
     (
-        0.4 * total_lines_of_code +
+        0.4 * executable_lines_of_code +
         0.4 * avg_cyclomatic_complexity +
         0.2 * COALESCE(total_trivy_vulns, 0)
         ) AS technical_debt_score
 FROM combined_repo_metrics
+WHERE executable_lines_of_code > 0
 ORDER BY technical_debt_score DESC
     LIMIT 10;
+
 
