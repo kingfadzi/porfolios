@@ -31,88 +31,27 @@ ORDER BY 2 DESC;
 -- 2) Tool-by-Tool Usage
 -- Bar Chart: Compare usage counts of each IaC tool
 -- =============================================================================
-SELECT 'Ansible' AS iac_tool, SUM(iac_ansible) AS usage_count
+SELECT
+    CASE
+        WHEN iac_ansible > 0 THEN 'Ansible'
+        WHEN iac_terraform > 0 THEN 'Terraform'
+        WHEN iac_kubernetes > 0 THEN 'Kubernetes'
+        WHEN iac_dockerfile > 0 THEN 'Dockerfile'
+        WHEN iac_secrets > 0 THEN 'Secrets'
+        WHEN iac_openapi > 0 THEN 'OpenAPI'
+        WHEN iac_cloudformation > 0 THEN 'CloudFormation'
+        WHEN iac_azure_pipelines > 0 THEN 'Azure Pipelines'
+        WHEN iac_bitbucket_pipelines > 0 THEN 'Bitbucket Pipelines'
+        WHEN iac_circleci_pipelines > 0 THEN 'CircleCI Pipelines'
+        WHEN iac_github_actions > 0 THEN 'GitHub Actions'
+        WHEN iac_gitlab_ci > 0 THEN 'GitLab CI'
+        WHEN iac_terraform_plan > 0 THEN 'Terraform Plan'
+        ELSE 'No IaC'
+        END AS iac_tool,
+    COUNT(*) AS repo_count
 FROM combined_repo_metrics
-WHERE activity_status = 'ACTIVE'
-
-UNION ALL
-
-SELECT 'Terraform' AS iac_tool, SUM(iac_terraform) AS usage_count
-FROM combined_repo_metrics
-WHERE activity_status = 'ACTIVE'
-
-UNION ALL
-
-SELECT 'Kubernetes' AS iac_tool, SUM(iac_kubernetes) AS usage_count
-FROM combined_repo_metrics
-WHERE activity_status = 'ACTIVE'
-
-UNION ALL
-
-SELECT 'Dockerfile' AS iac_tool, SUM(iac_dockerfile) AS usage_count
-FROM combined_repo_metrics
-WHERE activity_status = 'ACTIVE'
-
-UNION ALL
-
-SELECT 'Secrets' AS iac_tool, SUM(iac_secrets) AS usage_count
-FROM combined_repo_metrics
-WHERE activity_status = 'ACTIVE'
-
-UNION ALL
-
-SELECT 'OpenAPI' AS iac_tool, SUM(iac_openapi) AS usage_count
-FROM combined_repo_metrics
-WHERE activity_status = 'ACTIVE'
-
-UNION ALL
-
-SELECT 'CloudFormation' AS iac_tool, SUM(iac_cloudformation) AS usage_count
-FROM combined_repo_metrics
-WHERE activity_status = 'ACTIVE'
-
-UNION ALL
-
-SELECT 'Azure Pipelines' AS iac_tool, SUM(iac_azure_pipelines) AS usage_count
-FROM combined_repo_metrics
-WHERE activity_status = 'ACTIVE'
-
-UNION ALL
-
-SELECT 'Bitbucket Pipelines' AS iac_tool, SUM(iac_bitbucket_pipelines) AS usage_count
-FROM combined_repo_metrics
-WHERE activity_status = 'ACTIVE'
-
-UNION ALL
-
-SELECT 'CircleCI Pipelines' AS iac_tool, SUM(iac_circleci_pipelines) AS usage_count
-FROM combined_repo_metrics
-WHERE activity_status = 'ACTIVE'
-
-UNION ALL
-
-SELECT 'GitHub Actions' AS iac_tool, SUM(iac_github_actions) AS usage_count
-FROM combined_repo_metrics
-WHERE activity_status = 'ACTIVE'
-
-UNION ALL
-
-SELECT 'GitLab CI' AS iac_tool, SUM(iac_gitlab_ci) AS usage_count
-FROM combined_repo_metrics
-WHERE activity_status = 'ACTIVE'
-
-UNION ALL
-
-SELECT 'Terraform Plan' AS iac_tool, SUM(iac_terraform_plan) AS usage_count
-FROM combined_repo_metrics
-WHERE activity_status = 'ACTIVE'
-
-UNION ALL
-
-SELECT 'No Checks' AS iac_tool, SUM(iac_no_checks) AS usage_count
-FROM combined_repo_metrics
-WHERE activity_status = 'ACTIVE'
-;
+GROUP BY 1
+ORDER BY 2 DESC;
 
 
 -- =============================================================================
