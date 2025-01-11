@@ -418,20 +418,54 @@ WHERE ACTIVITY_STATUS = 'ACTIVE'
 GROUP BY main_language
 ORDER BY repo_count DESC;
 
+WITH metric_bounds AS (
+    SELECT
+        MIN(executable_lines_of_code)      AS min_loc,
+        MAX(executable_lines_of_code)      AS max_loc,
+        MIN(avg_cyclomatic_complexity)     AS min_cc,
+        MAX(avg_cyclomatic_complexity)     AS max_cc,
+        MIN(total_trivy_vulns)             AS min_tv,
+        MAX(total_trivy_vulns)             AS max_tv
+    FROM combined_repo_metrics
+),
+     normalized AS (
+         SELECT
+             crm.repo_id,
+
+             CASE
+                 WHEN mb.max_loc = mb.min_loc THEN 0
+                 ELSE (crm.executable_lines_of_code - mb.min_loc) / (mb.max_loc - mb.min_loc)
+                 END AS loc_norm,
+
+             CASE
+                 WHEN mb.max_cc = mb.min_cc THEN 0
+                 ELSE (crm.avg_cyclomatic_complexity - mb.min_cc) / (mb.max_cc - mb.min_cc)
+                 END AS cc_norm,
+
+             CASE
+                 WHEN mb.max_tv = mb.min_tv THEN 0
+                 ELSE (crm.total_trivy_vulns - mb.min_tv) / (mb.max_tv - mb.min_tv)
+                 END AS tv_norm,
+
+             crm.language_count,
+             crm.main_language
+
+         FROM combined_repo_metrics crm
+                  CROSS JOIN metric_bounds mb
+     )
 SELECT
     repo_id,
-    executable_lines_of_code,
-    avg_cyclomatic_complexity,
-    COALESCE(total_trivy_vulns, 0) AS total_trivy_vulns,
+    loc_norm,
+    cc_norm,
+    tv_norm,
     language_count,
     main_language,
     (
-        0.4 * executable_lines_of_code +
-        0.4 * avg_cyclomatic_complexity +
-        0.2 * COALESCE(total_trivy_vulns, 0)
+        0.4 * loc_norm +
+        0.4 * cc_norm +
+        0.2 * tv_norm
         ) AS technical_debt_score
-FROM combined_repo_metrics
-WHERE executable_lines_of_code > 0
+FROM normalized
 ORDER BY technical_debt_score DESC
     LIMIT 10;
 
