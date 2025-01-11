@@ -417,3 +417,19 @@ WHERE ACTIVITY_STATUS = 'ACTIVE'
   AND main_language IS NOT NULL
 GROUP BY main_language
 ORDER BY repo_count DESC;
+
+SELECT
+    repo_id,
+    -- total_code -> total_lines_of_code
+    total_lines_of_code,
+    -- avg_ccn -> avg_cyclomatic_complexity
+    avg_cyclomatic_complexity,
+    total_trivy_vulns,
+    language_count,
+    main_language,
+    (0.4 * total_lines_of_code
+        + 0.4 * avg_cyclomatic_complexity
+        + 0.2 * total_trivy_vulns) AS technical_debt_score
+FROM combined_repo_metrics
+ORDER BY technical_debt_score DESC
+    LIMIT 10;
