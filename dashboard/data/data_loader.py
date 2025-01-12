@@ -4,6 +4,26 @@ import pandas as pd
 # Initialize database connection
 engine = create_engine("postgresql://postgres:postgres@192.168.1.188:5422/gitlab-usage")
 
+def fetch_dropdown_options():
+    """
+    Fetch unique values for dropdown fields.
+    :return: Dictionary of options for dropdowns.
+    """
+    query = """
+    SELECT DISTINCT 
+        host_name, 
+        main_language, 
+        classification_label
+    FROM combined_repo_metrics
+    """
+    df = pd.read_sql(query, engine)
+
+    return {
+        "host_names": df["host_name"].dropna().unique().tolist(),
+        "languages": df["main_language"].dropna().unique().tolist(),
+        "classification_labels": df["classification_label"].dropna().unique().tolist(),
+    }
+
 def build_filter_conditions(filters):
     """
     Build a dynamic SQL WHERE clause based on filter inputs.
@@ -26,7 +46,7 @@ def fetch_active_inactive_data(filters=None):
     :return: DataFrame with aggregated data.
     """
     filter_conditions = build_filter_conditions(filters)
-    
+
     query = """
     SELECT activity_status, COUNT(*) AS repo_count
     FROM combined_repo_metrics
@@ -44,7 +64,7 @@ def fetch_classification_data(filters=None):
     :return: DataFrame with aggregated data.
     """
     filter_conditions = build_filter_conditions(filters)
-    
+
     query = """
     SELECT classification_label, COUNT(*) AS repo_count
     FROM combined_repo_metrics
@@ -62,7 +82,7 @@ def fetch_language_data(filters=None):
     :return: DataFrame with aggregated data.
     """
     filter_conditions = build_filter_conditions(filters)
-    
+
     query = """
     SELECT main_language, COUNT(*) AS repo_count
     FROM combined_repo_metrics
@@ -80,7 +100,7 @@ def fetch_heatmap_data(filters=None):
     :return: DataFrame with aggregated data.
     """
     filter_conditions = build_filter_conditions(filters)
-    
+
     query = """
     SELECT 
         COUNT(*) AS repo_count,

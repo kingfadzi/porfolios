@@ -1,7 +1,6 @@
 from dash import Dash
 from layouts.layout_main import main_layout
-from data.data_loader import load_data
-from app_callbacks import register_callbacks
+from app_callbacks import register_callbacks, register_dropdown_callbacks
 import dash_bootstrap_components as dbc
 import plotly.io as pio
 
@@ -9,18 +8,12 @@ import plotly.io as pio
 app = Dash(__name__, external_stylesheets=[dbc.themes.MINTY])
 pio.templates.default = "plotly_white"
 
-# Load data
-df = load_data()
-
 # Set layout
-app.layout = main_layout(
-    host_names=df['host_name'].dropna().unique(),
-    languages=df['main_language'].dropna().unique(),
-    classification_labels=df['classification_label'].dropna().unique(),
-)
+app.layout = main_layout()
 
 # Register callbacks
 register_callbacks(app)
+register_dropdown_callbacks(app)
 
 if __name__ == "__main__":
     app.run_server(host="0.0.0.0", port=8050, debug=True)

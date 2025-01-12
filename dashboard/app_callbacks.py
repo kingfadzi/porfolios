@@ -4,8 +4,28 @@ from data.data_loader import (
     fetch_classification_data,
     fetch_language_data,
     fetch_heatmap_data,
+    fetch_dropdown_options,
 )
 from callbacks.viz_functions import create_bar_chart, create_pie_chart, create_language_chart, create_heatmap
+
+def register_dropdown_callbacks(app):
+    @app.callback(
+        [
+            Output("host-name-filter", "options"),
+            Output("language-filter", "options"),
+            Output("classification-filter", "options"),
+        ],
+        [Input("app-layout", "children")]  # Trigger callback on app layout load
+    )
+    def populate_dropdown_options(_):
+        # Fetch dropdown options dynamically
+        options = fetch_dropdown_options()
+        
+        return (
+            [{"label": name, "value": name} for name in options["host_names"]],
+            [{"label": lang, "value": lang} for lang in options["languages"]],
+            [{"label": label, "value": label} for label in options["classification_labels"]],
+        )
 
 def register_callbacks(app):
     @app.callback(
@@ -18,22 +38,14 @@ def register_callbacks(app):
         [
             Input("host-name-filter", "value"),
             Input("language-filter", "value"),
-            Input("app-id-filter", "value"),
             Input("classification-filter", "value"),
         ],
     )
-    def update_charts(selected_hosts, selected_languages, app_id_input, selected_classifications):
-        # Parse the app_id input
-        if app_id_input:
-            app_ids = [id.strip() for id in app_id_input.split(",")]
-        else:
-            app_ids = None
-
+    def update_charts(selected_hosts, selected_languages, selected_classifications):
         # Create a dictionary of filters dynamically
         filters = {
             "host_name": selected_hosts,
             "main_language": selected_languages,
-            "app_id": app_ids,
             "classification_label": selected_classifications,
         }
 
