@@ -12,22 +12,39 @@ def create_bar_chart(filtered_df):
         color_discrete_sequence=px.colors.qualitative.Set1,
     ).update_layout(
         title={"x": 0.5},
-        dragmode="pan",  # Enable panning only
+        dragmode="pan",
         plot_bgcolor="#f8f9fa",
         paper_bgcolor="#ffffff",
     )
 
 
 def create_pie_chart(filtered_df):
-    return px.pie(
+    total_count = filtered_df.shape[0]
+
+    pie_chart = px.pie(
         filtered_df,
         names="classification_label",
-        title="Repository Classification",
+        title=f"Repository Classification (Total: {total_count})",
         hole=0.4,
-    ).update_layout(
-        title={"x": 0.5},
-        dragmode="pan",  # Enable panning only
     )
+
+    pie_chart.update_traces(
+        textinfo="percent+value",
+        hovertemplate="<b>%{label}</b><br>Count: %{value}<br>Percent: %{percent}",
+    )
+
+    pie_chart.update_layout(
+        title={"x": 0.5},
+        legend_title="Classification",
+        legend=dict(
+            orientation="h",
+            x=0.5,
+            xanchor="center",
+            y=-0.1,
+        ),
+    )
+
+    return pie_chart
 
 
 def create_heatmap(filtered_df):
@@ -62,7 +79,7 @@ def create_heatmap(filtered_df):
         labels={"x": "Commit Buckets", "y": "Contributor Buckets", "color": "Repo Count"},
         color_continuous_scale="Viridis",
     ).update_layout(
-        dragmode="pan",  # Enable panning only
+        dragmode="pan",
     )
 
 
@@ -80,7 +97,7 @@ def create_language_bar_chart(filtered_df):
         title={"x": 0.5},
         xaxis={"title": "Main Language"},
         yaxis={"title": "Repository Count"},
-        dragmode="pan",  # Enable panning only
+        dragmode="pan",
         plot_bgcolor="#f8f9fa",
         paper_bgcolor="#ffffff",
     )
