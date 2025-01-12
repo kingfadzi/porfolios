@@ -17,6 +17,7 @@ def register_callbacks(app, df):
         ],
     )
     def update_charts(selected_hosts, selected_languages, selected_app_ids, selected_classifications):
+        # Filter data
         filtered_df = df.copy()
         if selected_hosts:
             filtered_df = filtered_df[filtered_df["host_name"].isin(selected_hosts)]
