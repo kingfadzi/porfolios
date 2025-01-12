@@ -28,6 +28,14 @@ def filter_layout():
                 placeholder="Select Classification(s)",
                 className="form-select mb-3",
             ),
+            html.Label("Filter by Activity Status:", className="form-label"),  # New filter
+            dcc.Dropdown(
+                id="activity-status-filter",
+                options=[],  # Empty options, will be populated dynamically
+                multi=True,
+                placeholder="Select Activity Status",
+                className="form-select mb-3",
+            ),
         ],
         width=3,
     )

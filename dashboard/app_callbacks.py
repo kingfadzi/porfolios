@@ -14,6 +14,7 @@ def register_dropdown_callbacks(app):
             Output("host-name-filter", "options"),
             Output("language-filter", "options"),
             Output("classification-filter", "options"),
+            Output("activity-status-filter", "options"),  # New field
         ],
         [Input("app-layout", "children")]  # Trigger callback on app layout load
     )
@@ -25,6 +26,7 @@ def register_dropdown_callbacks(app):
             [{"label": name, "value": name} for name in options["host_names"]],
             [{"label": lang, "value": lang} for lang in options["languages"]],
             [{"label": label, "value": label} for label in options["classification_labels"]],
+            [{"label": status, "value": status} for status in options["activity_statuses"]],  # Populate activity_status
         )
 
 def register_callbacks(app):
@@ -39,14 +41,16 @@ def register_callbacks(app):
             Input("host-name-filter", "value"),
             Input("language-filter", "value"),
             Input("classification-filter", "value"),
+            Input("activity-status-filter", "value"),  # New field
         ],
     )
-    def update_charts(selected_hosts, selected_languages, selected_classifications):
+    def update_charts(selected_hosts, selected_languages, selected_classifications, selected_statuses):
         # Create a dictionary of filters dynamically
         filters = {
             "host_name": selected_hosts,
             "main_language": selected_languages,
             "classification_label": selected_classifications,
+            "activity_status": selected_statuses,  # Add activity_status to filters
         }
 
         # Fetch data for each visualization
