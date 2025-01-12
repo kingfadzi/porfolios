@@ -8,7 +8,7 @@ def chart_layout():
                 dbc.CardBody([
                     dcc.Graph(
                         id="active-inactive-bar",
-                        config={"displayModeBar": True, "modeBarButtonsToRemove": ["sendDataToCloud"]},  # Remove Plotly icon
+                        config={'displayModeBar': True, 'displaylogo': False},  # Disable Plotly logo
                     ),
                 ]),
                 className="mb-4",
@@ -17,7 +17,7 @@ def chart_layout():
                 dbc.CardBody([
                     dcc.Graph(
                         id="classification-pie",
-                        config={"displayModeBar": True, "modeBarButtonsToRemove": ["sendDataToCloud"]},
+                        config={'displayModeBar': True, 'displaylogo': False},  # Disable Plotly logo
                     ),
                 ]),
                 className="mb-4",
@@ -26,7 +26,7 @@ def chart_layout():
                 dbc.CardBody([
                     dcc.Graph(
                         id="heatmap-viz",
-                        config={"displayModeBar": True, "modeBarButtonsToRemove": ["sendDataToCloud"]},
+                        config={'displayModeBar': True, 'displaylogo': False},  # Disable Plotly logo
                     ),
                 ]),
                 className="mb-4",
@@ -35,7 +35,7 @@ def chart_layout():
                 dbc.CardBody([
                     dcc.Graph(
                         id="repos-by-language-bar",
-                        config={"displayModeBar": True, "modeBarButtonsToRemove": ["sendDataToCloud"]},
+                        config={'displayModeBar': True, 'displaylogo': False},  # Disable Plotly logo
                     ),
                 ]),
                 className="mb-4",
