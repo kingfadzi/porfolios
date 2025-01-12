@@ -6,25 +6,37 @@ def chart_layout():
         [
             dbc.Card(
                 dbc.CardBody([
-                    dcc.Graph(id="active-inactive-bar", config={"displayModeBar": True}),  # Keep mode bar for panning
+                    dcc.Graph(
+                        id="active-inactive-bar",
+                        config={"displayModeBar": True, "modeBarButtonsToRemove": ["sendDataToCloud"]},  # Remove Plotly icon
+                    ),
                 ]),
                 className="mb-4",
             ),
             dbc.Card(
                 dbc.CardBody([
-                    dcc.Graph(id="classification-pie", config={"displayModeBar": True}),
+                    dcc.Graph(
+                        id="classification-pie",
+                        config={"displayModeBar": True, "modeBarButtonsToRemove": ["sendDataToCloud"]},
+                    ),
                 ]),
                 className="mb-4",
             ),
             dbc.Card(
                 dbc.CardBody([
-                    dcc.Graph(id="heatmap-viz", config={"displayModeBar": True}),
+                    dcc.Graph(
+                        id="heatmap-viz",
+                        config={"displayModeBar": True, "modeBarButtonsToRemove": ["sendDataToCloud"]},
+                    ),
                 ]),
                 className="mb-4",
             ),
             dbc.Card(
                 dbc.CardBody([
-                    dcc.Graph(id="repos-by-language-bar", config={"displayModeBar": True}),
+                    dcc.Graph(
+                        id="repos-by-language-bar",
+                        config={"displayModeBar": True, "modeBarButtonsToRemove": ["sendDataToCloud"]},
+                    ),
                 ]),
                 className="mb-4",
             ),
