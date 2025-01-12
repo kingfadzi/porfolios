@@ -1,7 +1,7 @@
 from dash import Dash
 from layouts.layout_main import main_layout
 from data.data_loader import load_data
-from callbacks import register_callbacks
+from app_callbacks import register_callbacks
 import dash_bootstrap_components as dbc
 
 # Initialize Dash app
