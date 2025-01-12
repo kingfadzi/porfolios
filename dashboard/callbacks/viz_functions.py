@@ -1,7 +1,6 @@
 import plotly.express as px
 import pandas as pd
 
-
 def create_bar_chart(filtered_df):
     return px.bar(
         filtered_df,
@@ -13,6 +12,7 @@ def create_bar_chart(filtered_df):
         color_discrete_sequence=px.colors.qualitative.Set1,
     ).update_layout(
         title={"x": 0.5},
+        dragmode="pan",  # Enable panning only
         plot_bgcolor="#f8f9fa",
         paper_bgcolor="#ffffff",
     )
@@ -26,6 +26,7 @@ def create_pie_chart(filtered_df):
         hole=0.4,
     ).update_layout(
         title={"x": 0.5},
+        dragmode="pan",  # Enable panning only
     )
 
 
@@ -60,6 +61,8 @@ def create_heatmap(filtered_df):
         title="Number of Repositories by Commits and Contributors",
         labels={"x": "Commit Buckets", "y": "Contributor Buckets", "color": "Repo Count"},
         color_continuous_scale="Viridis",
+    ).update_layout(
+        dragmode="pan",  # Enable panning only
     )
 
 
@@ -77,6 +80,7 @@ def create_language_bar_chart(filtered_df):
         title={"x": 0.5},
         xaxis={"title": "Main Language"},
         yaxis={"title": "Repository Count"},
+        dragmode="pan",  # Enable panning only
         plot_bgcolor="#f8f9fa",
         paper_bgcolor="#ffffff",
     )

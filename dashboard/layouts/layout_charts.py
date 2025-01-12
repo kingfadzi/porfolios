@@ -6,25 +6,25 @@ def chart_layout():
         [
             dbc.Card(
                 dbc.CardBody([
-                    dcc.Graph(id="active-inactive-bar", config={"displayModeBar": False}),
+                    dcc.Graph(id="active-inactive-bar", config={"displayModeBar": True}),  # Keep mode bar for panning
                 ]),
                 className="mb-4",
             ),
             dbc.Card(
                 dbc.CardBody([
-                    dcc.Graph(id="classification-pie", config={"displayModeBar": False}),
+                    dcc.Graph(id="classification-pie", config={"displayModeBar": True}),
                 ]),
                 className="mb-4",
             ),
             dbc.Card(
                 dbc.CardBody([
-                    dcc.Graph(id="heatmap-viz", config={"displayModeBar": False}),
+                    dcc.Graph(id="heatmap-viz", config={"displayModeBar": True}),
                 ]),
                 className="mb-4",
             ),
             dbc.Card(
                 dbc.CardBody([
-                    dcc.Graph(id="repos-by-language-bar", config={"displayModeBar": False}),
+                    dcc.Graph(id="repos-by-language-bar", config={"displayModeBar": True}),
                 ]),
                 className="mb-4",
             ),
