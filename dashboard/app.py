@@ -61,7 +61,8 @@ app.layout = html.Div(
         html.Div(
             [
                 dcc.Graph(id="active-inactive-bar", className="mb-4"),
-                dcc.Graph(id="classification-pie"),
+                dcc.Graph(id="classification-pie", className="mb-4"),
+                dcc.Graph(id="heatmap-viz", className="mb-4"),
             ],
             className="container",
         ),
@@ -70,7 +71,11 @@ app.layout = html.Div(
 
 # Callbacks for interactivity
 @app.callback(
-    [Output("active-inactive-bar", "figure"), Output("classification-pie", "figure")],
+    [
+        Output("active-inactive-bar", "figure"),
+        Output("classification-pie", "figure"),
+        Output("heatmap-viz", "figure"),
+    ],
     [Input("host-name-filter", "value"), Input("language-filter", "value")],
 )
 def update_charts(selected_hosts, selected_languages):
@@ -99,7 +104,18 @@ def update_charts(selected_hosts, selected_languages):
         hole=0.4,
     )
 
-    return bar_fig, pie_fig
+    # Heatmap: Correlation between numeric metrics
+    heatmap_data = filtered_df[
+        ["total_lines_of_code", "repo_size_bytes", "total_commits", "number_of_contributors"]
+    ].corr()
+    heatmap_fig = px.imshow(
+        heatmap_data,
+        text_auto=True,
+        title="Correlation Heatmap of Repository Metrics",
+        labels=dict(color="Correlation"),
+    )
+
+    return bar_fig, pie_fig, heatmap_fig
 
 # Run the app
 if __name__ == "__main__":
