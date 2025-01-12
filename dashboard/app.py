@@ -1,11 +1,13 @@
 from dash import Dash
 from layouts.layout_main import main_layout
 from data.data_loader import load_data
-from app_callbacks import register_callbacks
+from callbacks import register_callbacks
 import dash_bootstrap_components as dbc
+import plotly.io as pio
 
-# Initialize Dash app
-app = Dash(__name__, external_stylesheets=[dbc.themes.LUX])
+# Set Bootstrap theme and Plotly template
+app = Dash(__name__, external_stylesheets=[dbc.themes.MINTY])  # Choose a theme
+pio.templates.default = "plotly_white"  # Set global chart style
 
 # Load data
 df = load_data()

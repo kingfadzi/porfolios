@@ -1,7 +1,6 @@
 import plotly.express as px
 import pandas as pd
 
-
 def create_bar_chart(filtered_df):
     return px.bar(
         filtered_df,
@@ -9,7 +8,12 @@ def create_bar_chart(filtered_df):
         color="activity_status",
         title="Active vs Inactive Repositories",
         labels={"activity_status": "Activity Status"},
-        barmode="group"
+        barmode="group",
+        color_discrete_sequence=px.colors.qualitative.Set1,
+    ).update_layout(
+        title={"x": 0.5},
+        plot_bgcolor="#f8f9fa",
+        paper_bgcolor="#ffffff",
     )
 
 
@@ -19,6 +23,8 @@ def create_pie_chart(filtered_df):
         names="classification_label",
         title="Repository Classification",
         hole=0.4,
+    ).update_layout(
+        title={"x": 0.5},
     )
 
 
@@ -53,17 +59,4 @@ def create_heatmap(filtered_df):
         title="Number of Repositories by Commits and Contributors",
         labels={"x": "Commit Buckets", "y": "Contributor Buckets", "color": "Repo Count"},
         color_continuous_scale="Viridis",
-    )
-
-
-def create_language_bar_chart(filtered_df):
-    language_data = filtered_df.groupby("main_language").size().reset_index(name="repo_count")
-    return px.bar(
-        language_data,
-        x="main_language",
-        y="repo_count",
-        title="Number of Repositories by Main Language",
-        labels={"main_language": "Main Language", "repo_count": "Repo Count"},
-        color="main_language",
-        color_discrete_sequence=px.colors.qualitative.Set3,
     )
