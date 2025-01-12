@@ -4,6 +4,10 @@ import plotly.express as px
 import pandas as pd
 from sqlalchemy import create_engine
 import dash_bootstrap_components as dbc
+import plotly.io as pio
+
+# Set a global theme for all charts
+pio.templates.default = "plotly_white"  # Choose your desired theme
 
 # Database connection
 engine = create_engine("postgresql://postgres:postgres@192.168.1.188:5422/gitlab-usage")
@@ -71,7 +75,7 @@ app.layout = dbc.Container(
             dbc.Col(dcc.Graph(id="heatmap-viz", config={"displayModeBar": False}), width=12),
         ),
     ],
-    fluid=True,  # Makes the layout responsive
+    fluid=True,
 )
 
 # Callbacks for interactivity
