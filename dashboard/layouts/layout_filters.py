@@ -1,33 +1,57 @@
-from dash import dcc, html
+from dash import dcc
 import dash_bootstrap_components as dbc
 
-def filter_layout():
+def chart_layout():
     return dbc.Col(
         [
-            html.Label("Filter by Host Name:", className="form-label"),
-            dcc.Dropdown(
-                id="host-name-filter",
-                options=[],  # Empty options, will be populated dynamically
-                multi=True,
-                placeholder="Select Host Name(s)",
-                className="form-select mb-3",
+            dbc.Card(
+                dbc.CardBody([
+                    dcc.Graph(
+                        id="active-inactive-bar",
+                        config={
+                            "displayModeBar": True, 
+                            "modeBarButtonsToRemove": ["zoom2d", "pan2d", "select2d", "lasso2d"]
+                        },  # Keep panning, disable zoom-related buttons
+                    ),
+                ]),
+                className="mb-4",
             ),
-            html.Label("Filter by Main Language:", className="form-label"),
-            dcc.Dropdown(
-                id="language-filter",
-                options=[],  # Empty options, will be populated dynamically
-                multi=True,
-                placeholder="Select Language(s)",
-                className="form-select mb-3",
+            dbc.Card(
+                dbc.CardBody([
+                    dcc.Graph(
+                        id="classification-pie",
+                        config={
+                            "displayModeBar": True, 
+                            "modeBarButtonsToRemove": ["zoom2d", "select2d", "lasso2d"]
+                        },
+                    ),
+                ]),
+                className="mb-4",
             ),
-            html.Label("Filter by Classification:", className="form-label"),
-            dcc.Dropdown(
-                id="classification-filter",
-                options=[],  # Empty options, will be populated dynamically
-                multi=True,
-                placeholder="Select Classification(s)",
-                className="form-select mb-3",
+            dbc.Card(
+                dbc.CardBody([
+                    dcc.Graph(
+                        id="repos-by-language-bar",
+                        config={
+                            "displayModeBar": True, 
+                            "modeBarButtonsToRemove": ["zoom2d", "select2d", "lasso2d"]
+                        },
+                    ),
+                ]),
+                className="mb-4",
+            ),
+            dbc.Card(
+                dbc.CardBody([
+                    dcc.Graph(
+                        id="heatmap-viz",
+                        config={
+                            "displayModeBar": True, 
+                            "modeBarButtonsToRemove": ["zoom2d", "select2d", "lasso2d"]
+                        },
+                    ),
+                ]),
+                className="mb-4",
             ),
         ],
-        width=3,
+        width=9,
     )
