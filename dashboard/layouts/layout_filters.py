@@ -1,7 +1,7 @@
 from dash import dcc, html
 import dash_bootstrap_components as dbc
 
-def filter_layout(host_names, languages, app_ids, classification_labels):
+def filter_layout(host_names, languages, classification_labels):
     return dbc.Col(
         [
             html.Label("Filter by Host Name:", className="form-label"),
@@ -21,12 +21,12 @@ def filter_layout(host_names, languages, app_ids, classification_labels):
                 className="form-select mb-3",
             ),
             html.Label("Filter by App ID:", className="form-label"),
-            dcc.Dropdown(
+            dcc.Input(
                 id="app-id-filter",
-                options=[{"label": app, "value": app} for app in app_ids],
-                multi=True,
-                placeholder="Select App ID(s)",
-                className="form-select mb-3",
+                type="text",
+                placeholder="Enter App IDs (comma-separated)...",
+                debounce=True,
+                className="form-control mb-3",
             ),
             html.Label("Filter by Classification:", className="form-label"),
             dcc.Dropdown(
