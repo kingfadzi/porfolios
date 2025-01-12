@@ -23,6 +23,8 @@ app.title = "Repository Metrics Dashboard"
 # Get unique filter values
 host_names = df['host_name'].dropna().unique()
 languages = df['main_language'].dropna().unique()
+app_ids = df['app_id'].dropna().unique()
+classification_labels = df['classification_label'].dropna().unique()
 
 # App layout
 app.layout = dbc.Container(
@@ -66,6 +68,39 @@ app.layout = dbc.Container(
         ),
         dbc.Row(
             [
+                dbc.Col(
+                    [
+                        html.Label("Filter by App ID:", className="form-label"),
+                        dcc.Dropdown(
+                            id="app-id-filter",
+                            options=[{"label": app, "value": app} for app in app_ids],
+                            multi=True,
+                            placeholder="Select App ID(s)",
+                            className="form-select",
+                        ),
+                    ],
+                    width=6,
+                ),
+                dbc.Col(
+                    [
+                        html.Label("Filter by Classification:", className="form-label"),
+                        dcc.Dropdown(
+                            id="classification-filter",
+                            options=[
+                                {"label": label, "value": label} for label in classification_labels
+                            ],
+                            multi=True,
+                            placeholder="Select Classification(s)",
+                            className="form-select",
+                        ),
+                    ],
+                    width=6,
+                ),
+            ],
+            className="mb-4",
+        ),
+        dbc.Row(
+            [
                 dbc.Col(dcc.Graph(id="active-inactive-bar", config={"displayModeBar": False}), width=6),
                 dbc.Col(dcc.Graph(id="classification-pie", config={"displayModeBar": False}), width=6),
             ],
@@ -85,16 +120,25 @@ app.layout = dbc.Container(
         Output("classification-pie", "figure"),
         Output("heatmap-viz", "figure"),
     ],
-    [Input("host-name-filter", "value"), Input("language-filter", "value")],
+    [
+        Input("host-name-filter", "value"),
+        Input("language-filter", "value"),
+        Input("app-id-filter", "value"),
+        Input("classification-filter", "value"),
+    ],
 )
-def update_charts(selected_hosts, selected_languages):
+def update_charts(selected_hosts, selected_languages, selected_app_ids, selected_classifications):
     # Filter data
     filtered_df = df.copy()
     if selected_hosts:
         filtered_df = filtered_df[filtered_df["host_name"].isin(selected_hosts)]
     if selected_languages:
         filtered_df = filtered_df[filtered_df["main_language"].isin(selected_languages)]
-    
+    if selected_app_ids:
+        filtered_df = filtered_df[filtered_df["app_id"].isin(selected_app_ids)]
+    if selected_classifications:
+        filtered_df = filtered_df[filtered_df["classification_label"].isin(selected_classifications)]
+
     # Bar chart: Active vs Inactive
     bar_fig = px.bar(
         filtered_df,
