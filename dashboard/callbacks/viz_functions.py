@@ -1,5 +1,4 @@
 import plotly.express as px
-import pandas as pd
 
 def create_bar_chart(filtered_df):
     return px.bar(
@@ -9,7 +8,7 @@ def create_bar_chart(filtered_df):
         color="activity_status",
         title="Active vs Inactive Repositories",
     ).update_layout(
-        dragmode="pan",  # Enable panning only
+        dragmode=False,  # Disable panning and zooming
         title={"x": 0.5},
     )
 
@@ -20,7 +19,7 @@ def create_pie_chart(filtered_df):
         values="repo_count",
         title="Repository Classification",
     ).update_layout(
-        dragmode="pan",  # Enable panning only
+        dragmode=False,  # Disable panning and zooming
         title={"x": 0.5},
     )
 
@@ -47,6 +46,6 @@ def create_heatmap(filtered_df):
         text_auto=True,
         title="Repositories by Commits and Contributors",
     ).update_layout(
-        dragmode="pan",  # Enable panning only
+        dragmode=False,  # Disable panning and zooming
         title={"x": 0.5},
     )
