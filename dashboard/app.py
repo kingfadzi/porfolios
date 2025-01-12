@@ -37,6 +37,7 @@ app.layout = dbc.Container(
         ),
         dbc.Row(
             [
+                # Left Column: Filters
                 dbc.Col(
                     [
                         html.Label("Filter by Host Name:", className="form-label"),
@@ -45,44 +46,24 @@ app.layout = dbc.Container(
                             options=[{"label": name, "value": name} for name in host_names],
                             multi=True,
                             placeholder="Select Host Name(s)",
-                            className="form-select",
+                            className="form-select mb-3",
                         ),
-                    ],
-                    width=6,
-                ),
-                dbc.Col(
-                    [
                         html.Label("Filter by Main Language:", className="form-label"),
                         dcc.Dropdown(
                             id="language-filter",
                             options=[{"label": lang, "value": lang} for lang in languages],
                             multi=True,
                             placeholder="Select Language(s)",
-                            className="form-select",
+                            className="form-select mb-3",
                         ),
-                    ],
-                    width=6,
-                ),
-            ],
-            className="mb-4",
-        ),
-        dbc.Row(
-            [
-                dbc.Col(
-                    [
                         html.Label("Filter by App ID:", className="form-label"),
                         dcc.Dropdown(
                             id="app-id-filter",
                             options=[{"label": app, "value": app} for app in app_ids],
                             multi=True,
                             placeholder="Select App ID(s)",
-                            className="form-select",
+                            className="form-select mb-3",
                         ),
-                    ],
-                    width=6,
-                ),
-                dbc.Col(
-                    [
                         html.Label("Filter by Classification:", className="form-label"),
                         dcc.Dropdown(
                             id="classification-filter",
@@ -91,23 +72,21 @@ app.layout = dbc.Container(
                             ],
                             multi=True,
                             placeholder="Select Classification(s)",
-                            className="form-select",
+                            className="form-select mb-3",
                         ),
                     ],
-                    width=6,
+                    width=3,  # Set column width to 3 out of 12
+                ),
+                # Right Column: Charts
+                dbc.Col(
+                    [
+                        dcc.Graph(id="active-inactive-bar", config={"displayModeBar": False}, className="mb-4"),
+                        dcc.Graph(id="classification-pie", config={"displayModeBar": False}, className="mb-4"),
+                        dcc.Graph(id="heatmap-viz", config={"displayModeBar": False}),
+                    ],
+                    width=9,  # Set column width to 9 out of 12
                 ),
             ],
-            className="mb-4",
-        ),
-        dbc.Row(
-            [
-                dbc.Col(dcc.Graph(id="active-inactive-bar", config={"displayModeBar": False}), width=6),
-                dbc.Col(dcc.Graph(id="classification-pie", config={"displayModeBar": False}), width=6),
-            ],
-            className="mb-4",
-        ),
-        dbc.Row(
-            dbc.Col(dcc.Graph(id="heatmap-viz", config={"displayModeBar": False}), width=12),
         ),
     ],
     fluid=True,
