@@ -6,8 +6,8 @@ from sqlalchemy import create_engine
 import dash_bootstrap_components as dbc
 import plotly.io as pio
 
-# Set a global theme for all charts
-pio.templates.default = "plotly_white"  # Choose your desired theme
+# Set a global theme for Plotly charts
+pio.templates.default = "plotly_white"
 
 # Database connection
 engine = create_engine("postgresql://postgres:postgres@192.168.1.188:5422/gitlab-usage")
@@ -113,15 +113,51 @@ def update_charts(selected_hosts, selected_languages):
         hole=0.4,
     )
 
-    # Heatmap: Correlation between numeric metrics
-    heatmap_data = filtered_df[
-        ["total_lines_of_code", "repo_size_bytes", "total_commits", "number_of_contributors"]
-    ].corr()
+    # Heatmap: Number of Repos by Commit and Contributor Buckets
+    # Create buckets for commits and contributors
+    filtered_df["commit_bucket"] = pd.cut(
+        filtered_df["total_commits"], 
+        bins=[0, 50, 100, 500, 1000, 5000, 10000], 
+        labels=["0-50", "51-100", "101-500", "501-1000", "1001-5000", "5001+"],
+        right=False,
+    )
+
+    filtered_df["contributor_bucket"] = pd.cut(
+        filtered_df["number_of_contributors"], 
+        bins=[0, 1, 5, 10, 20, 50, 100], 
+        labels=["0-1", "2-5", "6-10", "11-20", "21-50", "51+"],
+        right=False,
+    )
+
+    # Aggregate the data
+    heatmap_data = (
+        filtered_df.groupby(["commit_bucket", "contributor_bucket"])
+        .size()
+        .reset_index(name="repo_count")
+    )
+
+    # Pivot the data to create a matrix for the heatmap
+    heatmap_matrix = heatmap_data.pivot(
+        index="contributor_bucket", 
+        columns="commit_bucket", 
+        values="repo_count"
+    ).fillna(0)  # Replace NaNs with 0
+
+    # Create the heatmap
     heatmap_fig = px.imshow(
-        heatmap_data,
+        heatmap_matrix,
         text_auto=True,
-        title="Correlation Heatmap of Repository Metrics",
-        labels=dict(color="Correlation"),
+        title="Number of Repositories by Commits and Contributors",
+        labels={"x": "Commit Buckets", "y": "Contributor Buckets", "color": "Repo Count"},
+        color_continuous_scale="Viridis",
+    )
+
+    heatmap_fig.update_layout(
+        title={"x": 0.5, "font": {"size": 20}},
+        xaxis={"side": "bottom", "title": "Commit Buckets"},
+        yaxis={"title": "Contributor Buckets"},
+        plot_bgcolor="white",
+        margin={"t": 50, "l": 50, "r": 50, "b": 50},
     )
 
     return bar_fig, pie_fig, heatmap_fig
