@@ -3,6 +3,7 @@ from dash import dcc, html, Input, Output
 import plotly.express as px
 import pandas as pd
 from sqlalchemy import create_engine
+import dash_bootstrap_components as dbc
 
 # Database connection
 engine = create_engine("postgresql://postgres:postgres@192.168.1.188:5422/gitlab-usage")
@@ -11,9 +12,8 @@ engine = create_engine("postgresql://postgres:postgres@192.168.1.188:5422/gitlab
 query = "SELECT * FROM combined_repo_metrics"
 df = pd.read_sql(query, engine)
 
-# Dash app initialization with Bootstrap stylesheet
-external_stylesheets = ["https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"]
-app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
+# Dash app initialization with the LUX Bootstrap theme
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.LUX])
 app.title = "Repository Metrics Dashboard"
 
 # Get unique filter values
@@ -21,15 +21,17 @@ host_names = df['host_name'].dropna().unique()
 languages = df['main_language'].dropna().unique()
 
 # App layout
-app.layout = html.Div(
+app.layout = dbc.Container(
     [
-        html.Div(
-            html.H1("Repository Metrics Dashboard", className="text-center text-primary mb-4"),
-            className="container",
+        dbc.Row(
+            dbc.Col(
+                html.H1("Repository Metrics Dashboard", className="text-center text-primary mb-4"),
+                width=12,
+            )
         ),
-        html.Div(
+        dbc.Row(
             [
-                html.Div(
+                dbc.Col(
                     [
                         html.Label("Filter by Host Name:", className="form-label"),
                         dcc.Dropdown(
@@ -40,9 +42,9 @@ app.layout = html.Div(
                             className="form-select",
                         ),
                     ],
-                    className="col-md-6",
+                    width=6,
                 ),
-                html.Div(
+                dbc.Col(
                     [
                         html.Label("Filter by Main Language:", className="form-label"),
                         dcc.Dropdown(
@@ -53,20 +55,23 @@ app.layout = html.Div(
                             className="form-select",
                         ),
                     ],
-                    className="col-md-6",
+                    width=6,
                 ),
             ],
-            className="row mb-4",
+            className="mb-4",
         ),
-        html.Div(
+        dbc.Row(
             [
-                dcc.Graph(id="active-inactive-bar", className="mb-4"),
-                dcc.Graph(id="classification-pie", className="mb-4"),
-                dcc.Graph(id="heatmap-viz", className="mb-4"),
+                dbc.Col(dcc.Graph(id="active-inactive-bar", config={"displayModeBar": False}), width=6),
+                dbc.Col(dcc.Graph(id="classification-pie", config={"displayModeBar": False}), width=6),
             ],
-            className="container",
+            className="mb-4",
         ),
-    ]
+        dbc.Row(
+            dbc.Col(dcc.Graph(id="heatmap-viz", config={"displayModeBar": False}), width=12),
+        ),
+    ],
+    fluid=True,  # Makes the layout responsive
 )
 
 # Callbacks for interactivity
