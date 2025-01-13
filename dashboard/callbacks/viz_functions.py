@@ -4,19 +4,22 @@ import pandas as pd
 def create_bar_chart(filtered_df):
     """
     Create a bar chart for Active vs Inactive repositories.
-    Includes total in the chart title and ensures custom colors for Active and Inactive.
+    Ensures accurate totals in the title and proper aggregation of data.
     """
+    # Aggregate data by activity_status
+    aggregated_df = filtered_df.groupby("activity_status", as_index=False)["repo_count"].sum()
+
     # Calculate total count
-    total_count = filtered_df["repo_count"].sum()
+    total_count = aggregated_df["repo_count"].sum()
 
     # Normalize the activity_status values to ensure case matches the color_map
-    filtered_df["activity_status"] = filtered_df["activity_status"].str.capitalize()
+    aggregated_df["activity_status"] = aggregated_df["activity_status"].str.capitalize()
 
     # Define custom colors for Active and Inactive
     color_map = {"Active": "green", "Inactive": "red"}
 
     return px.bar(
-        filtered_df,
+        aggregated_df,
         x="activity_status",
         y="repo_count",
         color="activity_status",
