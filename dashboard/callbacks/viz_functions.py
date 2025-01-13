@@ -6,7 +6,11 @@ def create_bar_chart(filtered_df):
     Create a bar chart for Active vs Inactive repositories.
     Ensures 'Active' is green and 'Inactive' is red.
     """
-    color_map = {"Active": "green", "Inactive": "red"}  # Define custom colors
+    # Normalize the activity_status values to ensure case matches
+    filtered_df["activity_status"] = filtered_df["activity_status"].str.capitalize()
+
+    # Define custom color mapping
+    color_map = {"Active": "green", "Inactive": "red"}  # Match normalized values
 
     return px.bar(
         filtered_df,
