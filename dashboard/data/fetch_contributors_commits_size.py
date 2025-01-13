@@ -4,12 +4,13 @@ import pandas as pd
 
 def fetch_contributors_commits_size(filters=None):
     """
-    Fetch data for contributors, commits, and repository size.
+    Fetch data for contributors, commits, repository size, and repository name.
     """
     filter_conditions = build_filter_conditions(filters)
 
     query = """
     SELECT 
+        repo_name,  -- Include repository name
         number_of_contributors AS contractors,
         total_commits AS commits,
         repo_size_bytes AS repo_size
