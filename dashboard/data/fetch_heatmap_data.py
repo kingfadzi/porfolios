@@ -1,6 +1,7 @@
 from sqlalchemy import create_engine
 import pandas as pd
 from data.build_filter_conditions import build_filter_conditions
+from data.db_connection import engine
 
 engine = create_engine("postgresql://postgres@192.168.1.188:5422/gitlab-usage")
 
