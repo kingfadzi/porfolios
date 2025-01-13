@@ -40,7 +40,7 @@ def register_callbacks(app):
             Output("classification-pie", "figure"),
             Output("repos-by-language-bar", "figure"),
             Output("heatmap-viz", "figure"),
-            Output("code-massive-pie", "figure"),  # New chart for Code Massive
+            
         ],
         [
             Input("host-name-filter", "value"),
