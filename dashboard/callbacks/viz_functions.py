@@ -74,3 +74,32 @@ def create_heatmap(filtered_df):
         dragmode=False,
         title={"x": 0.5},
     )
+
+def create_code_massive_pie(filtered_df):
+    """
+    Create a pie chart for Active Code Massive repositories.
+    """
+    # Filter the data for activity_status='ACTIVE' and classification_label='Code Massive'
+    filtered_df = filtered_df[
+        (filtered_df["activity_status"] == "ACTIVE") &
+        (filtered_df["classification_label"] == "Code -> Massive")
+        ]
+
+    if filtered_df.empty:
+        # Handle empty data gracefully
+        return px.pie(
+            title="No Data Available"
+        )
+
+    return px.pie(
+        filtered_df,
+        names="main_language",  # Adjust as needed for pie chart categories
+        values="repo_count",
+        title="",
+    ).update_traces(
+        textinfo="percent+value",
+        hovertemplate="<b>%{label}</b><br>Count: %{value}<br>Percent: %{percent}",
+    ).update_layout(
+        dragmode=False,
+        title={"x": 0.5},
+    )

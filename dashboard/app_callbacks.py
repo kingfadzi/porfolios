@@ -6,7 +6,7 @@ from data.data_loader import (
     fetch_heatmap_data,
     fetch_dropdown_options,
 )
-from callbacks.viz_functions import create_bar_chart, create_pie_chart, create_language_chart, create_heatmap
+from callbacks.viz_functions import create_bar_chart, create_pie_chart, create_language_chart, create_heatmap, create_code_massive_pie
 
 def register_dropdown_callbacks(app):
     @app.callback(
@@ -40,6 +40,7 @@ def register_callbacks(app):
             Output("classification-pie", "figure"),
             Output("repos-by-language-bar", "figure"),
             Output("heatmap-viz", "figure"),
+            Output("code-massive-pie", "figure"),
         ],
         [
             Input("host-name-filter", "value"),
@@ -74,5 +75,6 @@ def register_callbacks(app):
         pie_chart_fig = create_pie_chart(fetch_classification_data(filters))
         language_chart_fig = create_language_chart(fetch_language_data(filters))
         heatmap_fig = create_heatmap(fetch_heatmap_data(filters))
+        code_massive_pie_fig = create_code_massive_pie(fetch_classification_data(filters))  # New chart logic
 
-        return bar_chart_fig, pie_chart_fig, language_chart_fig, heatmap_fig
+        return bar_chart_fig, pie_chart_fig, language_chart_fig, heatmap_fig, code_massive_pie_fig

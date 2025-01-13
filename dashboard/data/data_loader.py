@@ -137,3 +137,20 @@ def fetch_heatmap_data(filters=None):
     query += " GROUP BY commit_bucket, contributor_bucket"
 
     return pd.read_sql(query, engine)
+
+def fetch_classification_data(filters=None):
+    """
+    Fetch data for the classification pie chart.
+    Ensure activity_status is included for filtering.
+    """
+    filter_conditions = build_filter_conditions(filters)
+
+    query = """
+    SELECT activity_status, classification_label, main_language, COUNT(*) AS repo_count
+    FROM combined_repo_metrics
+    """
+    if filter_conditions:
+        query += f" WHERE {filter_conditions}"
+    query += " GROUP BY activity_status, classification_label, main_language"
+
+    return pd.read_sql(query, engine)
