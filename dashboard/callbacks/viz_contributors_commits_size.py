@@ -1,6 +1,6 @@
 import plotly.express as px
 
-def viz_contributors_vs_commits(filtered_df):
+def viz_contributors_vs_commits_size(filtered_df):
     """
     Create a scatter plot for contributors vs. commits with repository size as bubble size.
     """
