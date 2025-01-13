@@ -4,6 +4,9 @@ def viz_contributors_commits_size(filtered_df):
     """
     Create a scatter plot for contributors vs. commits with repository size as bubble size.
     """
+    # Replace NaN values in repo_size with 0
+    filtered_df["repo_size"] = filtered_df["repo_size"].fillna(0)
+
     return px.scatter(
         filtered_df,
         x="contractors",
