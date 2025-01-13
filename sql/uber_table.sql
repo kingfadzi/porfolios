@@ -183,6 +183,8 @@ SELECT
     -- bitbucket_repositories fields
     b.host_name,
     b.app_id,
+    b.tc_cluster,
+    b.tc,
     b.clone_url_ssh,
     b.status,
     b.comment,

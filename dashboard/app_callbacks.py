@@ -18,12 +18,12 @@ def register_dropdown_callbacks(app):
             Output("language-filter", "options"),
             Output("classification-filter", "options"),
         ],
-        [Input("app-layout", "children")]  # Trigger callback on app layout load
+        [Input("app-layout", "children")]
     )
     def populate_dropdown_options(_):
         # Fetch dropdown options dynamically
         options = fetch_dropdown_options()
-        
+
         return (
             [{"label": name, "value": name} for name in options["host_names"]],
             [{"label": status, "value": status} for status in options["activity_statuses"]],
@@ -52,13 +52,13 @@ def register_callbacks(app):
         ],
     )
     def update_charts(selected_hosts, selected_statuses, selected_tc_clusters, selected_tcs, selected_languages, selected_classifications, app_id_input):
-        # Parse the app_id input
+        # Parse app_id input
         if app_id_input:
             app_ids = [id.strip() for id in app_id_input.split(",")]
         else:
             app_ids = None
 
-        # Create a dictionary of filters dynamically
+        # Create a dictionary of filters
         filters = {
             "host_name": selected_hosts,
             "activity_status": selected_statuses,
@@ -66,19 +66,13 @@ def register_callbacks(app):
             "tc": selected_tcs,
             "main_language": selected_languages,
             "classification_label": selected_classifications,
-            "app_id": app_ids,  # Add app_id filter
+            "app_id": app_ids,
         }
 
-        # Fetch data for each visualization
-        active_inactive_data = fetch_active_inactive_data(filters)
-        classification_data = fetch_classification_data(filters)
-        language_data = fetch_language_data(filters)
-        heatmap_data = fetch_heatmap_data(filters)
-
         # Generate visualizations
-        return (
-            create_bar_chart(active_inactive_data),
-            create_pie_chart(classification_data),
-            create_language_chart(language_data),
-            create_heatmap(heatmap_data),
-        )
+        bar_chart_fig = create_bar_chart(fetch_active_inactive_data(filters))
+        pie_chart_fig = create_pie_chart(fetch_classification_data(filters))
+        language_chart_fig = create_language_chart(fetch_language_data(filters))
+        heatmap_fig = create_heatmap(fetch_heatmap_data(filters))
+
+        return bar_chart_fig, pie_chart_fig, language_chart_fig, heatmap_fig

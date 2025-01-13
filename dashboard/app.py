@@ -5,7 +5,7 @@ import dash_bootstrap_components as dbc
 import plotly.io as pio
 
 # Set Bootstrap theme and Plotly template
-app = Dash(__name__, external_stylesheets=[dbc.themes.MINTY])
+app = Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
 pio.templates.default = "plotly_white"
 
 # Set layout

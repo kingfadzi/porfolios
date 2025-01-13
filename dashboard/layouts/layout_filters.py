@@ -2,64 +2,113 @@ from dash import dcc, html
 import dash_bootstrap_components as dbc
 
 def filter_layout():
-    return dbc.Col(
-        [
-            html.Label("Filter by Host Name:", className="form-label"),
-            dcc.Dropdown(
-                id="host-name-filter",
-                options=[],  # Empty options, will be populated dynamically
-                multi=True,
-                placeholder="Select Host Name(s)",
-                className="form-select mb-3",
-            ),
-            html.Label("Filter by Activity Status:", className="form-label"),
-            dcc.Dropdown(
-                id="activity-status-filter",
-                options=[],  # Empty options, will be populated dynamically
-                multi=True,
-                placeholder="Select Activity Status",
-                className="form-select mb-3",
-            ),
-            html.Label("Filter by TC Cluster:", className="form-label"),
-            dcc.Dropdown(
-                id="tc-cluster-filter",
-                options=[],  # Empty options, will be populated dynamically
-                multi=True,
-                placeholder="Select TC Cluster(s)",
-                className="form-select mb-3",
-            ),
-            html.Label("Filter by TC:", className="form-label"),
-            dcc.Dropdown(
-                id="tc-filter",
-                options=[],  # Empty options, will be populated dynamically
-                multi=True,
-                placeholder="Select TC(s)",
-                className="form-select mb-3",
-            ),
-            html.Label("Filter by Main Language:", className="form-label"),
-            dcc.Dropdown(
-                id="language-filter",
-                options=[],  # Empty options, will be populated dynamically
-                multi=True,
-                placeholder="Select Language(s)",
-                className="form-select mb-3",
-            ),
-            html.Label("Filter by Classification:", className="form-label"),
-            dcc.Dropdown(
-                id="classification-filter",
-                options=[],  # Empty options, will be populated dynamically
-                multi=True,
-                placeholder="Select Classification(s)",
-                className="form-select mb-3",
-            ),
-            html.Label("Filter by App ID:", className="form-label"),
-            dcc.Input(
-                id="app-id-filter",
-                type="text",
-                placeholder="Enter App IDs (comma-separated)...",
-                debounce=True,  # Trigger callback only after typing stops
-                className="form-control mb-3",
-            ),
-        ],
-        width=3,
+    return dbc.Card(
+        dbc.CardBody(
+            [
+                html.Div(
+                    [
+                        dbc.Label("Filter by Host Name", html_for="host-name-filter"),
+                        dcc.Dropdown(
+                            id="host-name-filter",
+                            options=[],  # Options will be populated dynamically
+                            multi=True,  # Enable multi-select
+                            placeholder="Select Host Name(s)",
+                            clearable=True,
+                            maxHeight=600,
+                            optionHeight=50,
+                        ),
+                    ],
+                    className="mb-4",
+                ),
+                html.Div(
+                    [
+                        dbc.Label("Filter by Activity Status", html_for="activity-status-filter"),
+                        dcc.Dropdown(
+                            id="activity-status-filter",
+                            options=[],  # Options will be populated dynamically
+                            multi=True,  # Enable multi-select
+                            placeholder="Select Activity Status",
+                            clearable=True,
+                            maxHeight=600,
+                            optionHeight=50,
+                        ),
+                    ],
+                    className="mb-4",
+                ),
+                html.Div(
+                    [
+                        dbc.Label("Filter by TC Cluster", html_for="tc-cluster-filter"),
+                        dcc.Dropdown(
+                            id="tc-cluster-filter",
+                            options=[],  # Options will be populated dynamically
+                            multi=True,  # Enable multi-select
+                            placeholder="Select TC Cluster(s)",
+                            clearable=True,
+                            maxHeight=600,
+                            optionHeight=50,
+                        ),
+                    ],
+                    className="mb-4",
+                ),
+                html.Div(
+                    [
+                        dbc.Label("Filter by TC", html_for="tc-filter"),
+                        dcc.Dropdown(
+                            id="tc-filter",
+                            options=[],  # Options will be populated dynamically
+                            multi=True,  # Enable multi-select
+                            placeholder="Select TC(s)",
+                            clearable=True,
+                            maxHeight=600,
+                            optionHeight=50,
+                        ),
+                    ],
+                    className="mb-4",
+                ),
+                html.Div(
+                    [
+                        dbc.Label("Filter by Main Language", html_for="language-filter"),
+                        dcc.Dropdown(
+                            id="language-filter",
+                            options=[],  # Options will be populated dynamically
+                            multi=True,  # Enable multi-select
+                            placeholder="Select Language(s)",
+                            clearable=True,
+                            maxHeight=600,
+                            optionHeight=50,
+                        ),
+                    ],
+                    className="mb-4",
+                ),
+                html.Div(
+                    [
+                        dbc.Label("Filter by Classification", html_for="classification-filter"),
+                        dcc.Dropdown(
+                            id="classification-filter",
+                            options=[],  # Options will be populated dynamically
+                            multi=True,  # Enable multi-select
+                            placeholder="Select Classification(s)",
+                            clearable=True,
+                            maxHeight=600,
+                            optionHeight=50,
+                        ),
+                    ],
+                    className="mb-4",
+                ),
+                html.Div(
+                    [
+                        dbc.Label("Filter by App ID", html_for="app-id-filter"),
+                        dcc.Input(
+                            id="app-id-filter",
+                            type="text",
+                            placeholder="Enter App IDs (comma-separated)...",
+                            debounce=True,
+                            className="form-control",
+                        ),
+                    ],
+                    className="mb-4",
+                ),
+            ]
+        ),
+        className="bg-light mb-4",  # Add a light background and margin for spacing
     )

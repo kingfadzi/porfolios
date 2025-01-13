@@ -21,6 +21,9 @@ def fetch_dropdown_options():
     """
     df = pd.read_sql(query, engine)
 
+    print("Dropdown Options Fetched:")
+    print(df.head())  # Print a sample of the data to verify the query
+
     return {
         "host_names": df["host_name"].dropna().unique().tolist(),
         "activity_statuses": df["activity_status"].dropna().unique().tolist(),
@@ -29,6 +32,7 @@ def fetch_dropdown_options():
         "languages": df["main_language"].dropna().unique().tolist(),
         "classification_labels": df["classification_label"].dropna().unique().tolist(),
     }
+
 
 def build_filter_conditions(filters):
     """

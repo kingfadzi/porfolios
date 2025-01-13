@@ -6,18 +6,16 @@ from layouts.layout_charts import chart_layout
 def main_layout():
     return dbc.Container(
         [
-            html.Div(id="app-layout"),  # Hidden div to trigger callbacks
-            dbc.Row(
-                dbc.Col(
-                    html.H1("Repository Metrics Dashboard", className="text-center text-primary mb-4"),
-                    width=12,
-                )
+            html.Div(id="app-layout", style={"display": "none"}),  # Hidden div to trigger callbacks
+            html.H1(
+                "Custom Dashboard",
+                className="bg-secondary text-white p-2 mb-4 text-center",
             ),
             dbc.Row(
                 [
-                    filter_layout(),
-                    chart_layout(),
-                ],
+                    dbc.Col(filter_layout(), md=3),
+                    dbc.Col(chart_layout(), md=9),  # No arguments needed
+                ]
             ),
         ],
         fluid=True,
