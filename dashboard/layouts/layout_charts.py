@@ -67,20 +67,7 @@ def chart_layout():
                 ],
                 className="mb-4",
             ),
-            dbc.Card(
-                [
-                    dbc.CardHeader(
-                        html.B("Code Massive: Active Status", className="text-center"),
-                        className="bg-light",
-                    ),
-                    dcc.Graph(
-                        id="code-massive-pie",  # New pie chart ID
-                        config={"displayModeBar": False},
-                        style={"height": 300},
-                    ),
-                ],
-                className="mb-4",
-            ),
+            
 
         ]
     )

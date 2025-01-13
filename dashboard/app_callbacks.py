@@ -8,7 +8,6 @@ from callbacks.viz_active_inactive import viz_active_inactive
 from callbacks.viz_classification import viz_classification
 from callbacks.viz_main_language import viz_main_language
 from callbacks.viz_heatmap import viz_heatmap
-from callbacks.viz_code_massive import viz_code_massive
 
 def register_dropdown_callbacks(app):
     @app.callback(
@@ -76,6 +75,6 @@ def register_callbacks(app):
         pie_chart_fig = viz_classification(fetch_classification_data(filters))
         language_chart_fig = viz_main_language(fetch_language_data(filters))
         heatmap_fig = viz_heatmap(fetch_heatmap_data(filters))
-        code_massive_pie_fig = viz_code_massive(fetch_classification_data(filters))
+        
 
-        return bar_chart_fig, pie_chart_fig, language_chart_fig, heatmap_fig, code_massive_pie_fig
+        return bar_chart_fig, pie_chart_fig, language_chart_fig, heatmap_fig
