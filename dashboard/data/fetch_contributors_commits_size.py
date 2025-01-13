@@ -4,13 +4,13 @@ import pandas as pd
 
 def fetch_contributors_commits_size(filters=None):
     """
-    Fetch data for contributors, commits, repository size, and repository name.
+    Fetch data for contributors, commits, repository size, and repository name extracted from clone_url_ssh.
     """
     filter_conditions = build_filter_conditions(filters)
 
     query = """
     SELECT 
-        repo_name,  -- Include repository name
+        RIGHT(clone_url_ssh, LENGTH(clone_url_ssh) - CHAR_LENGTH(SUBSTRING_INDEX(clone_url_ssh, '/', -1))) AS repo_name,
         number_of_contributors AS contractors,
         total_commits AS commits,
         repo_size_bytes AS repo_size
