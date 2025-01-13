@@ -1,12 +1,14 @@
 from dash import Input, Output
-from data.data_loader import (
-    fetch_active_inactive_data,
-    fetch_classification_data,
-    fetch_language_data,
-    fetch_heatmap_data,
-    fetch_dropdown_options,
-)
-from callbacks.viz_functions import create_bar_chart, create_pie_chart, create_language_chart, create_heatmap, create_code_massive_pie
+from data.fetch_dropdown_options import fetch_dropdown_options
+from data.fetch_active_inactive_data import fetch_active_inactive_data
+from data.fetch_classification_data import fetch_classification_data
+from data.fetch_language_data import fetch_language_data
+from data.fetch_heatmap_data import fetch_heatmap_data
+from callbacks.viz_active_inactive import viz_active_inactive
+from callbacks.viz_classification import viz_classification
+from callbacks.viz_main_language import viz_main_language
+from callbacks.viz_heatmap import viz_heatmap
+from callbacks.viz_code_massive import viz_code_massive
 
 def register_dropdown_callbacks(app):
     @app.callback(
@@ -18,12 +20,11 @@ def register_dropdown_callbacks(app):
             Output("language-filter", "options"),
             Output("classification-filter", "options"),
         ],
-        [Input("app-layout", "children")]
+        [Input("app-layout", "children")]  # Trigger callback when layout is loaded
     )
     def populate_dropdown_options(_):
         # Fetch dropdown options dynamically
         options = fetch_dropdown_options()
-
         return (
             [{"label": name, "value": name} for name in options["host_names"]],
             [{"label": status, "value": status} for status in options["activity_statuses"]],
@@ -40,7 +41,7 @@ def register_callbacks(app):
             Output("classification-pie", "figure"),
             Output("repos-by-language-bar", "figure"),
             Output("heatmap-viz", "figure"),
-            Output("code-massive-pie", "figure"),
+            Output("code-massive-pie", "figure"),  # New chart for Code Massive
         ],
         [
             Input("host-name-filter", "value"),
@@ -59,7 +60,7 @@ def register_callbacks(app):
         else:
             app_ids = None
 
-        # Create a dictionary of filters
+        # Create a dictionary of filters dynamically
         filters = {
             "host_name": selected_hosts,
             "activity_status": selected_statuses,
@@ -71,10 +72,10 @@ def register_callbacks(app):
         }
 
         # Generate visualizations
-        bar_chart_fig = create_bar_chart(fetch_active_inactive_data(filters))
-        pie_chart_fig = create_pie_chart(fetch_classification_data(filters))
-        language_chart_fig = create_language_chart(fetch_language_data(filters))
-        heatmap_fig = create_heatmap(fetch_heatmap_data(filters))
-        code_massive_pie_fig = create_code_massive_pie(fetch_classification_data(filters))  # New chart logic
+        bar_chart_fig = viz_active_inactive(fetch_active_inactive_data(filters))
+        pie_chart_fig = viz_classification(fetch_classification_data(filters))
+        language_chart_fig = viz_main_language(fetch_language_data(filters))
+        heatmap_fig = viz_heatmap(fetch_heatmap_data(filters))
+        code_massive_pie_fig = viz_code_massive(fetch_classification_data(filters))
 
         return bar_chart_fig, pie_chart_fig, language_chart_fig, heatmap_fig, code_massive_pie_fig
