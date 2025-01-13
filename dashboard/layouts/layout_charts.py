@@ -3,10 +3,25 @@ import dash_bootstrap_components as dbc
 
 def chart_layout():
     """
-    Layout for all charts including the IaC chart.
+    Layout for all charts including the scatter plot.
     """
     return dbc.Col(
         [
+            # Scatter Plot
+            dbc.Card(
+                [
+                    dbc.CardHeader(
+                        html.B("Contributors vs Commits Scatter Plot", className="text-center"),
+                        className="bg-light",
+                    ),
+                    dcc.Graph(
+                        id="scatter-plot",
+                        config={"displayModeBar": False},
+                        style={"height": 300},
+                    ),
+                ],
+                className="mb-4",
+            ),
             # IaC Chart
             dbc.Card(
                 [
