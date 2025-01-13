@@ -21,7 +21,7 @@ def viz_contributors_commits_size(filtered_df):
             "repo_size": "Repository Size (Bytes)",
         },
         color="repo_size",  # Optional: color bubbles based on repo size
-        hover_data={"repo_name": True, "repo_size": ":.2f"},  # Include repo name in hover
+        hover_data={"repo_name": True, "repo_size": ":.2f"},  # Include repo_name in hover text
     ).update_layout(
         template="plotly_white",
         dragmode="pan",
