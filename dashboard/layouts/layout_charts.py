@@ -3,10 +3,25 @@ import dash_bootstrap_components as dbc
 
 def chart_layout():
     """
-    Layout for charts with compact titles using bold text.
+    Layout for all charts including the IaC chart.
     """
     return dbc.Col(
         [
+            # IaC Chart
+            dbc.Card(
+                [
+                    dbc.CardHeader(
+                        html.B("Repositories by IaC Type", className="text-center"),
+                        className="bg-light",
+                    ),
+                    dcc.Graph(
+                        id="iac-bar-chart",
+                        config={"displayModeBar": False},
+                        style={"height": 300},
+                    ),
+                ],
+                className="mb-4",
+            ),
             # Active vs Inactive Chart
             dbc.Card(
                 [
@@ -67,7 +82,5 @@ def chart_layout():
                 ],
                 className="mb-4",
             ),
-            
-
         ]
     )

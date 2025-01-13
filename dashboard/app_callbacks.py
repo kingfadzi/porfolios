@@ -1,9 +1,11 @@
 from dash import Input, Output
 from data.fetch_dropdown_options import fetch_dropdown_options
+from data.fetch_iac_data import fetch_iac_data
 from data.fetch_active_inactive_data import fetch_active_inactive_data
 from data.fetch_classification_data import fetch_classification_data
 from data.fetch_language_data import fetch_language_data
 from data.fetch_heatmap_data import fetch_heatmap_data
+from callbacks.viz_iac_chart import viz_iac_chart
 from callbacks.viz_active_inactive import viz_active_inactive
 from callbacks.viz_classification import viz_classification
 from callbacks.viz_main_language import viz_main_language
@@ -36,11 +38,11 @@ def register_dropdown_callbacks(app):
 def register_callbacks(app):
     @app.callback(
         [
+            Output("iac-bar-chart", "figure"),
             Output("active-inactive-bar", "figure"),
             Output("classification-pie", "figure"),
             Output("repos-by-language-bar", "figure"),
             Output("heatmap-viz", "figure"),
-            
         ],
         [
             Input("host-name-filter", "value"),
@@ -53,7 +55,7 @@ def register_callbacks(app):
         ],
     )
     def update_charts(selected_hosts, selected_statuses, selected_tc_clusters, selected_tcs, selected_languages, selected_classifications, app_id_input):
-        # Parse app_id input
+        # Parse the app_id input
         if app_id_input:
             app_ids = [id.strip() for id in app_id_input.split(",")]
         else:
@@ -70,11 +72,18 @@ def register_callbacks(app):
             "app_id": app_ids,
         }
 
-        # Generate visualizations
-        bar_chart_fig = viz_active_inactive(fetch_active_inactive_data(filters))
-        pie_chart_fig = viz_classification(fetch_classification_data(filters))
-        language_chart_fig = viz_main_language(fetch_language_data(filters))
-        heatmap_fig = viz_heatmap(fetch_heatmap_data(filters))
-        
+        # Fetch data for each visualization
+        iac_data = fetch_iac_data(filters)
+        active_inactive_data = fetch_active_inactive_data(filters)
+        classification_data = fetch_classification_data(filters)
+        language_data = fetch_language_data(filters)
+        heatmap_data = fetch_heatmap_data(filters)
 
-        return bar_chart_fig, pie_chart_fig, language_chart_fig, heatmap_fig
+        # Generate visualizations
+        iac_chart_fig = viz_iac_chart(iac_data)
+        active_inactive_fig = viz_active_inactive(active_inactive_data)
+        classification_fig = viz_classification(classification_data)
+        language_chart_fig = viz_main_language(language_data)
+        heatmap_fig = viz_heatmap(heatmap_data)
+
+        return iac_chart_fig, active_inactive_fig, classification_fig, language_chart_fig, heatmap_fig
