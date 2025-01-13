@@ -12,9 +12,11 @@ def register_dropdown_callbacks(app):
     @app.callback(
         [
             Output("host-name-filter", "options"),
+            Output("activity-status-filter", "options"),
+            Output("tc-cluster-filter", "options"),
+            Output("tc-filter", "options"),
             Output("language-filter", "options"),
             Output("classification-filter", "options"),
-            Output("activity-status-filter", "options"),  # New field
         ],
         [Input("app-layout", "children")]  # Trigger callback on app layout load
     )
@@ -24,9 +26,11 @@ def register_dropdown_callbacks(app):
         
         return (
             [{"label": name, "value": name} for name in options["host_names"]],
+            [{"label": status, "value": status} for status in options["activity_statuses"]],
+            [{"label": cluster, "value": cluster} for cluster in options["tc_clusters"]],
+            [{"label": tc, "value": tc} for tc in options["tcs"]],
             [{"label": lang, "value": lang} for lang in options["languages"]],
             [{"label": label, "value": label} for label in options["classification_labels"]],
-            [{"label": status, "value": status} for status in options["activity_statuses"]],  # Populate activity_status
         )
 
 def register_callbacks(app):
@@ -39,18 +43,30 @@ def register_callbacks(app):
         ],
         [
             Input("host-name-filter", "value"),
+            Input("activity-status-filter", "value"),
+            Input("tc-cluster-filter", "value"),
+            Input("tc-filter", "value"),
             Input("language-filter", "value"),
             Input("classification-filter", "value"),
-            Input("activity-status-filter", "value"),  # New field
+            Input("app-id-filter", "value"),
         ],
     )
-    def update_charts(selected_hosts, selected_languages, selected_classifications, selected_statuses):
+    def update_charts(selected_hosts, selected_statuses, selected_tc_clusters, selected_tcs, selected_languages, selected_classifications, app_id_input):
+        # Parse the app_id input
+        if app_id_input:
+            app_ids = [id.strip() for id in app_id_input.split(",")]
+        else:
+            app_ids = None
+
         # Create a dictionary of filters dynamically
         filters = {
             "host_name": selected_hosts,
+            "activity_status": selected_statuses,
+            "tc_cluster": selected_tc_clusters,
+            "tc": selected_tcs,
             "main_language": selected_languages,
             "classification_label": selected_classifications,
-            "activity_status": selected_statuses,  # Add activity_status to filters
+            "app_id": app_ids,  # Add app_id filter
         }
 
         # Fetch data for each visualization
