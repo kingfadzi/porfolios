@@ -4,26 +4,25 @@ import pandas as pd
 def create_bar_chart(filtered_df):
     """
     Create a bar chart for Active vs Inactive repositories.
-    Includes total in the chart title.
+    Ensures 'Active' is green and 'Inactive' is red.
     """
-    # Calculate total count
-    total_count = filtered_df["repo_count"].sum()
+    # Normalize the activity_status values to ensure case matches the color_map
+    filtered_df["activity_status"] = filtered_df["activity_status"].str.capitalize()
 
     # Define custom colors for Active and Inactive
-    color_map = {"Active": "green", "Inactive": "red"}
+    color_map = {"Active": "green", "Inactive": "red"}  # Match normalized values
 
     return px.bar(
         filtered_df,
         x="activity_status",
         y="repo_count",
         color="activity_status",
-        title=f"Active vs Inactive Repositories (Total: {total_count})",  # Add total to title
-        color_discrete_map=color_map,
+        title="Active vs Inactive Repositories",
+        color_discrete_map=color_map,  # Apply color map
     ).update_layout(
         dragmode=False,
         title={"x": 0.5},  # Center the title
     )
-
 
 def create_pie_chart(filtered_df):
     """
