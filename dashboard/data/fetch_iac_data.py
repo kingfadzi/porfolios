@@ -4,7 +4,7 @@ import pandas as pd
 
 def fetch_iac_data(filters=None):
     """
-    Fetch the count of repositories for each IaC type, applying filters.
+    Fetch the count of repositories for each IaC type (excluding 'No IaC'), applying filters.
     """
     filter_conditions = build_filter_conditions(filters)
 
@@ -32,6 +32,9 @@ def fetch_iac_data(filters=None):
     """
     if filter_conditions:
         query += f" WHERE {filter_conditions}"
-    query += " GROUP BY iac_type"
+    query += """
+    GROUP BY iac_type
+    HAVING iac_type != 'No IaC'
+    """
 
     return pd.read_sql(query, engine)
