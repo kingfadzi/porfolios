@@ -7,7 +7,50 @@ def chart_layout():
     """
     return dbc.Col(
         [
-            # Scatter Plot
+            # Row: Active vs Inactive Repositories & Repository Classification
+            dbc.Row(
+                [
+                    # Active vs Inactive
+                    dbc.Col(
+                        dbc.Card(
+                            [
+                                dbc.CardHeader(
+                                    html.B("Active vs Inactive Repositories", className="text-center"),
+                                    className="bg-light",
+                                ),
+                                dcc.Graph(
+                                    id="active-inactive-bar",
+                                    config={"displayModeBar": False},
+                                    style={"height": 300},
+                                ),
+                            ],
+                            className="mb-4",
+                        ),
+                        width=6,
+                    ),
+                    # Repository Classification
+                    dbc.Col(
+                        dbc.Card(
+                            [
+                                dbc.CardHeader(
+                                    html.B("Repository Classification", className="text-center"),
+                                    className="bg-light",
+                                ),
+                                dcc.Graph(
+                                    id="classification-pie",
+                                    config={"displayModeBar": False},
+                                    style={"height": 300},
+                                ),
+                            ],
+                            className="mb-4",
+                        ),
+                        width=6,
+                    ),
+                ],
+                className="mb-4",
+            ),
+
+            # Contributors vs Commits Scatter Plot
             dbc.Card(
                 [
                     dbc.CardHeader(
@@ -22,52 +65,8 @@ def chart_layout():
                 ],
                 className="mb-4",
             ),
-            # IaC Chart
-            dbc.Card(
-                [
-                    dbc.CardHeader(
-                        html.B("Repositories by IaC Type", className="text-center"),
-                        className="bg-light",
-                    ),
-                    dcc.Graph(
-                        id="iac-bar-chart",
-                        config={"displayModeBar": False},
-                        style={"height": 300},
-                    ),
-                ],
-                className="mb-4",
-            ),
-            # Active vs Inactive Chart
-            dbc.Card(
-                [
-                    dbc.CardHeader(
-                        html.B("Active vs Inactive Repositories", className="text-center"),
-                        className="bg-light",
-                    ),
-                    dcc.Graph(
-                        id="active-inactive-bar",
-                        config={"displayModeBar": False},
-                        style={"height": 300},
-                    ),
-                ],
-                className="mb-4",
-            ),
-            # Classification Pie Chart
-            dbc.Card(
-                [
-                    dbc.CardHeader(
-                        html.B("Repository Classification", className="text-center"),
-                        className="bg-light",
-                    ),
-                    dcc.Graph(
-                        id="classification-pie",
-                        config={"displayModeBar": False},
-                        style={"height": 300},
-                    ),
-                ],
-                className="mb-4",
-            ),
-            # Language Distribution Chart
+
+            # Repositories by Main Language
             dbc.Card(
                 [
                     dbc.CardHeader(
@@ -82,20 +81,55 @@ def chart_layout():
                 ],
                 className="mb-4",
             ),
-            # Heatmap Chart
+
+            # CLOC Metrics by Language
             dbc.Card(
                 [
                     dbc.CardHeader(
-                        html.B("Commit Buckets vs Contributor Buckets", className="text-center"),
+                        html.B("CLOC Metrics by Language", className="text-center"),
                         className="bg-light",
                     ),
                     dcc.Graph(
-                        id="heatmap-viz",
+                        id="cloc-bar-chart",
                         config={"displayModeBar": False},
                         style={"height": 300},
                     ),
                 ],
                 className="mb-4",
             ),
+
+            # Repositories by IaC Type
+            dbc.Card(
+                [
+                    dbc.CardHeader(
+                        html.B("Repositories by IaC Type", className="text-center"),
+                        className="bg-light",
+                    ),
+                    dcc.Graph(
+                        id="iac-bar-chart",
+                        config={"displayModeBar": False},
+                        style={"height": 300},
+                    ),
+                ],
+                className="mb-4",
+            ),
+
+            # Programming Languages vs Contributor Buckets Heatmap
+            dbc.Card(
+                [
+                    dbc.CardHeader(
+                        html.B("Programming Languages vs Contributor Buckets Heatmap", className="text-center"),
+                        className="bg-light",
+                    ),
+                    dcc.Graph(
+                        id="language-contributors-heatmap",
+                        config={"displayModeBar": False},
+                        style={"height": 300},
+                    ),
+                ],
+                className="mb-4",
+            ),
+
+
         ]
     )

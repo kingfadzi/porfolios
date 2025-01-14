@@ -11,7 +11,11 @@ from callbacks.viz_iac_chart import viz_iac_chart
 from callbacks.viz_active_inactive import viz_active_inactive
 from callbacks.viz_classification import viz_classification
 from callbacks.viz_main_language import viz_main_language
-from callbacks.viz_heatmap import viz_heatmap
+from data.fetch_cloc_by_language import fetch_cloc_by_language
+from callbacks.viz_cloc_by_language import viz_cloc_by_language
+from data.fetch_language_contributors_heatmap import fetch_language_contributors_heatmap
+from callbacks.viz_language_contributors_heatmap import viz_language_contributors_heatmap
+
 
 def register_dropdown_callbacks(app):
     @app.callback(
@@ -40,12 +44,15 @@ def register_dropdown_callbacks(app):
 def register_callbacks(app):
     @app.callback(
         [
-            Output("scatter-plot", "figure"),  # Scatter plot Output
-            Output("iac-bar-chart", "figure"),  # IaC chart Output
-            Output("active-inactive-bar", "figure"),
-            Output("classification-pie", "figure"),
-            Output("repos-by-language-bar", "figure"),
-            Output("heatmap-viz", "figure"),
+            Output("active-inactive-bar", "figure"),                # 1. Active vs Inactive Repositories
+            Output("classification-pie", "figure"),                 # 2. Repository Classification
+            Output("scatter-plot", "figure"),                       # 3. Contributors vs Commits Scatter Plot
+            Output("repos-by-language-bar", "figure"),              # 4. Repositories by Main Language
+            Output("cloc-bar-chart", "figure"),                     # 5. CLOC Metrics by Language
+            Output("iac-bar-chart", "figure"),                      # 6. Repositories by IaC Type
+            Output("language-contributors-heatmap", "figure"),      # 7. Programming Languages vs Contributor Buckets Heatmap
+
+
         ],
         [
             Input("host-name-filter", "value"),
@@ -76,19 +83,32 @@ def register_callbacks(app):
         }
 
         # Fetch data for each visualization
+        active_inactive_data = fetch_active_inactive_data(filters)
         contributors_commits_size_data = fetch_contributors_commits_size(filters)
         iac_data = fetch_iac_data(filters)
-        active_inactive_data = fetch_active_inactive_data(filters)
         classification_data = fetch_classification_data(filters)
         language_data = fetch_language_data(filters)
         heatmap_data = fetch_heatmap_data(filters)
+        cloc_data = fetch_cloc_by_language(filters)
+        heatmap_data = fetch_language_contributors_heatmap(filters)
 
-        # Generate visualizations
+    # Generate visualizations
         scatter_fig = viz_contributors_commits_size(contributors_commits_size_data)
         iac_chart_fig = viz_iac_chart(iac_data)
         active_inactive_fig = viz_active_inactive(active_inactive_data)
         classification_fig = viz_classification(classification_data)
         language_chart_fig = viz_main_language(language_data)
-        heatmap_fig = viz_heatmap(heatmap_data)
+        cloc_chart_fig = viz_cloc_by_language(cloc_data)
+        heatmap_fig = viz_language_contributors_heatmap(heatmap_data)
 
-        return scatter_fig, iac_chart_fig, active_inactive_fig, classification_fig, language_chart_fig, heatmap_fig
+        return (
+            active_inactive_fig,                # 1
+            classification_fig,                 # 2
+            scatter_fig,                        # 3
+            language_chart_fig,                 # 4
+            cloc_chart_fig,                     # 5
+            iac_chart_fig,                      # 6
+            heatmap_fig,  # 7
+
+        )
+

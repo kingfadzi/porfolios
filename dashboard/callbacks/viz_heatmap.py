@@ -13,5 +13,4 @@ def viz_heatmap(filtered_df):
     return px.imshow(
         heatmap_data,
         text_auto=True,
-        title="Commit Buckets vs Contributor Buckets",
     ).update_layout(dragmode=False, title={"x": 0.5})

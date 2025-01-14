@@ -8,7 +8,6 @@ def viz_iac_chart(filtered_df):
         filtered_df,
         x="iac_type",
         y="repo_count",
-        title="Repositories by IaC Type",
         labels={"iac_type": "IaC Type", "repo_count": "Repository Count"},
         color="iac_type",
     ).update_layout(

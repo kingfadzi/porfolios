@@ -8,5 +8,4 @@ def viz_main_language(filtered_df):
         filtered_df,
         x="main_language",
         y="repo_count",
-        title="Repositories by Main Language",
     ).update_layout(dragmode="pan", title={"x": 0.5})

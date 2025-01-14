@@ -14,7 +14,6 @@ def viz_contributors_commits_size(filtered_df):
         y="commits",
         size="repo_size",
         size_max=60,  # Set maximum bubble size
-        title="Scatter Plot: Contributors vs. Commits",
         labels={
             "contractors": "Number of Contributors",
             "commits": "Total Commits",
