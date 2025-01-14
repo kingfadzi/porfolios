@@ -4,11 +4,12 @@ import pandas as pd
 
 def fetch_iac_data(filters=None):
     """
-    Fetch the count of repositories for each IaC type (excluding 'No IaC'), applying filters.
+    Fetch the count of repositories for each IaC type, applying filters.
+    Always excludes rows where iac_no_checks != 0.
     """
     filter_conditions = build_filter_conditions(filters)
 
-    query = f"""
+    query = """
     SELECT 
         CASE
             WHEN iac_ansible > 0 THEN 'Ansible'
@@ -29,12 +30,13 @@ def fetch_iac_data(filters=None):
         END AS iac_type,
         COUNT(DISTINCT repo_id) AS repo_count
     FROM combined_repo_metrics
+    WHERE iac_no_checks = 0
     """
+
+    # Append any additional filters
     if filter_conditions:
-        query += f" WHERE {filter_conditions}"
-    query += """
-    GROUP BY iac_type
-    HAVING iac_type != 'No IaC'
-    """
+        query += f" AND {filter_conditions}"
+
+    query += " GROUP BY iac_type"
 
     return pd.read_sql(query, engine)
