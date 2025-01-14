@@ -15,4 +15,5 @@ def viz_iac_chart(filtered_df):
         template="plotly_white",
         title={"x": 0.5},
         dragmode=False,
+        showlegend=False
     )

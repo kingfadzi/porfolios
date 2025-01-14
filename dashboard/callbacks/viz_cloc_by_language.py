@@ -27,7 +27,7 @@ def viz_cloc_by_language(filtered_df):
         y="count",
         color="metric",
         labels={
-            "main_language": "Programming Language",  # Corrected label
+            "main_language": "Language",  # Corrected label
             "count": "Count",
             "metric": "Metric Type",
         },

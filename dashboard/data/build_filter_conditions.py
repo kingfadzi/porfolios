@@ -13,3 +13,14 @@ def build_filter_conditions(filters):
             conditions.append(f"{field} IN ({formatted_values})")
 
     return " AND ".join(conditions) if conditions else None
+
+def build_filter_conditions_with_alias(filters, alias):
+    if not alias:
+        raise ValueError("Alias must be specified for this method.")
+
+    conditions = []
+    for field, values in filters.items():
+        if values:
+            formatted_values = ",".join([f"'{value}'" for value in values])
+            conditions.append(f"{alias}.{field} IN ({formatted_values})")
+    return " AND ".join(conditions) if conditions else None

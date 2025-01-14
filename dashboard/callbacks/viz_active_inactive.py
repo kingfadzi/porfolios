@@ -19,7 +19,7 @@ def viz_active_inactive(filtered_df):
     fig.update_layout(
         dragmode=False,
         title={"x": 0.5},
-        showlegend=False  # Disable the legend here
+        showlegend=False
     )
 
     return fig

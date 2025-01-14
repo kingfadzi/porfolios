@@ -124,12 +124,42 @@ def chart_layout():
                     dcc.Graph(
                         id="language-contributors-heatmap",
                         config={"displayModeBar": False},
+                        style={"height": 600},
+                    ),
+                ],
+                className="mb-4",
+            ),
+
+            dbc.Card(
+                [
+                    dbc.CardHeader(
+                        html.B("Vulnerabilities by Severity (Shallow scan)", className="text-center"),
+                        className="bg-light",
+                    ),
+                    dcc.Graph(
+                        id="trivy-vulnerabilities-bar-chart",
+                        config={"displayModeBar": False},
                         style={"height": 300},
                     ),
                 ],
                 className="mb-4",
             ),
 
+            # Semgrep Findings Chart
+            dbc.Card(
+                [
+                    dbc.CardHeader(
+                        html.B("Standards Issues", className="text-center"),
+                        className="bg-light",
+                    ),
+                    dcc.Graph(
+                        id="semgrep-findings-bar-chart",
+                        config={"displayModeBar": False},
+                        style={"height": 300},
+                    ),
+                ],
+                className="mb-4",
+            ),
 
         ]
     )

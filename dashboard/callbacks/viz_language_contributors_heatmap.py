@@ -10,7 +10,7 @@ def viz_language_contributors_heatmap(filtered_df):
     # Pivot the data for heatmap
     heatmap_data = filtered_df.pivot(
         index="contributor_bucket",
-        columns="main_language",
+        columns="language",  # Updated to match the alias in the query
         values="repo_count"
     ).fillna(0)
 

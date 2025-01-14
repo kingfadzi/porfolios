@@ -15,6 +15,10 @@ from data.fetch_cloc_by_language import fetch_cloc_by_language
 from callbacks.viz_cloc_by_language import viz_cloc_by_language
 from data.fetch_language_contributors_heatmap import fetch_language_contributors_heatmap
 from callbacks.viz_language_contributors_heatmap import viz_language_contributors_heatmap
+from data.fetch_trivy_vulnerabilities import fetch_trivy_vulnerabilities
+from callbacks.viz_trivy_vulnerabilities import viz_trivy_vulnerabilities
+from data.fetch_semgrep_findings import fetch_semgrep_findings
+from callbacks.viz_semgrep_findings import viz_semgrep_findings
 
 
 def register_dropdown_callbacks(app):
@@ -51,8 +55,8 @@ def register_callbacks(app):
             Output("cloc-bar-chart", "figure"),                     # 5. CLOC Metrics by Language
             Output("iac-bar-chart", "figure"),                      # 6. Repositories by IaC Type
             Output("language-contributors-heatmap", "figure"),      # 7. Programming Languages vs Contributor Buckets Heatmap
-
-
+            Output("trivy-vulnerabilities-bar-chart", "figure"),
+            Output("semgrep-findings-bar-chart", "figure"),
         ],
         [
             Input("host-name-filter", "value"),
@@ -91,6 +95,8 @@ def register_callbacks(app):
         heatmap_data = fetch_heatmap_data(filters)
         cloc_data = fetch_cloc_by_language(filters)
         heatmap_data = fetch_language_contributors_heatmap(filters)
+        trivy_data = fetch_trivy_vulnerabilities(filters)
+        semgrep_data = fetch_semgrep_findings(filters)
 
     # Generate visualizations
         scatter_fig = viz_contributors_commits_size(contributors_commits_size_data)
@@ -100,6 +106,8 @@ def register_callbacks(app):
         language_chart_fig = viz_main_language(language_data)
         cloc_chart_fig = viz_cloc_by_language(cloc_data)
         heatmap_fig = viz_language_contributors_heatmap(heatmap_data)
+        trivy_chart_fig = viz_trivy_vulnerabilities(trivy_data)
+        semgrep_chart_fig = viz_semgrep_findings(semgrep_data)
 
         return (
             active_inactive_fig,                # 1
@@ -109,6 +117,8 @@ def register_callbacks(app):
             cloc_chart_fig,                     # 5
             iac_chart_fig,                      # 6
             heatmap_fig,  # 7
+            trivy_chart_fig,
+            semgrep_chart_fig
 
         )
 
