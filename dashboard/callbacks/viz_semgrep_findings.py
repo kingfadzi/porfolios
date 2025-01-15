@@ -9,7 +9,7 @@ def viz_semgrep_findings(filtered_df):
         x="category",
         y="repo_count",
         labels={
-            "category": "Finding Category",
+            "category": "Issue Category",
             "repo_count": "Repository Count",
         },
         color="category",

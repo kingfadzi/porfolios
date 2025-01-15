@@ -18,8 +18,8 @@ def viz_language_contributors_heatmap(filtered_df):
         heatmap_data,
         text_auto=True,  # Display values inside heatmap cells
         labels={
-            "x": "Programming Language",
-            "y": "Contributor Bucket",
+            "x": "Language",
+            "y": "Number of contributors",
             "color": "Repository Count",
         },
         color_continuous_scale="Viridis",  # Choose a color scale

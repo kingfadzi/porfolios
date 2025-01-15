@@ -15,7 +15,7 @@ def chart_layout():
                         dbc.Card(
                             [
                                 dbc.CardHeader(
-                                    html.B("Active vs Inactive Repositories", className="text-center"),
+                                    html.B("Activity Status", className="text-center"),
                                     className="bg-light",
                                 ),
                                 dcc.Graph(

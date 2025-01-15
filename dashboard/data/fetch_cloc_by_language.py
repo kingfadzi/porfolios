@@ -14,7 +14,7 @@ def fetch_cloc_by_language(filters=None):
             SUM(total_lines_of_code) AS total_lines_of_code,
             SUM(source_code_file_count) AS source_code_file_count
         FROM combined_repo_metrics
-        WHERE main_language != 'SUM'
+        WHERE main_language != 'SUM' 
         """
         if filter_conditions:
             query += f" AND {filter_conditions}"

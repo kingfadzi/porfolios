@@ -28,14 +28,13 @@ def viz_cloc_by_language(filtered_df):
         color="metric",
         labels={
             "main_language": "Language",  # Corrected label
-            "count": "Count",
+            "count": "Lines of code",
             "metric": "Metric Type",
         },
         barmode="stack",  # Stacked bars
     ).update_layout(
         template="plotly_white",
         xaxis=dict(categoryorder="total descending"),  # Sort by total count
-        title={"text": "CLOC Metrics by Programming Language", "x": 0.5},  # Centered title
         dragmode="pan",
     )
 

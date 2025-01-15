@@ -2,10 +2,18 @@ import plotly.express as px
 
 def viz_main_language(filtered_df):
     """
-    Create a bar chart for Repositories by Main Language.
+    Create a bar chart for Repositories by Main Language with custom axis labels.
     """
     return px.bar(
         filtered_df,
         x="main_language",
         y="repo_count",
-    ).update_layout(dragmode="pan", title={"x": 0.5})
+        labels={
+            "main_language": "Language",
+            "repo_count": "Repository Count"
+        },
+    ).update_layout(
+        dragmode="pan",
+        xaxis_title="Language",
+        yaxis_title="Repository Count",
+    )
