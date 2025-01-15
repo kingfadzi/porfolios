@@ -130,32 +130,44 @@ def chart_layout():
                 className="mb-4",
             ),
 
-            dbc.Card(
+            # Row: Trivy Vulnerabilities & Semgrep Findings
+            dbc.Row(
                 [
-                    dbc.CardHeader(
-                        html.B("Vulnerabilities by Severity (Shallow scan)", className="text-center"),
-                        className="bg-light",
+                    # Trivy Vulnerabilities
+                    dbc.Col(
+                        dbc.Card(
+                            [
+                                dbc.CardHeader(
+                                    html.B("Vulnerabilities by Severity (Shallow scan)", className="text-center"),
+                                    className="bg-light",
+                                ),
+                                dcc.Graph(
+                                    id="trivy-vulnerabilities-bar-chart",
+                                    config={"displayModeBar": False},
+                                    style={"height": 300},
+                                ),
+                            ],
+                            className="mb-4",
+                        ),
+                        width=6,
                     ),
-                    dcc.Graph(
-                        id="trivy-vulnerabilities-bar-chart",
-                        config={"displayModeBar": False},
-                        style={"height": 300},
-                    ),
-                ],
-                className="mb-4",
-            ),
-
-            # Semgrep Findings Chart
-            dbc.Card(
-                [
-                    dbc.CardHeader(
-                        html.B("Standards Issues", className="text-center"),
-                        className="bg-light",
-                    ),
-                    dcc.Graph(
-                        id="semgrep-findings-bar-chart",
-                        config={"displayModeBar": False},
-                        style={"height": 300},
+                    # Semgrep Findings
+                    dbc.Col(
+                        dbc.Card(
+                            [
+                                dbc.CardHeader(
+                                    html.B("Standards Issues", className="text-center"),
+                                    className="bg-light",
+                                ),
+                                dcc.Graph(
+                                    id="semgrep-findings-bar-chart",
+                                    config={"displayModeBar": False},
+                                    style={"height": 300},
+                                ),
+                            ],
+                            className="mb-4",
+                        ),
+                        width=6,
                     ),
                 ],
                 className="mb-4",

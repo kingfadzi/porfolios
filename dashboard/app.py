@@ -3,9 +3,17 @@ from layouts.layout_main import main_layout
 from app_callbacks import register_callbacks, register_dropdown_callbacks
 import dash_bootstrap_components as dbc
 import plotly.io as pio
+from data.cache_instance import cache  # Import the cache instance
 
-# Set Bootstrap theme and Plotly template
-app = Dash(external_stylesheets=[dbc.themes.BOOTSTRAP])
+# Initialize Dash app
+app = Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP])
+server = app.server  # Flask server
+
+# Configure Flask-Caching
+server.config["CACHE_TYPE"] = "simple"  # Use 'redis' for production
+server.config["CACHE_DEFAULT_TIMEOUT"] = 3600  # Cache timeout in seconds
+cache.init_app(server)  # Initialize the cache with the Flask server
+
 pio.templates.default = "plotly_white"
 
 # Set layout

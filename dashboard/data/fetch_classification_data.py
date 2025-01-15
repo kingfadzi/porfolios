@@ -1,14 +1,19 @@
 import pandas as pd
 from data.db_connection import engine
 from data.build_filter_conditions import build_filter_conditions
+from data.cache_instance import cache
 
 def fetch_classification_data(filters=None):
+    @cache.memoize()
+    def query_data(filter_conditions):
+        query = """
+        SELECT classification_label, COUNT(*) AS repo_count
+        FROM combined_repo_metrics
+        """
+        if filter_conditions:
+            query += f" WHERE {filter_conditions}"
+        query += " GROUP BY classification_label"
+        return pd.read_sql(query, engine)
+
     filter_conditions = build_filter_conditions(filters)
-    query = """
-    SELECT classification_label, COUNT(*) AS repo_count
-    FROM combined_repo_metrics
-    """
-    if filter_conditions:
-        query += f" WHERE {filter_conditions}"
-    query += " GROUP BY classification_label"
-    return pd.read_sql(query, engine)
+    return query_data(filter_conditions)
