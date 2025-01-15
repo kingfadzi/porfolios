@@ -1,14 +1,14 @@
 SELECT
-    t.name AS TableName,
+    o.name AS ViewName,
     c.name AS ColumnName,
-    ty.name AS DataType,
+    t.name AS DataType,
     c.max_length AS MaxLength,
     c.precision AS [Precision],
     c.scale AS [Scale],
     c.is_nullable AS IsNullable
-FROM sys.tables t
-    INNER JOIN sys.schemas s ON t.schema_id = s.schema_id
-    INNER JOIN sys.columns c ON t.object_id = c.object_id
-    INNER JOIN sys.types ty ON c.user_type_id = ty.user_type_id
-WHERE s.name = 'my_schema'
-ORDER BY t.name, c.column_id;
+FROM sys.objects o
+    INNER JOIN sys.columns c ON o.object_id = c.object_id
+    INNER JOIN sys.types t ON c.user_type_id = t.user_type_id
+WHERE o.type = 'V'
+  AND o.name LIKE '%mything%'
+ORDER BY o.name, c.column_id;
