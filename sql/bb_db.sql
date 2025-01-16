@@ -234,26 +234,32 @@ CREATE TABLE component_mapping (
    repo_slug      VARCHAR
 );
 
-    CREATE TABLE business_app_mapping (
-      component_id INTEGER NOT NULL,
-      transaction_cycle VARCHAR NOT NULL,
-      component_name VARCHAR NOT NULL,
-      business_app_identifier VARCHAR NOT NULL,
-      PRIMARY KEY (component_id, business_app_identifier)
-    );
+DROP TABLE IF EXISTS business_app_mapping;
 
-    CREATE TABLE version_control_mapping (
-         component_id INTEGER NOT NULL,
-         project_key VARCHAR NOT NULL,
-         repo_slug VARCHAR NOT NULL,
-         web_url VARCHAR NOT NULL,
-         PRIMARY KEY (component_id, project_key, repo_slug)
-    );
+CREATE TABLE business_app_mapping (
+                                      id SERIAL PRIMARY KEY,
+                                      component_id INTEGER NOT NULL,
+                                      transaction_cycle VARCHAR NOT NULL,
+                                      component_name VARCHAR NOT NULL,
+                                      business_app_identifier VARCHAR NOT NULL
+);
 
-    CREATE TABLE repo_business_mapping (
-       component_id INTEGER NOT NULL,
-       project_key VARCHAR NOT NULL,
-       repo_slug VARCHAR NOT NULL,
-       business_app_identifier VARCHAR NOT NULL,
-       PRIMARY KEY (component_id, project_key, repo_slug, business_app_identifier)
+DROP TABLE IF EXISTS version_control_mapping;
+
+CREATE TABLE version_control_mapping (
+                                         id SERIAL PRIMARY KEY,
+                                         component_id INTEGER NOT NULL,
+                                         project_key VARCHAR NOT NULL,
+                                         repo_slug VARCHAR NOT NULL,
+                                         web_url VARCHAR
+);
+
+DROP TABLE IF EXISTS repo_business_mapping;
+
+CREATE TABLE repo_business_mapping (
+                                       id SERIAL PRIMARY KEY,
+                                       component_id INTEGER NOT NULL,
+                                       project_key VARCHAR NOT NULL,
+                                       repo_slug VARCHAR NOT NULL,
+                                       business_app_identifier VARCHAR NOT NULL
 );
