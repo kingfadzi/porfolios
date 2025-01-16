@@ -9,10 +9,10 @@ def parse_git_url(url: str):
         re.compile(r'^ssh://git@[^:]+:7999/(?P<project>[^/]+)/(?P<slug>[^/]+)\.git$'),
         # Bitbucket HTTPS
         re.compile(r'^https?://[^/]+/scm/(?P<project>[^/]+)/(?P<slug>[^/]+)\.git$'),
-        # GitLab SSH (nested groups)
-        re.compile(r'^git@[^:]+:(?P<group_repo_path>[^.]+)\.git$'),
-        # GitLab HTTPS
-        re.compile(r'^https?://[^/]+/(?P<group_repo_path>[^.]+)\.git$'),
+        # GitLab SSH (nested groups, including dots)
+        re.compile(r'^git@[^:]+:(?P<group_repo_path>.+)\.git$'),
+        # GitLab HTTPS (nested groups, including dots)
+        re.compile(r'^https?://[^/]+/(?P<group_repo_path>.+)\.git$'),
         # GitHub SSH
         re.compile(r'^git@github\.com:(?P<project>[^/]+)/(?P<slug>[^/]+)\.git$'),
         # GitHub HTTPS
@@ -21,11 +21,15 @@ def parse_git_url(url: str):
     for pat in patterns:
         m = pat.match(url)
         if m:
+            # For patterns that capture 'project' and 'slug' directly
             if 'project' in m.groupdict() and 'slug' in m.groupdict():
                 return m.group('project'), m.group('slug')
+            # For patterns that capture 'group_repo_path'
             parts = m.group('group_repo_path').split('/')
-            return ('/'.join(parts[:-1]) if len(parts) > 1 else None,
-                    parts[-1] if parts else None)
+            return (
+                '/'.join(parts[:-1]) if len(parts) > 1 else None,
+                parts[-1] if parts else None
+            )
     return None, None
 
 def main():
