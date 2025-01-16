@@ -233,3 +233,12 @@ CREATE TABLE component_mapping (
    project_key    VARCHAR,
    repo_slug      VARCHAR
 );
+
+CREATE TABLE component_business_app (
+    component_id            VARCHAR NOT NULL,
+    project_key             VARCHAR NOT NULL,
+    repo_slug               VARCHAR NOT NULL,
+    business_app_identifier VARCHAR NOT NULL,
+    transaction_cycle       VARCHAR,
+    PRIMARY KEY (component_id, project_key, repo_slug, business_app_identifier)
+);

@@ -34,3 +34,21 @@ GROUP BY
     cm_v.component_id
 HAVING
     COUNT(cm_b.identifier) > 1;
+
+---
+
+INSERT INTO component_business_app (
+    component_id, project_key, repo_slug,
+    business_app_identifier, transaction_cycle
+)
+SELECT
+    cm_v.component_id,
+    cm_v.project_key,
+    cm_v.repo_slug,
+    cm_b.identifier,
+    cm_b.transaction_cycle  -- pulled from the 'ba' row
+FROM component_mapping cm_v
+         JOIN component_mapping cm_b
+              ON cm_b.component_id = cm_v.component_id
+                  AND cm_b.mapping_type = 'ba'
+WHERE cm_v.mapping_type = 'vs';
