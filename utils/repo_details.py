@@ -4,7 +4,6 @@ import re
 from modular.models import Session, Base, Repository
 
 def parse_git_url(url: str):
-    """Return (project_key, repo_slug) from various SSH/HTTPS Git URLs."""
     patterns = [
         # Bitbucket SSH
         re.compile(r'^ssh://git@[^:]+:7999/(?P<project>[^/]+)/(?P<slug>[^/]+)\.git$'),
@@ -13,25 +12,24 @@ def parse_git_url(url: str):
         # GitLab SSH (nested groups)
         re.compile(r'^git@[^:]+:(?P<group_repo_path>[^.]+)\.git$'),
         # GitLab HTTPS
-        re.compile(r'^https?://[^/]+/(?P<group_repo_path>[^.]+)\.git$')
+        re.compile(r'^https?://[^/]+/(?P<group_repo_path>[^.]+)\.git$'),
+        # GitHub SSH
+        re.compile(r'^git@github\.com:(?P<project>[^/]+)/(?P<slug>[^/]+)\.git$'),
+        # GitHub HTTPS
+        re.compile(r'^https?://github\.com/(?P<project>[^/]+)/(?P<slug>[^/]+)\.git$')
     ]
     for pat in patterns:
         m = pat.match(url)
         if m:
-            if 'project' in m.groupdict():
-                return (m.group('project'), m.group('slug'))
+            if 'project' in m.groupdict() and 'slug' in m.groupdict():
+                return m.group('project'), m.group('slug')
             parts = m.group('group_repo_path').split('/')
-            return (
-                '/'.join(parts[:-1]) if len(parts) > 1 else None,
-                parts[-1] if parts else None
-            )
-    return (None, None)
+            return ('/'.join(parts[:-1]) if len(parts) > 1 else None,
+                    parts[-1] if parts else None)
+    return None, None
 
 def main():
-    # Use Session from modular.models
     session = Session()
-
-    # Read all repositories
     repos = session.query(Repository).all()
     for r in repos:
         if r.clone_url_ssh:
@@ -39,6 +37,8 @@ def main():
             print(f"URL: {r.clone_url_ssh}, PROJECT: {pkey}, SLUG: {slug}")
             if pkey:
                 r.project_key = pkey
+            if slug:
+                r.repo_slug = slug
     session.commit()
     session.close()
 

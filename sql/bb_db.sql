@@ -13,6 +13,7 @@ CREATE TABLE bitbucket_repositories (
     repo_id VARCHAR PRIMARY KEY,
     repo_name VARCHAR NOT NULL,
     repo_slug VARCHAR NOT NULL,
+    project_key VARCHAR NOT NULL,
     clone_url_ssh VARCHAR,
     host_name VARCHAR,
     app_id VARCHAR,

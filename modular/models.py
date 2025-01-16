@@ -21,6 +21,7 @@ class Repository(Base):
     __tablename__ = "bitbucket_repositories"
     repo_id = Column(String, primary_key=True)
     repo_name = Column(String, nullable=False)
+    project_key = Column(String, nullable=False)
     repo_slug = Column(String, nullable=False)
     app_id = Column(String)
     host_name = Column(String)
