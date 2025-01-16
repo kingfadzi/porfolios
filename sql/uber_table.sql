@@ -95,20 +95,27 @@ go_enry_agg AS (
     GROUP BY g.repo_id
 ),
 
-ba_agg AS (
+business_app_agg AS (
     SELECT
-        cba.component_id,
-        cba.project_key,
-        cba.repo_slug,
-        cba.transaction_cycle,
-        STRING_AGG(cba.business_app_identifier, ', ' ORDER BY cba.business_app_identifier)
-          AS all_business_apps
-    FROM component_business_app cba
-    GROUP BY cba.component_id, cba.project_key, cba.repo_slug, cba.transaction_cycle
+        rbm.project_key,
+        rbm.repo_slug,
+        rbm.component_id,
+        STRING_AGG(DISTINCT bam.business_app_identifier, ', ' ORDER BY bam.business_app_identifier) AS all_business_apps,
+        bam.transaction_cycle
+    FROM repo_business_mapping rbm
+    JOIN business_app_mapping bam
+      ON rbm.component_id = bam.component_id
+    GROUP BY rbm.project_key, rbm.repo_slug, rbm.component_id, bam.transaction_cycle
 )
 
 SELECT
     r.repo_id,
+    vcm.project_key,
+    vcm.repo_slug,
+    vcm.web_url,
+    vcm.component_id,
+    bapp.all_business_apps AS business_app_identifiers,
+    bapp.transaction_cycle,
 
     -- Lizard summary columns
     l.total_nloc AS executable_lines_of_code,
@@ -169,57 +176,7 @@ SELECT
     rm.last_commit_date,
     rm.repo_age_days,
     rm.active_branch_count,
-    rm.updated_at,
-
-    -- bitbucket columns
-    b.host_name,
-    b.app_id,
-    b.project_key,
-    b.repo_slug,
-    b.tc_cluster,
-    b.tc,
-    b.clone_url_ssh,
-    b.status,
-    b.comment,
-
-    -- classification_label logic (truncated for brevity, same as your example)
-    CASE
-        WHEN e.main_language IS NULL THEN
-            CASE
-                WHEN (c.total_lines_of_code < 100)
-                    AND (rm.file_count < 10 OR rm.file_count IS NULL)
-                    AND (rm.repo_size_bytes < 1000000 OR rm.repo_size_bytes IS NULL)
-                    THEN 'Non-Code -> Empty/Minimal'
-                ELSE 'Non-Code -> Docs/Data'
-                END
-        ELSE
-            CASE
-                WHEN (c.total_lines_of_code < 500)
-                    AND (rm.file_count < 20 OR rm.file_count IS NULL)
-                    AND (rm.repo_size_bytes < 1000000 OR rm.repo_size_bytes IS NULL)
-                    THEN 'Code -> Tiny'
-                WHEN (c.total_lines_of_code < 5000)
-                    AND (rm.file_count < 200 OR rm.file_count IS NULL)
-                    AND (rm.repo_size_bytes < 10000000 OR rm.repo_size_bytes IS NULL)
-                    THEN 'Code -> Small'
-                WHEN (c.total_lines_of_code < 50000)
-                    AND (rm.file_count < 1000 OR rm.file_count IS NULL)
-                    AND (rm.repo_size_bytes < 100000000 OR rm.repo_size_bytes IS NULL)
-                    THEN 'Code -> Medium'
-                WHEN (c.total_lines_of_code < 100000)
-                    AND (rm.file_count < 5000 OR rm.file_count IS NULL)
-                    AND (rm.repo_size_bytes < 1000000000 OR rm.repo_size_bytes IS NULL)
-                    THEN 'Code -> Large'
-                WHEN c.total_lines_of_code >= 100000
-                    OR rm.file_count >= 5000
-                    OR rm.repo_size_bytes >= 1000000000
-                    THEN 'Code -> Massive'
-                ELSE 'Unclassified'
-                END
-        END AS classification_label,
-
-    ba.all_business_apps AS business_app_identifiers,
-    ba.transaction_cycle AS transaction_cycle
+    rm.updated_at
 
 FROM all_repos r
          LEFT JOIN lizard_summary         l  ON r.repo_id = l.repo_id
@@ -229,10 +186,9 @@ FROM all_repos r
          LEFT JOIN semgrep_agg            s  ON r.repo_id = s.repo_id
          LEFT JOIN go_enry_agg            e  ON r.repo_id = e.repo_id
          LEFT JOIN repo_metrics           rm ON r.repo_id = rm.repo_id
-         LEFT JOIN bitbucket_repositories b  ON r.repo_id = b.repo_id
-
-         LEFT JOIN ba_agg ba
-                   ON ba.project_key   = b.project_key
-                       AND ba.repo_slug     = b.repo_slug
+         LEFT JOIN version_control_mapping vcm ON r.repo_id = vcm.component_id
+         LEFT JOIN business_app_agg bapp
+                   ON vcm.project_key = bapp.project_key
+                       AND vcm.repo_slug   = bapp.repo_slug
 
 ORDER BY r.repo_id;
