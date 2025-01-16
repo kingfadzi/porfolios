@@ -48,8 +48,11 @@ session = Session()
 
 
 def populate_business_app_mapping():
+    print("[INFO] Starting populate_business_app_mapping...")
     components = session.query(ComponentMapping).filter_by(mapping_type="ba").all()
-    for component in components:
+    print(f"[INFO] Retrieved {len(components)} components with mapping_type='ba'.")
+
+    for idx, component in enumerate(components):
         existing = session.query(BusinessAppMapping).filter_by(
             component_id=component.component_id,
             business_app_identifier=component.identifier
@@ -61,12 +64,19 @@ def populate_business_app_mapping():
                 component_name=component.component_name,
                 business_app_identifier=component.identifier
             ))
+        if idx % 100 == 0:  # Log progress every 100 rows
+            print(f"[INFO] Processed {idx} rows in populate_business_app_mapping...")
+
     session.commit()
+    print("[INFO] Finished populate_business_app_mapping.")
 
 
 def populate_version_control_mapping():
+    print("[INFO] Starting populate_version_control_mapping...")
     components = session.query(ComponentMapping).filter_by(mapping_type="vs").all()
-    for component in components:
+    print(f"[INFO] Retrieved {len(components)} components with mapping_type='vs'.")
+
+    for idx, component in enumerate(components):
         existing = session.query(VersionControlMapping).filter_by(
             component_id=component.component_id,
             project_key=component.project_key,
@@ -78,15 +88,23 @@ def populate_version_control_mapping():
                 project_key=component.project_key,
                 repo_slug=component.repo_slug
             ))
+        if idx % 100 == 0:  # Log progress every 100 rows
+            print(f"[INFO] Processed {idx} rows in populate_version_control_mapping...")
+
     session.commit()
+    print("[INFO] Finished populate_version_control_mapping.")
 
 
 def populate_repo_business_mapping():
+    print("[INFO] Starting populate_repo_business_mapping...")
     version_controls = session.query(ComponentMapping).filter_by(mapping_type="vs").all()
     business_apps = session.query(ComponentMapping).filter_by(mapping_type="ba").all()
 
-    for vc in version_controls:
-        for ba in business_apps:
+    print(f"[INFO] Retrieved {len(version_controls)} version control mappings.")
+    print(f"[INFO] Retrieved {len(business_apps)} business application mappings.")
+
+    for idx_vc, vc in enumerate(version_controls):
+        for idx_ba, ba in enumerate(business_apps):
             if vc.component_id == ba.component_id:
                 existing = session.query(RepoBusinessMapping).filter_by(
                     component_id=vc.component_id,
@@ -101,13 +119,19 @@ def populate_repo_business_mapping():
                         repo_slug=vc.repo_slug,
                         business_app_identifier=ba.identifier
                     ))
+        if idx_vc % 10 == 0:  # Log progress every 10 version control components
+            print(f"[INFO] Processed {idx_vc} version control mappings...")
+
     session.commit()
+    print("[INFO] Finished populate_repo_business_mapping.")
 
 
 def main():
+    print("[INFO] Starting the data population script...")
     populate_business_app_mapping()
     populate_version_control_mapping()
     populate_repo_business_mapping()
+    print("[INFO] Data population script completed.")
 
 
 if __name__ == "__main__":
