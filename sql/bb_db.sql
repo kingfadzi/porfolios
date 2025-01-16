@@ -246,6 +246,7 @@ CREATE TABLE component_mapping (
          component_id INTEGER NOT NULL,
          project_key VARCHAR NOT NULL,
          repo_slug VARCHAR NOT NULL,
+         web_url VARCHAR NOT NULL,
          PRIMARY KEY (component_id, project_key, repo_slug)
     );
 

@@ -100,21 +100,25 @@ business_app_agg AS (
         rbm.project_key,
         rbm.repo_slug,
         rbm.component_id,
-        STRING_AGG(DISTINCT bam.business_app_identifier, ', ' ORDER BY bam.business_app_identifier) AS all_business_apps,
+        vcm.web_url,
+        STRING_AGG(DISTINCT bam.business_app_identifier, ', ' ORDER BY bam.business_app_identifier) AS business_app_identifiers,
         bam.transaction_cycle
     FROM repo_business_mapping rbm
     JOIN business_app_mapping bam
       ON rbm.component_id = bam.component_id
-    GROUP BY rbm.project_key, rbm.repo_slug, rbm.component_id, bam.transaction_cycle
+    JOIN version_control_mapping vcm
+      ON rbm.project_key = vcm.project_key
+     AND rbm.repo_slug = vcm.repo_slug
+    GROUP BY rbm.project_key, rbm.repo_slug, rbm.component_id, vcm.web_url, bam.transaction_cycle
 )
 
 SELECT
     r.repo_id,
-    vcm.project_key,
-    vcm.repo_slug,
+    b.project_key,
+    b.repo_slug,
     vcm.web_url,
-    vcm.component_id,
-    bapp.all_business_apps AS business_app_identifiers,
+    bapp.component_id,
+    bapp.business_app_identifiers,
     bapp.transaction_cycle,
 
     -- Lizard summary columns
@@ -179,6 +183,14 @@ SELECT
     rm.updated_at
 
 FROM all_repos r
+         LEFT JOIN bitbucket_repositories b
+                   ON r.repo_id = b.repo_id
+         LEFT JOIN business_app_agg bapp
+                   ON b.project_key = bapp.project_key
+                       AND b.repo_slug = bapp.repo_slug
+         LEFT JOIN version_control_mapping vcm
+                   ON b.project_key = vcm.project_key
+                       AND b.repo_slug = vcm.repo_slug
          LEFT JOIN lizard_summary         l  ON r.repo_id = l.repo_id
          LEFT JOIN cloc_agg               c  ON r.repo_id = c.repo_id
          LEFT JOIN checkov_agg            ck ON r.repo_id = ck.repo_id
@@ -186,9 +198,4 @@ FROM all_repos r
          LEFT JOIN semgrep_agg            s  ON r.repo_id = s.repo_id
          LEFT JOIN go_enry_agg            e  ON r.repo_id = e.repo_id
          LEFT JOIN repo_metrics           rm ON r.repo_id = rm.repo_id
-         LEFT JOIN version_control_mapping vcm ON r.repo_id = vcm.component_id
-         LEFT JOIN business_app_agg bapp
-                   ON vcm.project_key = bapp.project_key
-                       AND vcm.repo_slug   = bapp.repo_slug
-
 ORDER BY r.repo_id;

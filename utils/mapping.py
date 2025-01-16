@@ -13,6 +13,7 @@ class ComponentMapping(Base):
     identifier = Column(String, nullable=True)
     transaction_cycle = Column(String, nullable=True)
     component_name = Column(String, nullable=True)
+    web_url = Column(String, nullable=True)  # Added web_url field
 
 
 class BusinessAppMapping(Base):
@@ -29,6 +30,7 @@ class VersionControlMapping(Base):
     component_id = Column(Integer, nullable=False)
     project_key = Column(String, nullable=False)
     repo_slug = Column(String, nullable=False)
+    web_url = Column(String, nullable=True)  # Added web_url field
     __table_args__ = (PrimaryKeyConstraint('component_id', 'project_key', 'repo_slug'),)
 
 
@@ -78,7 +80,7 @@ def populate_version_control_mapping():
         ComponentMapping.project_key.isnot(None),
         ComponentMapping.repo_slug.isnot(None)
     ).all()
-    print(f"[INFO] Retrieved {len(components)} components with non-null project_key and repo_slug.")
+    print(f"[INFO] Retrieved {len(components)} components with non-null project_key, repo_slug, and web_url.")
 
     for idx, component in enumerate(components):
         existing = session.query(VersionControlMapping).filter_by(
@@ -90,7 +92,8 @@ def populate_version_control_mapping():
             session.add(VersionControlMapping(
                 component_id=component.component_id,
                 project_key=component.project_key,
-                repo_slug=component.repo_slug
+                repo_slug=component.repo_slug,
+                web_url=component.web_url  # Include web_url
             ))
         if idx % 100 == 0:
             print(f"[INFO] Processed {idx} rows in populate_version_control_mapping...")
