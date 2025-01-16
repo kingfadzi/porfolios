@@ -193,9 +193,9 @@ FROM all_repos r
          LEFT JOIN repo_metrics          rm  ON r.repo_id = rm.repo_id
          LEFT JOIN bitbucket_repositories b  ON r.repo_id = b.repo_id
          LEFT JOIN component_mapping cm_v
-                   ON cm_v.project_key  = b.project_key
-                       AND cm_v.repo_slug    = b.repo_slug
-                       AND cm_v.mapping_type = 'vs'
+                   ON LOWER(cm_v.project_key) = LOWER(b.project_key)
+                   AND LOWER(cm_v.repo_slug)  = LOWER(b.repo_slug)
+                   AND cm_v.mapping_type = 'vs'
          LEFT JOIN component_mapping cm_b
                    ON cm_b.component_id = cm_v.component_id
                        AND cm_b.mapping_type = 'ba'
