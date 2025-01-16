@@ -52,3 +52,32 @@ FROM component_mapping cm_v
               ON cm_b.component_id = cm_v.component_id
                   AND cm_b.mapping_type = 'ba'
 WHERE cm_v.mapping_type = 'vs';
+---
+DROP TABLE IF EXISTS business_app_mapping;
+
+CREATE TABLE business_app_mapping (
+                                      component_id VARCHAR NOT NULL,
+                                      transaction_cycle VARCHAR NOT NULL,
+                                      component_name VARCHAR NOT NULL,
+                                      business_app_identifier VARCHAR NOT NULL,
+                                      PRIMARY KEY (component_id, business_app_identifier)
+);
+
+DROP TABLE IF EXISTS version_control_mapping;
+
+CREATE TABLE version_control_mapping (
+                                         component_id VARCHAR NOT NULL,
+                                         project_key VARCHAR NOT NULL,
+                                         repo_slug VARCHAR NOT NULL,
+                                         PRIMARY KEY (component_id, project_key, repo_slug)
+);
+
+DROP TABLE IF EXISTS repo_business_mapping;
+
+CREATE TABLE repo_business_mapping (
+                                       component_id VARCHAR NOT NULL,
+                                       project_key VARCHAR NOT NULL,
+                                       repo_slug VARCHAR NOT NULL,
+                                       business_app_identifier VARCHAR NOT NULL,
+                                       PRIMARY KEY (component_id, project_key, repo_slug, business_app_identifier)
+);
