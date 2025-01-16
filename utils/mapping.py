@@ -64,7 +64,7 @@ def populate_business_app_mapping():
                 component_name=component.component_name,
                 business_app_identifier=component.identifier
             ))
-        if idx % 100 == 0:  # Log progress every 100 rows
+        if idx % 100 == 0:
             print(f"[INFO] Processed {idx} rows in populate_business_app_mapping...")
 
     session.commit()
@@ -73,8 +73,12 @@ def populate_business_app_mapping():
 
 def populate_version_control_mapping():
     print("[INFO] Starting populate_version_control_mapping...")
-    components = session.query(ComponentMapping).filter_by(mapping_type="vs").all()
-    print(f"[INFO] Retrieved {len(components)} components with mapping_type='vs'.")
+    components = session.query(ComponentMapping).filter(
+        ComponentMapping.mapping_type == "vs",
+        ComponentMapping.project_key.isnot(None),
+        ComponentMapping.repo_slug.isnot(None)
+    ).all()
+    print(f"[INFO] Retrieved {len(components)} components with non-null project_key and repo_slug.")
 
     for idx, component in enumerate(components):
         existing = session.query(VersionControlMapping).filter_by(
@@ -88,7 +92,7 @@ def populate_version_control_mapping():
                 project_key=component.project_key,
                 repo_slug=component.repo_slug
             ))
-        if idx % 100 == 0:  # Log progress every 100 rows
+        if idx % 100 == 0:
             print(f"[INFO] Processed {idx} rows in populate_version_control_mapping...")
 
     session.commit()
@@ -97,10 +101,14 @@ def populate_version_control_mapping():
 
 def populate_repo_business_mapping():
     print("[INFO] Starting populate_repo_business_mapping...")
-    version_controls = session.query(ComponentMapping).filter_by(mapping_type="vs").all()
+    version_controls = session.query(ComponentMapping).filter(
+        ComponentMapping.mapping_type == "vs",
+        ComponentMapping.project_key.isnot(None),
+        ComponentMapping.repo_slug.isnot(None)
+    ).all()
     business_apps = session.query(ComponentMapping).filter_by(mapping_type="ba").all()
 
-    print(f"[INFO] Retrieved {len(version_controls)} version control mappings.")
+    print(f"[INFO] Retrieved {len(version_controls)} version control mappings with non-null project_key and repo_slug.")
     print(f"[INFO] Retrieved {len(business_apps)} business application mappings.")
 
     for idx_vc, vc in enumerate(version_controls):
@@ -119,7 +127,7 @@ def populate_repo_business_mapping():
                         repo_slug=vc.repo_slug,
                         business_app_identifier=ba.identifier
                     ))
-        if idx_vc % 10 == 0:  # Log progress every 10 version control components
+        if idx_vc % 10 == 0:
             print(f"[INFO] Processed {idx_vc} version control mappings...")
 
     session.commit()
