@@ -2,7 +2,7 @@ import pandas as pd
 from sqlalchemy import create_engine
 
 # Database connection
-engine = create_engine("postgresql://user:password@localhost/dbname")
+engine = create_engine("postgresql://postgres:postgres@localhost/dbname")
 
 def populate_business_app_mapping(df):
     business_app_df = (
@@ -11,7 +11,7 @@ def populate_business_app_mapping(df):
         [['component_id', 'transaction_cycle', 'component_name', 'identifier']]
         .rename(columns={'identifier': 'business_app_identifier'})
     )
-    business_app_df.to_sql('business_app_mapping', engine, if_exists='append', index=False)
+    business_app_df.to_sql('business_app_mapping', engine, if_exists='append', index=False, method='multi')
 
 
 def populate_version_control_mapping(df):
@@ -20,7 +20,7 @@ def populate_version_control_mapping(df):
         .drop_duplicates(subset=['component_id', 'project_key', 'repo_slug'])
         [['component_id', 'project_key', 'repo_slug']]
     )
-    version_control_df.to_sql('version_control_mapping', engine, if_exists='append', index=False)
+    version_control_df.to_sql('version_control_mapping', engine, if_exists='append', index=False, method='multi')
 
 
 def populate_repo_business_mapping(df):
@@ -33,14 +33,12 @@ def populate_repo_business_mapping(df):
         .drop_duplicates()
         .rename(columns={'identifier': 'business_app_identifier'})
     )
-    repo_business_df.to_sql('repo_business_mapping', engine, if_exists='append', index=False)
+    repo_business_df.to_sql('repo_business_mapping', engine, if_exists='append', index=False, method='multi')
 
 
 def main():
-    # Load component_mapping table into a Pandas DataFrame
     df = pd.read_sql("SELECT * FROM component_mapping", engine)
 
-    # Populate the target tables
     populate_business_app_mapping(df)
     populate_version_control_mapping(df)
     populate_repo_business_mapping(df)
