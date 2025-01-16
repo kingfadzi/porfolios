@@ -260,7 +260,7 @@ class SemgrepResult(Base):
 class ComponentMapping(Base):
     __tablename__ = "component_mapping"
     id = Column(Integer, primary_key=True, autoincrement=True)
-    component_id = Column(String)
+    component_id = Column(Integer)
     component_name = Column(String)
     tc = Column(String)
     mapping_type = Column(String)

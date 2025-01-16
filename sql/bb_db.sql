@@ -221,7 +221,7 @@ CREATE TABLE semgrep_results (
 );
 CREATE TABLE component_mapping (
    id SERIAL PRIMARY KEY,
-   component_id   VARCHAR,
+   component_id   INTEGER,
    component_name VARCHAR,
    tc            VARCHAR,
    mapping_type   VARCHAR,
@@ -234,11 +234,25 @@ CREATE TABLE component_mapping (
    repo_slug      VARCHAR
 );
 
-CREATE TABLE component_business_app (
-    component_id            VARCHAR NOT NULL,
-    project_key             VARCHAR NOT NULL,
-    repo_slug               VARCHAR NOT NULL,
-    business_app_identifier VARCHAR NOT NULL,
-    transaction_cycle       VARCHAR,
-    PRIMARY KEY (component_id, project_key, repo_slug, business_app_identifier)
+    CREATE TABLE business_app_mapping (
+      component_id INTEGER NOT NULL,
+      transaction_cycle VARCHAR NOT NULL,
+      component_name VARCHAR NOT NULL,
+      business_app_identifier VARCHAR NOT NULL,
+      PRIMARY KEY (component_id, business_app_identifier)
+    );
+
+    CREATE TABLE version_control_mapping (
+         component_id INTEGER NOT NULL,
+         project_key VARCHAR NOT NULL,
+         repo_slug VARCHAR NOT NULL,
+         PRIMARY KEY (component_id, project_key, repo_slug)
+    );
+
+    CREATE TABLE repo_business_mapping (
+       component_id INTEGER NOT NULL,
+       project_key VARCHAR NOT NULL,
+       repo_slug VARCHAR NOT NULL,
+       business_app_identifier VARCHAR NOT NULL,
+       PRIMARY KEY (component_id, project_key, repo_slug, business_app_identifier)
 );
