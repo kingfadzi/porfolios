@@ -1,47 +1,53 @@
 import pandas as pd
 from sqlalchemy import create_engine
 
-# Database connection
+# Create SQLAlchemy engine
 engine = create_engine("postgresql://postgres:postgres@localhost/dbname")
 
-def populate_business_app_mapping(df):
-    business_app_df = (
-        df[df['mapping_type'] == 'ba']
-        .drop_duplicates(subset=['component_id', 'identifier'])
-        [['component_id', 'transaction_cycle', 'component_name', 'identifier']]
-        .rename(columns={'identifier': 'business_app_identifier'})
-    )
-    business_app_df.to_sql('business_app_mapping', engine, if_exists='append', index=False, method='multi')
+def populate_business_app_mapping(engine):
+    query = """
+        SELECT DISTINCT component_id, transaction_cycle, component_name, identifier
+        FROM component_mapping
+        WHERE mapping_type = 'ba'
+    """
+    df = pd.read_sql(query, engine)
+    df = df.rename(columns={"identifier": "business_app_identifier"})
+    df.to_sql("business_app_mapping", engine, if_exists="append", index=False, method="multi")
 
 
-def populate_version_control_mapping(df):
-    version_control_df = (
-        df[df['mapping_type'] == 'vs']
-        .drop_duplicates(subset=['component_id', 'project_key', 'repo_slug'])
-        [['component_id', 'project_key', 'repo_slug']]
-    )
-    version_control_df.to_sql('version_control_mapping', engine, if_exists='append', index=False, method='multi')
+def populate_version_control_mapping(engine):
+    query = """
+        SELECT DISTINCT component_id, project_key, repo_slug
+        FROM component_mapping
+        WHERE mapping_type = 'vs'
+    """
+    df = pd.read_sql(query, engine)
+    df.to_sql("version_control_mapping", engine, if_exists="append", index=False, method="multi")
 
 
-def populate_repo_business_mapping(df):
-    vs_df = df[df['mapping_type'] == 'vs']
-    ba_df = df[df['mapping_type'] == 'ba']
+def populate_repo_business_mapping(engine):
+    query_vs = """
+        SELECT DISTINCT component_id, project_key, repo_slug
+        FROM component_mapping
+        WHERE mapping_type = 'vs'
+    """
+    query_ba = """
+        SELECT DISTINCT component_id, identifier
+        FROM component_mapping
+        WHERE mapping_type = 'ba'
+    """
+    df_vs = pd.read_sql(query_vs, engine)
+    df_ba = pd.read_sql(query_ba, engine)
 
-    repo_business_df = (
-        vs_df.merge(ba_df, on='component_id', suffixes=('_vs', '_ba'))
-        [['component_id', 'project_key', 'repo_slug', 'identifier']]
-        .drop_duplicates()
-        .rename(columns={'identifier': 'business_app_identifier'})
-    )
-    repo_business_df.to_sql('repo_business_mapping', engine, if_exists='append', index=False, method='multi')
+    merged_df = df_vs.merge(df_ba, on="component_id")
+    merged_df = merged_df.rename(columns={"identifier": "business_app_identifier"})
+    merged_df.to_sql("repo_business_mapping", engine, if_exists="append", index=False, method="multi")
 
 
 def main():
-    df = pd.read_sql("SELECT * FROM component_mapping", engine)
-
-    populate_business_app_mapping(df)
-    populate_version_control_mapping(df)
-    populate_repo_business_mapping(df)
+    populate_business_app_mapping(engine)
+    populate_version_control_mapping(engine)
+    populate_repo_business_mapping(engine)
 
 
 if __name__ == "__main__":
