@@ -1,7 +1,6 @@
 from sqlalchemy import create_engine, Column, Integer, String, PrimaryKeyConstraint
 from sqlalchemy.orm import declarative_base, sessionmaker
 
-# Define SQLAlchemy ORM models
 Base = declarative_base()
 
 class ComponentMapping(Base):
