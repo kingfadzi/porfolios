@@ -256,3 +256,18 @@ class SemgrepResult(Base):
     __table_args__ = (
         UniqueConstraint("repo_id", "path", "start_line", "rule_id", name="uq_semgrep_results"),
     )
+
+class ComponentMapping(Base):
+    __tablename__ = "component_mapping"
+
+    component_id = Column(String)
+    component_name = Column(String)
+    tc = Column(String)
+    mapping_type = Column(String)
+    instance_url = Column(String)
+    tool_type = Column(String)
+    name = Column(String)
+    identifier = Column(String)
+    web_url = Column(String)
+    project_key = Column(String)
+    repo_slug = Column(String)

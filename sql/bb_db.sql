@@ -219,3 +219,16 @@ CREATE TABLE semgrep_results (
      confidence VARCHAR,
      UNIQUE (repo_id, path, start_line, rule_id)
 );
+CREATE TABLE component_mapping (
+   component_id   VARCHAR,
+   component_name VARCHAR,
+   tc            VARCHAR,
+   mapping_type   VARCHAR,
+   instance_url   VARCHAR,
+   tool_type      VARCHAR,
+   name           VARCHAR,
+   identifier     VARCHAR,
+   web_url        VARCHAR,
+   project_key    VARCHAR,
+   repo_slug      VARCHAR
+);
