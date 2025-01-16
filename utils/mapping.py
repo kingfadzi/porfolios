@@ -1,4 +1,4 @@
-from sqlalchemy import create_engine, Column, String, PrimaryKeyConstraint
+from sqlalchemy import create_engine, Column, Integer, String, PrimaryKeyConstraint
 from sqlalchemy.orm import declarative_base, sessionmaker
 
 # Define SQLAlchemy ORM models
@@ -6,7 +6,7 @@ Base = declarative_base()
 
 class ComponentMapping(Base):
     __tablename__ = "component_mapping"
-    component_id = Column(String, primary_key=True)
+    component_id = Column(Integer, primary_key=True)
     mapping_type = Column(String, nullable=False)
     project_key = Column(String, nullable=True)
     repo_slug = Column(String, nullable=True)
@@ -17,7 +17,7 @@ class ComponentMapping(Base):
 
 class BusinessAppMapping(Base):
     __tablename__ = "business_app_mapping"
-    component_id = Column(String, nullable=False)
+    component_id = Column(Integer, nullable=False)
     transaction_cycle = Column(String, nullable=False)
     component_name = Column(String, nullable=False)
     business_app_identifier = Column(String, nullable=False)
@@ -26,7 +26,7 @@ class BusinessAppMapping(Base):
 
 class VersionControlMapping(Base):
     __tablename__ = "version_control_mapping"
-    component_id = Column(String, nullable=False)
+    component_id = Column(Integer, nullable=False)
     project_key = Column(String, nullable=False)
     repo_slug = Column(String, nullable=False)
     __table_args__ = (PrimaryKeyConstraint('component_id', 'project_key', 'repo_slug'),)
@@ -34,7 +34,7 @@ class VersionControlMapping(Base):
 
 class RepoBusinessMapping(Base):
     __tablename__ = "repo_business_mapping"
-    component_id = Column(String, nullable=False)
+    component_id = Column(Integer, nullable=False)
     project_key = Column(String, nullable=False)
     repo_slug = Column(String, nullable=False)
     business_app_identifier = Column(String, nullable=False)
