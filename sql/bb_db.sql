@@ -220,6 +220,7 @@ CREATE TABLE semgrep_results (
      UNIQUE (repo_id, path, start_line, rule_id)
 );
 CREATE TABLE component_mapping (
+   id SERIAL PRIMARY KEY,
    component_id   VARCHAR,
    component_name VARCHAR,
    tc            VARCHAR,
