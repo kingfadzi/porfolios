@@ -1,29 +1,23 @@
 import plotly.express as px
 
 def viz_language_contributors_heatmap(filtered_df):
-    """
-    Create a heatmap for programming languages and contributor buckets.
-    """
-    # Debugging: Check the structure of the DataFrame
-    print("Columns in the DataFrame:", filtered_df.columns)
-
-    # Pivot the data for heatmap
     heatmap_data = filtered_df.pivot(
         index="contributor_bucket",
-        columns="language",  # Updated to match the alias in the query
+        columns="language",
         values="repo_count"
     ).fillna(0)
 
     return px.imshow(
         heatmap_data,
-        text_auto=True,  # Display values inside heatmap cells
+        text_auto=True,
         labels={
             "x": "Language",
             "y": "Number of contributors",
             "color": "Repository Count",
         },
-        color_continuous_scale="Viridis",  # Choose a color scale
+        color_continuous_scale="Viridis",
     ).update_layout(
-        title={"x": 0.5},  # Center the title
+        title={"x": 0.5},
         template="plotly_white",
+        dragmode=False,
     )
