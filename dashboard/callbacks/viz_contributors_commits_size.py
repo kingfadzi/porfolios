@@ -23,6 +23,6 @@ def viz_contributors_commits_size(filtered_df):
         hover_data={"repo_url": True, "repo_size": ":.2f"},  # Use repo_url for hover text
     ).update_layout(
         template="plotly_white",
-        dragmode="pan",
+        dragmode="zoom",  # Enable zooming
         title={"x": 0.5},  # Center the title
     )
