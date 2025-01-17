@@ -16,6 +16,7 @@ def filter_layout():
                             clearable=True,
                             maxHeight=600,
                             optionHeight=50,
+                            style={"fontSize": "14px"}
                         ),
                     ],
                     className="mb-4",
@@ -31,6 +32,7 @@ def filter_layout():
                             clearable=True,
                             maxHeight=600,
                             optionHeight=50,
+                            style={"fontSize": "14px"}
                         ),
                     ],
                     className="mb-4",
@@ -46,6 +48,7 @@ def filter_layout():
                             clearable=True,
                             maxHeight=600,
                             optionHeight=50,
+                            style={"fontSize": "14px"}
                         ),
                     ],
                     className="mb-4",
@@ -61,6 +64,7 @@ def filter_layout():
                             clearable=True,
                             maxHeight=600,
                             optionHeight=50,
+                            style={"fontSize": "14px"}
                         ),
                     ],
                     className="mb-4",
@@ -76,6 +80,7 @@ def filter_layout():
                             clearable=True,
                             maxHeight=600,
                             optionHeight=50,
+                            style={"fontSize": "14px"}
                         ),
                     ],
                     className="mb-4",
@@ -89,6 +94,7 @@ def filter_layout():
                             placeholder="Enter App IDs (comma-separated)...",
                             debounce=True,
                             className="form-control",
+                            style={"fontSize": "14px"}
                         ),
                     ],
                     className="mb-4",

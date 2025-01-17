@@ -35,7 +35,7 @@ def viz_cloc_by_language(filtered_df):
     ).update_layout(
         template="plotly_white",
         xaxis=dict(categoryorder="total descending"),  # Sort by total count
-        dragmode="False",
+        dragmode=False,
     )
 
     return fig
