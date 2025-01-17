@@ -10,9 +10,9 @@ def fetch_multi_language_usage(filters=None):
         sql = """
         SELECT
             CASE
-                WHEN number_of_languages = 1 THEN '1'
-                WHEN number_of_languages BETWEEN 2 AND 5 THEN '2-5'
-                WHEN number_of_languages BETWEEN 6 AND 10 THEN '6-10'
+                WHEN language_count = 1 THEN '1'
+                WHEN language_count BETWEEN 2 AND 5 THEN '2-5'
+                WHEN language_count BETWEEN 6 AND 10 THEN '6-10'
                 ELSE '10+'
             END AS language_bucket,
             COUNT(DISTINCT repo_id) AS repo_count
