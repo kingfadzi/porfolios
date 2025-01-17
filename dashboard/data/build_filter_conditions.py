@@ -24,3 +24,26 @@ def build_filter_conditions_with_alias(filters, alias):
             formatted_values = ",".join([f"'{value}'" for value in values])
             conditions.append(f"{alias}.{field} IN ({formatted_values})")
     return " AND ".join(conditions) if conditions else None
+
+def build_filter_conditions_with_wildcards(filters, alias=None):
+
+    wildcard_fields = ["app_id", "name"]  # Add other fields as needed
+
+    if alias is None:
+        alias = ""  # Default to no alias
+    else:
+        alias += "."  # Add alias with a dot for table.field formatting
+
+    conditions = []
+    for field, values in filters.items():
+        if values:
+            if field in wildcard_fields:
+                # Create wildcard conditions using LIKE
+                like_conditions = [f"{alias}{field} LIKE '%{value}%'" for value in values]
+                conditions.append(f"({' OR '.join(like_conditions)})")
+            else:
+                # Create standard IN conditions
+                formatted_values = ",".join([f"'{value}'" for value in values])
+                conditions.append(f"{alias}{field} IN ({formatted_values})")
+
+    return " AND ".join(conditions) if conditions else None
