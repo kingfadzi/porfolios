@@ -7,19 +7,12 @@ def viz_classification(filtered_df):
         values="repo_count",
     )
     fig.update_traces(
-        textinfo="percent+value",
-        hovertemplate="<b>%{label}</b><br>Count: %{value}<br>Percent: %{percent}",
+        textinfo="label+value+percent",  # Customize displayed info
+        textposition="inside",           # Put labels inside the slices
     )
     fig.update_layout(
+        showlegend=False,               # Hide legend entirely
         title={"x": 0.5},
         dragmode=False,
-        legend=dict(
-            orientation="v",
-            x=1.02,
-            xanchor="left",
-            y=1,
-            yanchor="auto",
-            font=dict(size=8)  # Smaller font size
-        )
     )
     return fig
