@@ -114,12 +114,16 @@ business_app_agg AS (
 
 SELECT
     r.repo_id,
+    b.host_name,
     b.project_key,
     b.repo_slug,
-    vcm.web_url,
     bapp.component_id,
     bapp.business_app_identifiers,
-    bapp.transaction_cycle,
+    bapp.transaction_cycle as tc,
+    vcm.web_url,
+    b.clone_url_ssh,
+    b.status,
+    b.comment,
 
     -- Lizard summary columns
     l.total_nloc AS executable_lines_of_code,
