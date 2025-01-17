@@ -118,7 +118,7 @@ SELECT
     b.project_key,
     b.repo_slug,
     bapp.component_id,
-    bapp.business_app_identifiers,
+    bapp.business_app_identifiers as app_id,
     bapp.transaction_cycle as tc,
     vcm.web_url,
     b.clone_url_ssh,
@@ -189,7 +189,7 @@ SELECT
                 -- B6) Fallback within Code
                 ELSE 'Unclassified'
                 END
-        END AS classification_label
+        END AS classification_label,
     -- Lizard summary columns
     l.total_nloc AS executable_lines_of_code,
     l.avg_ccn    AS avg_cyclomatic_complexity,
