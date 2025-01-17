@@ -125,6 +125,71 @@ SELECT
     b.status,
     b.comment,
 
+    ----------------------------------------------------------------------------
+    -- Derived classification_label
+    ----------------------------------------------------------------------------
+    CASE
+        ----------------------------------------------------------------------------
+        -- A) If main_language IS NULL => Non-Code
+        ----------------------------------------------------------------------------
+        WHEN e.main_language IS NULL
+            THEN
+            CASE
+                -- A1) Non-Code -> Empty/Minimal (extremely small / trivial)
+                WHEN
+                    (c.total_lines_of_code < 100)
+                        AND (rm.file_count < 10 OR rm.file_count IS NULL)
+                        AND (rm.repo_size_bytes < 1000000 OR rm.repo_size_bytes IS NULL)
+                    THEN 'Non-Code -> Empty/Minimal'
+
+                -- A2) Non-Code -> Docs/Data
+                ELSE 'Non-Code -> Docs/Data'
+                END
+
+        ----------------------------------------------------------------------------
+        -- B) Otherwise => Code (we have a recognized main_language)
+        ----------------------------------------------------------------------------
+        ELSE
+            CASE
+                -- B1) Code -> Tiny
+                WHEN
+                    c.total_lines_of_code < 500
+                        AND (rm.file_count < 20 OR rm.file_count IS NULL)
+                        AND (rm.repo_size_bytes < 1000000 OR rm.repo_size_bytes IS NULL)
+                    THEN 'Code -> Tiny'
+
+                -- B2) Code -> Small
+                WHEN
+                    c.total_lines_of_code < 5000
+                        AND (rm.file_count < 200 OR rm.file_count IS NULL)
+                        AND (rm.repo_size_bytes < 10000000 OR rm.repo_size_bytes IS NULL)
+                    THEN 'Code -> Small'
+
+                -- B3) Code -> Medium
+                WHEN
+                    c.total_lines_of_code < 50000
+                        AND (rm.file_count < 1000 OR rm.file_count IS NULL)
+                        AND (rm.repo_size_bytes < 100000000 OR rm.repo_size_bytes IS NULL)
+                    THEN 'Code -> Medium'
+
+                -- B4) Code -> Large
+                WHEN
+                    c.total_lines_of_code < 100000
+                        AND (rm.file_count < 5000 OR rm.file_count IS NULL)
+                        AND (rm.repo_size_bytes < 1000000000 OR rm.repo_size_bytes IS NULL)
+                    THEN 'Code -> Large'
+
+                -- B5) Code -> Massive
+                WHEN
+                    c.total_lines_of_code >= 100000
+                        OR (rm.file_count >= 5000)
+                        OR (rm.repo_size_bytes >= 1000000000)
+                    THEN 'Code -> Massive'
+
+                -- B6) Fallback within Code
+                ELSE 'Unclassified'
+                END
+        END AS classification_label
     -- Lizard summary columns
     l.total_nloc AS executable_lines_of_code,
     l.avg_ccn    AS avg_cyclomatic_complexity,
