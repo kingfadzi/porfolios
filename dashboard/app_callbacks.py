@@ -74,6 +74,7 @@ def register_callbacks(app):
             app_ids = [id.strip() for id in app_id_input.split(",")]
         else:
             app_ids = None
+
         filters = {
             "host_name": selected_hosts,
             "activity_status": selected_statuses,
@@ -82,6 +83,7 @@ def register_callbacks(app):
             "classification_label": selected_classifications,
             "app_id": app_ids,
         }
+
         active_inactive_data = fetch_active_inactive_data(filters)
         contributors_commits_size_data = fetch_contributors_commits_size(filters)
         iac_data = fetch_iac_data(filters)
@@ -93,6 +95,7 @@ def register_callbacks(app):
         semgrep_data = fetch_semgrep_findings(filters)
         multi_lang_usage_data = fetch_multi_language_usage(filters)
         last_commit_buckets_data = fetch_last_commit_buckets(filters)
+
         scatter_fig = viz_contributors_commits_size(contributors_commits_size_data)
         iac_chart_fig = viz_iac_chart(iac_data)
         active_inactive_fig = viz_active_inactive(active_inactive_data)
@@ -104,6 +107,7 @@ def register_callbacks(app):
         semgrep_chart_fig = viz_semgrep_findings(semgrep_data)
         multi_lang_usage_fig = viz_multi_language_usage(multi_lang_usage_data)
         last_commit_buckets_fig = viz_last_commit_buckets(last_commit_buckets_data)
+
         return (
             active_inactive_fig,
             classification_fig,
