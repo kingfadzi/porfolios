@@ -187,6 +187,20 @@ def chart_layout():
                 ],
                 className="mb-4",
             ),
+            dbc.Card(
+                [
+                    dbc.CardHeader(
+                        html.B("Repository Activity by Last Commit Date", className="text-center"),
+                        className="bg-light",
+                    ),
+                    dcc.Graph(
+                        id="last-commit-buckets-bar",
+                        config={"displayModeBar": False},
+                        style={"height": 300},
+                    ),
+                ],
+                className="mb-4",
+            ),
 
         ]
     )

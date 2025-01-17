@@ -21,6 +21,8 @@ from data.fetch_semgrep_findings import fetch_semgrep_findings
 from callbacks.viz_semgrep_findings import viz_semgrep_findings
 from data.fetch_multi_language_usage import fetch_multi_language_usage
 from callbacks.viz_multi_language_usage import viz_multi_language_usage
+from data.fetch_last_commit_buckets import fetch_last_commit_buckets
+from callbacks.viz_last_commit_buckets import viz_last_commit_buckets
 
 def register_dropdown_callbacks(app):
     @app.callback(
@@ -56,6 +58,7 @@ def register_callbacks(app):
             Output("trivy-vulnerabilities-bar-chart", "figure"),
             Output("semgrep-findings-bar-chart", "figure"),
             Output("language-usage-buckets-bar", "figure"),
+            Output("last-commit-buckets-bar", "figure"),
         ],
         [
             Input("host-name-filter", "value"),
@@ -89,6 +92,7 @@ def register_callbacks(app):
         trivy_data = fetch_trivy_vulnerabilities(filters)
         semgrep_data = fetch_semgrep_findings(filters)
         multi_lang_usage_data = fetch_multi_language_usage(filters)
+        last_commit_buckets_data = fetch_last_commit_buckets(filters)
         scatter_fig = viz_contributors_commits_size(contributors_commits_size_data)
         iac_chart_fig = viz_iac_chart(iac_data)
         active_inactive_fig = viz_active_inactive(active_inactive_data)
@@ -99,6 +103,7 @@ def register_callbacks(app):
         trivy_chart_fig = viz_trivy_vulnerabilities(trivy_data)
         semgrep_chart_fig = viz_semgrep_findings(semgrep_data)
         multi_lang_usage_fig = viz_multi_language_usage(multi_lang_usage_data)
+        last_commit_buckets_fig = viz_last_commit_buckets(last_commit_buckets_data)
         return (
             active_inactive_fig,
             classification_fig,
@@ -110,5 +115,5 @@ def register_callbacks(app):
             trivy_chart_fig,
             semgrep_chart_fig,
             multi_lang_usage_fig,
+            last_commit_buckets_fig,
         )
-        
