@@ -172,6 +172,21 @@ def chart_layout():
                 ],
                 className="mb-4",
             ),
+            # Add this Card somewhere within your layout structure
+            dbc.Card(
+                [
+                    dbc.CardHeader(
+                        html.B("Language Usage Buckets", className="text-center"),
+                        className="bg-light",
+                    ),
+                    dcc.Graph(
+                        id="language-usage-buckets-bar",
+                        config={"displayModeBar": False},
+                        style={"height": 300},
+                    ),
+                ],
+                className="mb-4",
+            ),
 
         ]
     )

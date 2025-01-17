@@ -19,7 +19,8 @@ from data.fetch_trivy_vulnerabilities import fetch_trivy_vulnerabilities
 from callbacks.viz_trivy_vulnerabilities import viz_trivy_vulnerabilities
 from data.fetch_semgrep_findings import fetch_semgrep_findings
 from callbacks.viz_semgrep_findings import viz_semgrep_findings
-
+from data.fetch_multi_language_usage import fetch_multi_language_usage
+from callbacks.viz_multi_language_usage import viz_multi_language_usage
 
 def register_dropdown_callbacks(app):
     @app.callback(
@@ -30,10 +31,9 @@ def register_dropdown_callbacks(app):
             Output("language-filter", "options"),
             Output("classification-filter", "options"),
         ],
-        [Input("app-layout", "children")]  # Trigger callback when layout is loaded
+        [Input("app-layout", "children")]
     )
     def populate_dropdown_options(_):
-        # Fetch dropdown options dynamically
         options = fetch_dropdown_options()
         return (
             [{"label": name, "value": name} for name in options["host_names"]],
@@ -46,15 +46,16 @@ def register_dropdown_callbacks(app):
 def register_callbacks(app):
     @app.callback(
         [
-            Output("active-inactive-bar", "figure"),                # 1. Active vs Inactive Repositories
-            Output("classification-pie", "figure"),                 # 2. Repository Classification
-            Output("scatter-plot", "figure"),                       # 3. Contributors vs Commits Scatter Plot
-            Output("repos-by-language-bar", "figure"),              # 4. Repositories by Main Language
-            Output("cloc-bar-chart", "figure"),                     # 5. CLOC Metrics by Language
-            Output("iac-bar-chart", "figure"),                      # 6. Repositories by IaC Type
-            Output("language-contributors-heatmap", "figure"),      # 7. Programming Languages vs Contributor Buckets Heatmap
+            Output("active-inactive-bar", "figure"),
+            Output("classification-pie", "figure"),
+            Output("scatter-plot", "figure"),
+            Output("repos-by-language-bar", "figure"),
+            Output("cloc-bar-chart", "figure"),
+            Output("iac-bar-chart", "figure"),
+            Output("language-contributors-heatmap", "figure"),
             Output("trivy-vulnerabilities-bar-chart", "figure"),
             Output("semgrep-findings-bar-chart", "figure"),
+            Output("language-usage-buckets-bar", "figure"),
         ],
         [
             Input("host-name-filter", "value"),
@@ -66,13 +67,10 @@ def register_callbacks(app):
         ],
     )
     def update_charts(selected_hosts, selected_statuses, selected_tcs, selected_languages, selected_classifications, app_id_input):
-        # Parse the app_id input
         if app_id_input:
             app_ids = [id.strip() for id in app_id_input.split(",")]
         else:
             app_ids = None
-
-        # Create a dictionary of filters dynamically
         filters = {
             "host_name": selected_hosts,
             "activity_status": selected_statuses,
@@ -81,8 +79,6 @@ def register_callbacks(app):
             "classification_label": selected_classifications,
             "app_id": app_ids,
         }
-
-        # Fetch data for each visualization
         active_inactive_data = fetch_active_inactive_data(filters)
         contributors_commits_size_data = fetch_contributors_commits_size(filters)
         iac_data = fetch_iac_data(filters)
@@ -92,8 +88,7 @@ def register_callbacks(app):
         heatmap_data = fetch_language_contributors_heatmap(filters)
         trivy_data = fetch_trivy_vulnerabilities(filters)
         semgrep_data = fetch_semgrep_findings(filters)
-
-    # Generate visualizations
+        multi_lang_usage_data = fetch_multi_language_usage(filters)
         scatter_fig = viz_contributors_commits_size(contributors_commits_size_data)
         iac_chart_fig = viz_iac_chart(iac_data)
         active_inactive_fig = viz_active_inactive(active_inactive_data)
@@ -103,17 +98,16 @@ def register_callbacks(app):
         heatmap_fig = viz_language_contributors_heatmap(heatmap_data)
         trivy_chart_fig = viz_trivy_vulnerabilities(trivy_data)
         semgrep_chart_fig = viz_semgrep_findings(semgrep_data)
-
+        multi_lang_usage_fig = viz_multi_language_usage(multi_lang_usage_data)
         return (
-            active_inactive_fig,                # 1
-            classification_fig,                 # 2
-            scatter_fig,                        # 3
-            language_chart_fig,                 # 4
-            cloc_chart_fig,                     # 5
-            iac_chart_fig,                      # 6
-            heatmap_fig,  # 7
+            active_inactive_fig,
+            classification_fig,
+            scatter_fig,
+            language_chart_fig,
+            cloc_chart_fig,
+            iac_chart_fig,
+            heatmap_fig,
             trivy_chart_fig,
-            semgrep_chart_fig
-
+            semgrep_chart_fig,
+            multi_lang_usage_fig,
         )
-
