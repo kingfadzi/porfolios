@@ -16,6 +16,6 @@ def viz_trivy_vulnerabilities(filtered_df):
     ).update_layout(
         template="plotly_white",
         title={"x": 0.5},  # Center the title
-        dragmode="pan",
+        dragmode=False,
         showlegend=False
     )

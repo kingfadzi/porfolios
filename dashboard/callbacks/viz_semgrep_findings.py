@@ -16,6 +16,6 @@ def viz_semgrep_findings(filtered_df):
     ).update_layout(
         template="plotly_white",
         title={"x": 0.5},
-        dragmode="pan",
+        dragmode=False,
         showlegend=False
     )
