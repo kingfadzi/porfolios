@@ -107,8 +107,8 @@ business_app_agg AS (
     JOIN business_app_mapping bam
       ON rbm.component_id = bam.component_id
     JOIN version_control_mapping vcm
-      ON rbm.project_key = vcm.project_key
-     AND rbm.repo_slug = vcm.repo_slug
+      ON lower(rbm.project_key) = lower(vcm.project_key)
+     AND lower(rbm.repo_slug) = lower(vcm.repo_slug)
     GROUP BY rbm.project_key, rbm.repo_slug, rbm.component_id, vcm.web_url, bam.transaction_cycle
 )
 
@@ -186,11 +186,11 @@ FROM all_repos r
          LEFT JOIN bitbucket_repositories b
                    ON r.repo_id = b.repo_id
          LEFT JOIN business_app_agg bapp
-                   ON b.project_key = bapp.project_key
-                       AND b.repo_slug = bapp.repo_slug
+                   ON lower(b.project_key) = lower(bapp.project_key)
+                   AND lower(b.repo_slug) = lower(bapp.repo_slug)
          LEFT JOIN version_control_mapping vcm
-                   ON b.project_key = vcm.project_key
-                       AND b.repo_slug = vcm.repo_slug
+                   ON lower(b.project_key) = lower(vcm.project_key)
+                   AND lower(b.repo_slug)= lower(vcm.repo_slug)
          LEFT JOIN lizard_summary         l  ON r.repo_id = l.repo_id
          LEFT JOIN cloc_agg               c  ON r.repo_id = c.repo_id
          LEFT JOIN checkov_agg            ck ON r.repo_id = ck.repo_id
