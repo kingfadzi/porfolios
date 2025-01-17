@@ -26,17 +26,19 @@ def fetch_last_commit_buckets(filters=None):
             sql += f" WHERE {condition_string}"
         sql += """
         GROUP BY commit_bucket
-        ORDER BY CASE
-            WHEN commit_bucket = '< 1 month' THEN 1
-            WHEN commit_bucket = '1-3 months' THEN 2
-            WHEN commit_bucket = '3-6 months' THEN 3
-            WHEN commit_bucket = '6-9 months' THEN 4
-            WHEN commit_bucket = '9-12 months' THEN 5
-            WHEN commit_bucket = '12-18 months' THEN 6
-            WHEN commit_bucket = '18-24 months' THEN 7
-            ELSE 8
-        END
+        ORDER BY 
+            CASE
+                WHEN commit_bucket = '< 1 month' THEN 1
+                WHEN commit_bucket = '1-3 months' THEN 2
+                WHEN commit_bucket = '3-6 months' THEN 3
+                WHEN commit_bucket = '6-9 months' THEN 4
+                WHEN commit_bucket = '9-12 months' THEN 5
+                WHEN commit_bucket = '12-18 months' THEN 6
+                WHEN commit_bucket = '18-24 months' THEN 7
+                ELSE 8
+            END
         """
+
         stmt = text(sql)
         return pd.read_sql(stmt, engine, params=param_dict)
 
