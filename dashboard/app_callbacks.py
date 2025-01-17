@@ -111,3 +111,4 @@ def register_callbacks(app):
             semgrep_chart_fig,
             multi_lang_usage_fig,
         )
+        
