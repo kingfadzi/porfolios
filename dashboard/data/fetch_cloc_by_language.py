@@ -1,29 +1,33 @@
 import pandas as pd
+from sqlalchemy import text
 from data.db_connection import engine
 from data.build_filter_conditions import build_filter_conditions
 from data.cache_instance import cache
 
 def fetch_cloc_by_language(filters=None):
     @cache.memoize()
-    def query_data(filter_conditions):
-        query = """
-        SELECT 
-            main_language,
-            SUM(total_blank) AS blank_lines,
-            SUM(total_comment) AS comment_lines,
-            SUM(total_lines_of_code) AS total_lines_of_code,
-            SUM(source_code_file_count) AS source_code_file_count
-        FROM combined_repo_metrics
-        WHERE main_language != 'SUM' 
+    def query_data(condition_string, param_dict):
+        base_query = """
+            SELECT 
+                main_language,
+                SUM(total_blank) AS blank_lines,
+                SUM(total_comment) AS comment_lines,
+                SUM(total_lines_of_code) AS total_lines_of_code,
+                SUM(source_code_file_count) AS source_code_file_count
+            FROM combined_repo_metrics
+            WHERE main_language != 'SUM'
         """
-        if filter_conditions:
-            query += f" AND {filter_conditions}"
-        query += """
-        GROUP BY main_language
-        ORDER BY total_lines_of_code DESC
-        LIMIT 20
-        """
-        return pd.read_sql(query, engine)
+        if condition_string:
+            base_query += f" AND {condition_string}"
 
-    filter_conditions = build_filter_conditions(filters)
-    return query_data(filter_conditions)
+        base_query += """
+            GROUP BY main_language
+            ORDER BY total_lines_of_code DESC
+            LIMIT 20
+        """
+
+        stmt = text(base_query)
+        return pd.read_sql(stmt, engine, params=param_dict)
+
+    condition_string, param_dict = build_filter_conditions(filters)
+    return query_data(condition_string, param_dict)

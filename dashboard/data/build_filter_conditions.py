@@ -1,18 +1,49 @@
-def build_filter_conditions(filters):
-    """
-    Build a dynamic SQL WHERE clause based on filter inputs.
+# build_filter_conditions.py
 
-    :param filters: (dict) Dictionary of filter fields and their selected values.
-    :return: (str) SQL WHERE clause.
-    """
+def build_filter_conditions(filters, alias=None):
+
+    if not filters:
+        return None, {}
+
+    text_search_fields = {"app_id", "all_languages"}
     conditions = []
-    for field, values in filters.items():
-        if values:  # If there are selected values
-            # Format values for SQL IN clause
-            formatted_values = ",".join([f"'{value}'" for value in values])
-            conditions.append(f"{field} IN ({formatted_values})")
+    param_dict = {}
+    placeholder_counter = 1
 
-    return " AND ".join(conditions) if conditions else None
+    for field, values in filters.items():
+        if not values:
+            continue
+
+        col = f"{alias}.{field}" if alias else field
+
+        # For text-search fields -> LIKE '%value%'
+        if field in text_search_fields:
+            or_clauses = []
+            for val in values:
+                placeholder = f"p{placeholder_counter}"
+                placeholder_counter += 1
+                param_dict[placeholder] = f"%{val}%"
+                or_clauses.append(f"{col} LIKE :{placeholder}")
+            if or_clauses:
+                conditions.append("(" + " OR ".join(or_clauses) + ")")
+        else:
+            # For other fields -> IN (:pX, :pY, ...)
+            placeholders = []
+            for val in values:
+                placeholder = f"p{placeholder_counter}"
+                placeholder_counter += 1
+                param_dict[placeholder] = val
+                placeholders.append(f":{placeholder}")
+            if placeholders:
+                conditions.append(f"{col} IN ({', '.join(placeholders)})")
+
+    if not conditions:
+        return None, {}
+
+    condition_string = " AND ".join(conditions)
+    return condition_string, param_dict
+
+
 
 def build_filter_conditions_with_alias(filters, alias):
     if not alias:

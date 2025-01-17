@@ -95,6 +95,14 @@ go_enry_agg AS (
     GROUP BY g.repo_id
 ),
 
+all_languages_agg AS (
+    SELECT
+        repo_id,
+        STRING_AGG(language, ', ' ORDER BY language) AS all_languages
+    FROM go_enry_analysis
+    GROUP BY repo_id
+),
+
 business_app_agg AS (
     SELECT
         rbm.project_key,
@@ -239,6 +247,7 @@ SELECT
     -- go_enry columns
     e.language_count,
     e.main_language,
+    al.all_languages,
 
     -- repo_metrics columns
     rm.repo_size_bytes,
@@ -266,5 +275,6 @@ FROM all_repos r
          LEFT JOIN trivy_agg              t  ON r.repo_id = t.repo_id
          LEFT JOIN semgrep_agg            s  ON r.repo_id = s.repo_id
          LEFT JOIN go_enry_agg            e  ON r.repo_id = e.repo_id
+         LEFT JOIN all_languages_agg      al  ON r.repo_id = al.repo_id
          LEFT JOIN repo_metrics           rm ON r.repo_id = rm.repo_id
 ORDER BY r.repo_id;

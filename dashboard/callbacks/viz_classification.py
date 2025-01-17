@@ -7,8 +7,9 @@ def viz_classification(filtered_df):
         values="repo_count",
     )
     fig.update_traces(
-        textinfo="label+value+percent",  # Customize displayed info
-        textposition="inside",           # Put labels inside the slices
+        textinfo="label+value+percent",
+        textposition="outside",
+        textfont_size=10
     )
     fig.update_layout(
         showlegend=False,               # Hide legend entirely

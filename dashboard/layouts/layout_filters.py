@@ -37,21 +37,6 @@ def filter_layout():
                 ),
                 html.Div(
                     [
-                        dbc.Label("Filter by TC Cluster", html_for="tc-cluster-filter"),
-                        dcc.Dropdown(
-                            id="tc-cluster-filter",
-                            options=[],  # Options will be populated dynamically
-                            multi=True,  # Enable multi-select
-                            placeholder="Select TC Cluster(s)",
-                            clearable=True,
-                            maxHeight=600,
-                            optionHeight=50,
-                        ),
-                    ],
-                    className="mb-4",
-                ),
-                html.Div(
-                    [
                         dbc.Label("Filter by TC", html_for="tc-filter"),
                         dcc.Dropdown(
                             id="tc-filter",

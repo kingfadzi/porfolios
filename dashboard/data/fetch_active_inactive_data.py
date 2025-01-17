@@ -1,23 +1,26 @@
+from sqlalchemy import text
 import pandas as pd
+from data.cache_instance import cache
 from data.db_connection import engine
 from data.build_filter_conditions import build_filter_conditions
-from data.cache_instance import cache
 
 def fetch_active_inactive_data(filters=None):
     @cache.memoize()
-    def query_data(filter_conditions):
-        query = """
-        SELECT 
-            activity_status, 
-            host_name, 
+    def query_data(condition_string, param_dict):
+        sql = """
+        SELECT
+            activity_status,
+            host_name,
             COUNT(*) AS repo_count
         FROM combined_repo_metrics
         """
-        if filter_conditions:
-            query += f" WHERE {filter_conditions}"
-        query += " GROUP BY activity_status, host_name"
+        if condition_string:
+            sql += f" WHERE {condition_string}"
+        sql += " GROUP BY activity_status, host_name"
 
-        return pd.read_sql(query, engine)
+        stmt = text(sql)
+        return pd.read_sql(stmt, engine, params=param_dict)
 
-    filter_conditions = build_filter_conditions(filters)
-    return query_data(filter_conditions)
+    # Build both the condition string and parameter dictionary
+    condition_string, param_dict = build_filter_conditions(filters)
+    return query_data(condition_string, param_dict)
