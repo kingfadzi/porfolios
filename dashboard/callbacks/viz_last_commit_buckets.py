@@ -9,7 +9,6 @@ def viz_last_commit_buckets(df):
         x="commit_bucket",
         y="repo_count",
         color="commit_bucket",
-        title="Repository Activity by Last Commit Date",
         labels={
             "commit_bucket": "Commit Recency (Bucket)",
             "repo_count": "Repository Count",

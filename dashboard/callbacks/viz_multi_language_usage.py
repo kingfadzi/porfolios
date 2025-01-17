@@ -13,7 +13,7 @@ def viz_multi_language_usage(df):
             "language_bucket": "Number of Languages (Bucket)",
             "repo_count": "Repository Count"
         },
-        title="Repository Count by Language Usage Bucket"
+        
     )
     fig.update_layout(
         showlegend=False,

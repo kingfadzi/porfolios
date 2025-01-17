@@ -2,15 +2,11 @@ from dash import dcc, html
 import dash_bootstrap_components as dbc
 
 def chart_layout():
-    """
-    Layout for all charts including the scatter plot.
-    """
     return dbc.Col(
         [
             # Row: Active vs Inactive Repositories & Repository Classification
             dbc.Row(
                 [
-                    # Active vs Inactive
                     dbc.Col(
                         dbc.Card(
                             [
@@ -28,7 +24,6 @@ def chart_layout():
                         ),
                         width=6,
                     ),
-                    # Repository Classification
                     dbc.Col(
                         dbc.Card(
                             [
@@ -77,6 +72,47 @@ def chart_layout():
                         id="repos-by-language-bar",
                         config={"displayModeBar": False},
                         style={"height": 300},
+                    ),
+                ],
+                className="mb-4",
+            ),
+
+            # Row: Language Usage Buckets & Repository Activity by Last Commit Date
+            dbc.Row(
+                [
+                    dbc.Col(
+                        dbc.Card(
+                            [
+                                dbc.CardHeader(
+                                    html.B("Language Usage Buckets", className="text-center"),
+                                    className="bg-light",
+                                ),
+                                dcc.Graph(
+                                    id="language-usage-buckets-bar",
+                                    config={"displayModeBar": False},
+                                    style={"height": 300},
+                                ),
+                            ],
+                            className="mb-4",
+                        ),
+                        width=6,
+                    ),
+                    dbc.Col(
+                        dbc.Card(
+                            [
+                                dbc.CardHeader(
+                                    html.B("Repository Activity by Last Commit Date", className="text-center"),
+                                    className="bg-light",
+                                ),
+                                dcc.Graph(
+                                    id="last-commit-buckets-bar",
+                                    config={"displayModeBar": False},
+                                    style={"height": 300},
+                                ),
+                            ],
+                            className="mb-4",
+                        ),
+                        width=6,
                     ),
                 ],
                 className="mb-4",
@@ -133,7 +169,6 @@ def chart_layout():
             # Row: Trivy Vulnerabilities & Semgrep Findings
             dbc.Row(
                 [
-                    # Trivy Vulnerabilities
                     dbc.Col(
                         dbc.Card(
                             [
@@ -151,7 +186,6 @@ def chart_layout():
                         ),
                         width=6,
                     ),
-                    # Semgrep Findings
                     dbc.Col(
                         dbc.Card(
                             [
@@ -172,35 +206,5 @@ def chart_layout():
                 ],
                 className="mb-4",
             ),
-            # Add this Card somewhere within your layout structure
-            dbc.Card(
-                [
-                    dbc.CardHeader(
-                        html.B("Language Usage Buckets", className="text-center"),
-                        className="bg-light",
-                    ),
-                    dcc.Graph(
-                        id="language-usage-buckets-bar",
-                        config={"displayModeBar": False},
-                        style={"height": 300},
-                    ),
-                ],
-                className="mb-4",
-            ),
-            dbc.Card(
-                [
-                    dbc.CardHeader(
-                        html.B("Repository Activity by Last Commit Date", className="text-center"),
-                        className="bg-light",
-                    ),
-                    dcc.Graph(
-                        id="last-commit-buckets-bar",
-                        config={"displayModeBar": False},
-                        style={"height": 300},
-                    ),
-                ],
-                className="mb-4",
-            ),
-
         ]
     )
