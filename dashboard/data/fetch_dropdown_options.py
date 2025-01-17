@@ -14,9 +14,9 @@ def fetch_dropdown_options():
     """
     df = pd.read_sql(query, engine)
     return {
-        "host_names": df["host_name"].dropna().unique().tolist(),
-        "activity_statuses": df["activity_status"].dropna().unique().tolist(),
-        "tcs": df["tc"].dropna().unique().tolist(),
-        "languages": df["main_language"].dropna().unique().tolist(),
-        "classification_labels": df["classification_label"].dropna().unique().tolist(),
+        "host_names": sorted(df["host_name"].dropna().unique().tolist()),
+        "activity_statuses": sorted(df["activity_status"].dropna().unique().tolist()),
+        "tcs": sorted(df["tc"].dropna().unique().tolist()),
+        "languages": sorted(df["main_language"].dropna().unique().tolist()),
+        "classification_labels": sorted(df["classification_label"].dropna().unique().tolist()),
     }
