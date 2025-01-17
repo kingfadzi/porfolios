@@ -1,6 +1,6 @@
 import plotly.express as px
 
-def viz_language_usage_buckets(df):
+def viz_multi_language_usage(df):
     """
     Create a bar chart visualizing the number of languages used per repository (buckets).
     """
