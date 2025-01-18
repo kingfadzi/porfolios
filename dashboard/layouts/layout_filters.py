@@ -94,7 +94,12 @@ def filter_layout():
                             """,
                             target="classification-help-text",
                             placement="right",
-                            style={"whiteSpace": "pre-line", "maxWidth": "400px"},
+                            style={
+                                "whiteSpace": "pre-wrap",
+                                "maxWidth": "400px",
+                                "width": "400px",
+                                "fontSize": "14px"
+                            },
                         ),
                         dcc.Dropdown(
                             id="classification-filter",
