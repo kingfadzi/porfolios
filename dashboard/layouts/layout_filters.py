@@ -93,11 +93,11 @@ def filter_layout():
                             - Unclassified: Doesn't fit any above criteria.
                             """,
                             target="classification-help-text",
-                            placement="right",
+                            placement="left",
                             style={
                                 "whiteSpace": "pre-wrap",
-                                "maxWidth": "400px",
-                                "width": "400px",
+                                "maxWidth": 600px",
+                                "width": 600px",
                                 "fontSize": "14px"
                             },
                         ),
