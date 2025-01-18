@@ -1,4 +1,4 @@
-from dash import Input, Output
+from dash import Input, Output, State, callback
 from data.fetch_dropdown_options import fetch_dropdown_options
 from data.fetch_contributors_commits_size import fetch_contributors_commits_size
 from data.fetch_iac_data import fetch_iac_data
@@ -44,6 +44,17 @@ def register_dropdown_callbacks(app):
             [{"label": lang, "value": lang} for lang in options["languages"]],
             [{"label": label, "value": label} for label in options["classification_labels"]],
         )
+    
+
+    @callback(
+        Output("classification-collapse", "is_open"),
+        [Input("classification-toggle", "n_clicks")],
+        [State("classification-collapse", "is_open")],
+      )
+    def toggle_classification_details(n_clicks, is_open):
+        if n_clicks:
+            return not is_open
+        return is_open
 
 def register_callbacks(app):
     @app.callback(
