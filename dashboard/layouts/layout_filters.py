@@ -77,6 +77,11 @@ def filter_layout():
                             id="classification-info-icon",
                             style={"marginLeft": "5px", "cursor": "pointer"},
                         ),
+                        dbc.Tooltip(
+                            "Select repository classifications (e.g., Critical, Deprecated).",
+                            target="classification-info-icon",
+                            placement="right",
+                        ),
                         dcc.Dropdown(
                             id="classification-filter",
                             options=[],  # Options will be populated dynamically
@@ -86,11 +91,6 @@ def filter_layout():
                             maxHeight=600,
                             optionHeight=50,
                             style={"fontSize": "14px"}
-                        ),
-                        dbc.Tooltip(
-                            "Classification values represent repository categories like 'Critical', 'Deprecated', etc.",
-                            target="classification-info-icon",
-                            placement="right",
                         ),
                     ],
                     className="mb-4",
