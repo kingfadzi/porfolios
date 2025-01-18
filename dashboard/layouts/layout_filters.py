@@ -82,21 +82,6 @@ def filter_layout():
                             optionHeight=50,
                             style={"fontSize": "14px"}
                         ),
-                        dbc.Button(
-                            "Show Classification Details",
-                            id="classification-toggle",
-                            color="link",
-                            className="mt-2",
-                        ),
-                        dbc.Collapse(
-                            html.Div(
-                                "Classification values represent the categorization of repositories. For example, 'Critical' indicates high-priority repositories, while 'Deprecated' indicates repositories that are no longer maintained.",
-                                className="text-muted",
-                                style={"fontSize": "12px"}
-                            ),
-                            id="classification-collapse",
-                            is_open=False,
-                        ),
                     ],
                     className="mb-4",
                 ),

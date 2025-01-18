@@ -46,17 +46,7 @@ def register_dropdown_callbacks(app):
         )
     
 
-    @callback(
-        Output("classification-collapse", "is_open"),
-        [Input("classification-toggle", "n_clicks")],
-        [State("classification-collapse", "is_open")],
-      )
-    def toggle_classification_details(n_clicks, is_open):
-        if n_clicks:
-            return not is_open
-        return is_open
-
-def register_callbacks(app):
+  def register_callbacks(app):
     @app.callback(
         [
             Output("active-inactive-bar", "figure"),
