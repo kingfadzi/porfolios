@@ -17,22 +17,10 @@ def viz_contributors_commits_size(filtered_df):
     filtered_df["repo_size_human"] = filtered_df["repo_size"].apply(human_readable_size)
 
     max_size = filtered_df["repo_size"].max()
-    tickvals = []
-    ticktext = []
+    scales = [(1, "B"), (1024, "KB"), (1024**2, "MB"), (1024**3, "GB"), (1024**4, "TB")]
 
-    # Always include smaller units (e.g., bytes and KB)
-    scales = [
-        (1, "B"),
-        (1024, "KB"),
-        (1024**2, "MB"),
-        (1024**3, "GB"),
-        (1024**4, "TB"),
-    ]
-
-    for scale, label in scales:
-        if scale <= max_size or scale == 1:  # Ensure small values are always included
-            tickvals.append(scale)
-            ticktext.append(f"1 {label}")
+    tickvals = [scale[0] for scale in scales if scale[0] <= max_size or scale[0] == 1]
+    ticktext = [f"1 {scale[1]}" for scale in scales if scale[0] <= max_size or scale[0] == 1]
 
     return px.scatter(
         filtered_df,
@@ -43,7 +31,7 @@ def viz_contributors_commits_size(filtered_df):
         labels={
             "contractors": "Number of Contributors",
             "commits": "Total Commits",
-            "repo_size": "Repository Size (Bytes)",
+            "repo_size": "Repository Size",
         },
         color="repo_size",
         hover_data={"repo_url": True, "repo_size_human": True},
