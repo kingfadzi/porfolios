@@ -77,7 +77,7 @@ def filter_layout():
                                 html.Span(
                                     " ?",
                                     id="classification-help-text",
-                                    style={"color": "blue", "cursor": "pointer", "fontSize": "14px"},
+                                    style={"color": "blue", "cursor": "pointer", "fontSize": "12px"},
                                 ),
                             ],
                             html_for="classification-filter",
@@ -93,12 +93,12 @@ def filter_layout():
                             - Unclassified: Doesn't fit any above criteria.
                             """,
                             target="classification-help-text",
-                            placement="left",
+                            placement="right",
                             style={
                                 "whiteSpace": "pre-wrap",
                                 "maxWidth": "600px",
                                 "width": "600px",
-                                "fontSize": "14px"
+                                "fontSize": "12px"
                             },
                         ),
                         dcc.Dropdown(
