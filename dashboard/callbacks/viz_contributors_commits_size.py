@@ -16,14 +16,13 @@ def viz_contributors_commits_size(filtered_df):
     filtered_df["repo_size"] = filtered_df["repo_size"].fillna(0)
     filtered_df["repo_size_human"] = filtered_df["repo_size"].apply(human_readable_size)
 
-    # Determine the range of the repository sizes
+    # Get the range of repository sizes
     min_size = filtered_df["repo_size"].min()
     max_size = filtered_df["repo_size"].max()
 
-    # Generate dynamic tick values and labels based on the filtered data range
+    # Generate tick values and labels
     tickvals = []
     ticktext = []
-
     scales = [
         (1, "B"),
         (1024, "KB"),
@@ -33,15 +32,18 @@ def viz_contributors_commits_size(filtered_df):
     ]
 
     for scale, label in scales:
-        # Include tick if it lies within the filtered range
-        if min_size <= scale <= max_size or scale == min_size or scale == max_size:
+        # Include all relevant ticks within the range
+        if min_size <= scale <= max_size:
             tickvals.append(scale)
             ticktext.append(label)
 
-    # If no ticks are generated (e.g., all values are identical), include at least one tick
-    if len(tickvals) < 2:
-        tickvals = [min_size, max_size]
-        ticktext = [human_readable_size(min_size), human_readable_size(max_size)]
+    # Always include the minimum and maximum sizes
+    if min_size not in tickvals:
+        tickvals.insert(0, min_size)
+        ticktext.insert(0, human_readable_size(min_size))
+    if max_size not in tickvals:
+        tickvals.append(max_size)
+        ticktext.append(human_readable_size(max_size))
 
     return px.scatter(
         filtered_df,
