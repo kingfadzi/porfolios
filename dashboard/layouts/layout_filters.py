@@ -96,8 +96,8 @@ def filter_layout():
                             placement="left",
                             style={
                                 "whiteSpace": "pre-wrap",
-                                "maxWidth": 600px",
-                                "width": 600px",
+                                "maxWidth": "600px",
+                                "width": "600px",
                                 "fontSize": "14px"
                             },
                         ),
