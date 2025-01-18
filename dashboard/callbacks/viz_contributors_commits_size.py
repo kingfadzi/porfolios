@@ -37,6 +37,7 @@ def viz_contributors_commits_size(filtered_df):
             "commits": "Total Commits",
             "web_url": "URL",
             "all_languages": "Languages Used",
+            "total_lines_of_code": "LOC",
             "file_count": "File Count",
         },
         hover_data={
@@ -49,6 +50,7 @@ def viz_contributors_commits_size(filtered_df):
             "component_id": True,
             "all_languages": True,
             "file_count": True,
+            "total_lines_of_code": True
         },
     )
 
