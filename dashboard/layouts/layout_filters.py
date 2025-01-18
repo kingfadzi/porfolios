@@ -71,15 +71,20 @@ def filter_layout():
                 ),
                 html.Div(
                     [
-                        dbc.Label("Filter by Classification", html_for="classification-filter"),
-                        html.I(
-                            className="bi bi-info-circle",
-                            id="classification-info-icon",
-                            style={"marginLeft": "5px", "cursor": "pointer"},
+                        dbc.Label(
+                            [
+                                "Filter by Classification",
+                                html.Span(
+                                    " ?",
+                                    id="classification-help-text",
+                                    style={"color": "blue", "cursor": "pointer", "fontSize": "14px"},
+                                ),
+                            ],
+                            html_for="classification-filter",
                         ),
                         dbc.Tooltip(
                             "Select repository classifications (e.g., Critical, Deprecated).",
-                            target="classification-info-icon",
+                            target="classification-help-text",
                             placement="right",
                         ),
                         dcc.Dropdown(
