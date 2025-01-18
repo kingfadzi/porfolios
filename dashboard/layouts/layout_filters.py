@@ -11,7 +11,7 @@ def filter_layout():
                         dcc.Dropdown(
                             id="host-name-filter",
                             options=[],  # Options will be populated dynamically
-                            multi=True,  # Enable multi-select
+                            multi=True,
                             placeholder="Select Host Name(s)",
                             clearable=True,
                             maxHeight=600,
@@ -27,7 +27,7 @@ def filter_layout():
                         dcc.Dropdown(
                             id="activity-status-filter",
                             options=[],  # Options will be populated dynamically
-                            multi=True,  # Enable multi-select
+                            multi=True,
                             placeholder="Select Activity Status",
                             clearable=True,
                             maxHeight=600,
@@ -43,7 +43,7 @@ def filter_layout():
                         dcc.Dropdown(
                             id="tc-filter",
                             options=[],  # Options will be populated dynamically
-                            multi=True,  # Enable multi-select
+                            multi=True,
                             placeholder="Select TC(s)",
                             clearable=True,
                             maxHeight=600,
@@ -59,7 +59,7 @@ def filter_layout():
                         dcc.Dropdown(
                             id="language-filter",
                             options=[],  # Options will be populated dynamically
-                            multi=True,  # Enable multi-select
+                            multi=True,
                             placeholder="Select Language(s)",
                             clearable=True,
                             maxHeight=600,
@@ -75,12 +75,27 @@ def filter_layout():
                         dcc.Dropdown(
                             id="classification-filter",
                             options=[],  # Options will be populated dynamically
-                            multi=True,  # Enable multi-select
+                            multi=True,
                             placeholder="Select Classification(s)",
                             clearable=True,
                             maxHeight=600,
                             optionHeight=50,
                             style={"fontSize": "14px"}
+                        ),
+                        dbc.Button(
+                            "Show Classification Details",
+                            id="classification-toggle",
+                            color="link",
+                            className="mt-2",
+                        ),
+                        dbc.Collapse(
+                            html.Div(
+                                "Classification values represent the categorization of repositories. For example, 'Critical' indicates high-priority repositories, while 'Deprecated' indicates repositories that are no longer maintained.",
+                                className="text-muted",
+                                style={"fontSize": "12px"}
+                            ),
+                            id="classification-collapse",
+                            is_open=False,
                         ),
                     ],
                     className="mb-4",
@@ -101,5 +116,5 @@ def filter_layout():
                 ),
             ]
         ),
-        className="bg-light mb-4",  # Add a light background and margin for spacing
+        className="bg-light mb-4",
     )
