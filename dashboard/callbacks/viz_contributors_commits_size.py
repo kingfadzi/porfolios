@@ -20,16 +20,17 @@ def viz_contributors_commits_size(filtered_df):
     tickvals = []
     ticktext = []
 
-    # Dynamically generate ticks for the color bar
+    # Always include smaller units (e.g., bytes and KB)
     scales = [
-        (1024**0, "B"),
-        (1024**1, "KB"),
+        (1, "B"),
+        (1024, "KB"),
         (1024**2, "MB"),
         (1024**3, "GB"),
         (1024**4, "TB"),
     ]
+
     for scale, label in scales:
-        if scale <= max_size:
+        if scale <= max_size or scale == 1:  # Ensure small values are always included
             tickvals.append(scale)
             ticktext.append(f"1 {label}")
 
