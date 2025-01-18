@@ -1,3 +1,4 @@
+import pandas as pd
 import plotly.express as px
 
 def human_readable_size(size_in_bytes):
@@ -16,55 +17,59 @@ def viz_contributors_commits_size(filtered_df):
     filtered_df["repo_size"] = filtered_df["repo_size"].fillna(0)
     filtered_df["repo_size_human"] = filtered_df["repo_size"].apply(human_readable_size)
 
-    # Get the range of repository sizes
     min_size = filtered_df["repo_size"].min()
     max_size = filtered_df["repo_size"].max()
 
-    # Generate tick values and labels
-    tickvals = []
-    ticktext = []
-    scales = [
-        (1, "B"),
-        (1024, "KB"),
-        (1024**2, "MB"),
-        (1024**3, "GB"),
-        (1024**4, "TB"),
-    ]
+    tickvals = [min_size, max_size / 4, max_size / 2, 3 * max_size / 4, max_size]
+    ticktext = [human_readable_size(val) for val in tickvals]
 
-    for scale, label in scales:
-        # Include all relevant ticks within the range
-        if min_size <= scale <= max_size:
-            tickvals.append(scale)
-            ticktext.append(label)
-
-    # Always include the minimum and maximum sizes
-    if min_size not in tickvals:
-        tickvals.insert(0, min_size)
-        ticktext.insert(0, human_readable_size(min_size))
-    if max_size not in tickvals:
-        tickvals.append(max_size)
-        ticktext.append(human_readable_size(max_size))
-
-    return px.scatter(
+    fig = px.scatter(
         filtered_df,
-        x="contractors",
+        x="contributors",
         y="commits",
         size="repo_size",
         size_max=60,
-        labels={
-            "contractors": "Number of Contributors",
-            "commits": "Total Commits",
-            "repo_size": "Repository Size",
-        },
         color="repo_size",
-        hover_data={"repo_url": True, "repo_size_human": True},
-    ).update_layout(
+        labels={
+            "repo_size_human": "Size",
+            "repo_age_human": "Age",
+            "contributors": "Number of Contributors",
+            "commits": "Total Commits",
+            "web_url": "URL",
+            "all_languages": "Languages Used",
+            "file_count": "File Count",
+        },
+        hover_data={
+            "repo_size_human": True,
+            "repo_size": False,
+            "web_url": True,
+            "repo_age_human": True,
+            "app_id": True,
+            "tc": True,
+            "component_id": True,
+            "all_languages": True,
+            "file_count": True,
+        },
+    )
+
+    fig.update_layout(
         template="plotly_white",
         dragmode="zoom",
-        title={"x": 0.5},
+        autosize=True,
+        margin=dict(l=50, r=150, t=50, b=50),
         coloraxis_colorbar=dict(
-            title="Repository Size",
+            title=dict(
+                text="Repository Size",
+                side="top",
+                font=dict(size=14),
+            ),
             tickvals=tickvals,
             ticktext=ticktext,
         ),
+        legend=dict(
+            font=dict(size=12),
+            itemsizing="trace",
+        ),
     )
+
+    return fig
