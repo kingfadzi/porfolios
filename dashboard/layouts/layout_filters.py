@@ -11,11 +11,12 @@ def filter_layout():
                         dcc.Dropdown(
                             id="host-name-filter",
                             options=[],  # Options will be populated dynamically
-                            multi=True,  # Enable multi-select
+                            multi=True,
                             placeholder="Select Host Name(s)",
                             clearable=True,
                             maxHeight=600,
                             optionHeight=50,
+                            style={"fontSize": "14px"}
                         ),
                     ],
                     className="mb-4",
@@ -26,11 +27,12 @@ def filter_layout():
                         dcc.Dropdown(
                             id="activity-status-filter",
                             options=[],  # Options will be populated dynamically
-                            multi=True,  # Enable multi-select
+                            multi=True,
                             placeholder="Select Activity Status",
                             clearable=True,
                             maxHeight=600,
                             optionHeight=50,
+                            style={"fontSize": "14px"}
                         ),
                     ],
                     className="mb-4",
@@ -41,11 +43,12 @@ def filter_layout():
                         dcc.Dropdown(
                             id="tc-filter",
                             options=[],  # Options will be populated dynamically
-                            multi=True,  # Enable multi-select
+                            multi=True,
                             placeholder="Select TC(s)",
                             clearable=True,
                             maxHeight=600,
                             optionHeight=50,
+                            style={"fontSize": "14px"}
                         ),
                     ],
                     className="mb-4",
@@ -56,11 +59,12 @@ def filter_layout():
                         dcc.Dropdown(
                             id="language-filter",
                             options=[],  # Options will be populated dynamically
-                            multi=True,  # Enable multi-select
+                            multi=True,
                             placeholder="Select Language(s)",
                             clearable=True,
                             maxHeight=600,
                             optionHeight=50,
+                            style={"fontSize": "14px"}
                         ),
                     ],
                     className="mb-4",
@@ -68,14 +72,25 @@ def filter_layout():
                 html.Div(
                     [
                         dbc.Label("Filter by Classification", html_for="classification-filter"),
+                        html.I(
+                            className="bi bi-info-circle",
+                            id="classification-info-icon",
+                            style={"marginLeft": "5px", "cursor": "pointer"},
+                        ),
                         dcc.Dropdown(
                             id="classification-filter",
                             options=[],  # Options will be populated dynamically
-                            multi=True,  # Enable multi-select
+                            multi=True,
                             placeholder="Select Classification(s)",
                             clearable=True,
                             maxHeight=600,
                             optionHeight=50,
+                            style={"fontSize": "14px"}
+                        ),
+                        dbc.Tooltip(
+                            "Classification values represent repository categories like 'Critical', 'Deprecated', etc.",
+                            target="classification-info-icon",
+                            placement="right",
                         ),
                     ],
                     className="mb-4",
@@ -89,11 +104,12 @@ def filter_layout():
                             placeholder="Enter App IDs (comma-separated)...",
                             debounce=True,
                             className="form-control",
+                            style={"fontSize": "14px"}
                         ),
                     ],
                     className="mb-4",
                 ),
             ]
         ),
-        className="bg-light mb-4",  # Add a light background and margin for spacing
+        className="bg-light mb-4",
     )
