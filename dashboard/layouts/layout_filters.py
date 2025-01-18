@@ -83,9 +83,18 @@ def filter_layout():
                             html_for="classification-filter",
                         ),
                         dbc.Tooltip(
-                            "Select repository classifications (e.g., Critical, Deprecated).",
+                            """
+                            Classification Guide:
+                            - Tiny: <500 LOC, <20 files, <1MB.
+                            - Small: <5,000 LOC, <200 files, <10MB.
+                            - Medium: <50,000 LOC, <1,000 files, <100MB.
+                            - Large: <100,000 LOC, <5,000 files, <1GB.
+                            - Massive: ≥100,000 LOC, ≥5,000 files, ≥1GB.
+                            - Unclassified: Doesn't fit any above criteria.
+                            """,
                             target="classification-help-text",
                             placement="right",
+                            style={"whiteSpace": "pre-wrap"},
                         ),
                         dcc.Dropdown(
                             id="classification-filter",
