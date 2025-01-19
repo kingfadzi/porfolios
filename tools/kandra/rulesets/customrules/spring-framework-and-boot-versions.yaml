@@ -1,52 +1,67 @@
-rules:
-  - id: detect-spring-framework-and-boot-versions
-    description: Detects Spring Framework and Spring Boot versions in the project and flags unsupported or near-EOL versions.
-    pattern:
-      anyOf:
-        - fileContent:
-            file: "**/pom.xml" # Maven
-            contains: "spring-framework.version"
-        - fileContent:
-            file: "**/build.gradle"
-            contains: "springBootVersion"
-        - fileContent:
-            file: "**/build.gradle.kts"
-            contains: "springBootVersion"
-    extractors:
-      - id: spring-framework-version-maven
-        when:
-          file: "**/pom.xml"
-        regex: "<spring-framework.version>(.*?)</spring-framework.version>"
-      - id: spring-boot-version-maven
-        when:
-          file: "**/pom.xml"
-        regex: "<parent>.*?<version>(.*?)</version>.*?</parent>"
-      - id: spring-boot-version-gradle
-        when:
-          file: "**/build.gradle"
-        regex: "springBootVersion\\s*=\\s*['\"](.*?)['\"]"
-      - id: spring-framework-version-gradle
-        when:
-          file: "**/build.gradle"
-        regex: "spring-framework.version\\s*=\\s*['\"](.*?)['\"]"
-    conditions:
-      - id: unsupported-version
-        matchesAnyOf:
-          - "{{ extracted_version }}" in ["2.3.x", "2.4.x", "5.0.x", "5.1.x"]
-        severity: error
-        message: >
-          Detected unsupported Spring version '{{ extracted_version }}' in '{{ matched_file }}'. 
-          Please upgrade to a supported version.
-      - id: near-eol-version
-        matchesAnyOf:
-          - "{{ extracted_version }}" in ["2.5.x", "5.2.x"]
-        severity: warning
-        message: >
-          Detected Spring version '{{ extracted_version }}' in '{{ matched_file }}', which is approaching end of life. 
-          Consider upgrading to a newer version soon.
-      - id: supported-version
-        matchesAnyOf:
-          - "{{ extracted_version }}" in ["2.6.x", "2.7.x", "6.0.x"]
-        severity: info
-        message: >
-          Detected supported Spring version '{{ extracted_version }}' in '{{ matched_file }}'.
+- ruleID: spring-framework-version-detection-00001
+  category: optional
+  effort: 1
+  labels:
+    - konveyor.io/source=spring
+    - konveyor.io/target=spring-version-check
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - pom.xml
+          namespaces:
+            m: http://maven.apache.org/POM/4.0.0
+          xpath: //m:spring-framework.version
+      - builtin.file:
+          filepaths:
+            - build.gradle
+            - build.gradle.kts
+          contains:
+            - springBootVersion
+            - spring-framework.version
+  description: Detects Spring Framework and Spring Boot versions
+  message: |
+    Detected Spring Framework or Spring Boot version. Please check the extracted version and ensure it's supported.
+  links:
+    - title: 'Spring Framework Support'
+      url: https://spring.io/projects/spring-framework#support
+    - title: 'Spring Boot Support'
+      url: https://spring.io/projects/spring-boot#support
+
+- ruleID: spring-framework-version-check-00002
+  category: mandatory
+  effort: 3
+  labels:
+    - konveyor.io/source=spring
+    - konveyor.io/target=spring-version-update
+  when:
+    java.dependency:
+      nameregex: org\.springframework(\.boot)?.*
+      versionregex: (2\.[0-4]\.|5\.[0-1]\.).*
+  description: Detects unsupported Spring Framework or Spring Boot versions
+  message: |
+    Detected unsupported Spring version. Please upgrade to a supported version immediately.
+  links:
+    - title: 'Spring Framework Support'
+      url: https://spring.io/projects/spring-framework#support
+    - title: 'Spring Boot Support'
+      url: https://spring.io/projects/spring-boot#support
+
+- ruleID: spring-framework-version-check-00003
+  category: potential
+  effort: 2
+  labels:
+    - konveyor.io/source=spring
+    - konveyor.io/target=spring-version-update
+  when:
+    java.dependency:
+      nameregex: org\.springframework(\.boot)?.*
+      versionregex: (2\.5\.|5\.2\.).*
+  description: Detects Spring Framework or Spring Boot versions approaching end-of-life
+  message: |
+    Detected Spring version approaching end-of-life. Consider upgrading to a newer version soon.
+  links:
+    - title: 'Spring Framework Support'
+      url: https://spring.io/projects/spring-framework#support
+    - title: 'Spring Boot Support'
+      url: https://spring.io/projects/spring-boot#support
