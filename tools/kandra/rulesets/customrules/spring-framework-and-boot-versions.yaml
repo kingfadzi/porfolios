@@ -1,13 +1,15 @@
-- ruleID: spring-unsupported-version
-  category: mandatory
+- ruleID: "spring-unsupported-version"
+  category: "mandatory"
   effort: 1
   labels:
-    - konveyor.io/source=spring-boot
-    - konveyor.io/target=spring-boot-2.7+
+    - "konveyor.io/source=spring-boot"
+    - "konveyor.io/target=spring-boot-2.7+"
   when:
     java.dependency:
-      name: "org.springframework.boot:spring-boot-starter"
-      versionRange: "(,2.5.0)"
+      nameregex: "^org\\.springframework\\.boot:spring-boot-starter$"
+      lowerbound: "0.0.0"
+      upperbound: "2.5.0"
+      excludeupper: true
   description: "Detects unsupported Spring Boot versions (< 2.5.0)"
   message: |
     Spring Boot version is below 2.5.0, which is unsupported.
@@ -16,16 +18,19 @@
     - title: "Spring Boot Release Notes"
       url: "https://github.com/spring-projects/spring-boot/releases"
 
-- ruleID: spring-nearing-eol-version
-  category: optional
+- ruleID: "spring-nearing-eol-version"
+  category: "optional"
   effort: 1
   labels:
-    - konveyor.io/source=spring-boot
-    - konveyor.io/target=spring-boot-2.7+
+    - "konveyor.io/source=spring-boot"
+    - "konveyor.io/target=spring-boot-2.7+"
   when:
     java.dependency:
-      name: "org.springframework.boot:spring-boot-starter"
-      versionRange: "[2.5.0,2.7.0)"
+      nameregex: "^org\\.springframework\\.boot:spring-boot-starter$"
+      lowerbound: "2.5.0"
+      upperbound: "2.7.0"
+      excludelower: false
+      excludeupper: true
   description: "Detects Spring Boot versions nearing end-of-life (>= 2.5.0 and < 2.7.0)"
   message: |
     Your Spring Boot version is between 2.5.x and 2.7.0, which is nearing end-of-life.
@@ -34,16 +39,17 @@
     - title: "Spring Boot Upgrade Guide"
       url: "https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.7-Release-Notes"
 
-- ruleID: spring-supported-version
-  category: informational
+- ruleID: "spring-supported-version"
+  category: "informational"
   effort: 1
   labels:
-    - konveyor.io/source=spring-boot
-    - konveyor.io/target=spring-boot-2.7+
+    - "konveyor.io/source=spring-boot"
+    - "konveyor.io/target=spring-boot-2.7+"
   when:
     java.dependency:
-      name: "org.springframework.boot:spring-boot-starter"
-      versionRange: "[2.7.0,)"
+      nameregex: "^org\\.springframework\\.boot:spring-boot-starter$"
+      lowerbound: "2.7.0"
+      excludelower: false
   description: "Detects supported Spring Boot versions (>= 2.7.0)"
   message: |
     Spring Boot version is 2.7.0 or newer and currently supported.
