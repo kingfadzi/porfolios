@@ -1,65 +1,61 @@
-- ruleID: spring-framework-version-detection-00001
+- ruleID: spring-unsupported-version
+  category: mandatory
+  effort: 1
+  labels:
+    - konveyor.io/source=spring-boot
+    - konveyor.io/target=spring-boot-2.7+
+  when:
+    java.dependency:
+      name: org.springframework.boot:spring-boot-starter
+      versionCompare: lessThan
+      version: 2.5.0
+  description: Detects unsupported Spring Boot versions (< 2.5.0)
+  message: |
+    Spring Boot version is below 2.5.0, which is unsupported. 
+    Please upgrade to a supported release (2.7.x or above).
+  links:
+    - title: 'Spring Boot Release Notes'
+      url: https://github.com/spring-projects/spring-boot/releases
+
+- ruleID: spring-nearing-eol-version
   category: optional
   effort: 1
   labels:
-    - konveyor.io/source=spring
-    - konveyor.io/target=spring-version-check
+    - konveyor.io/source=spring-boot
+    - konveyor.io/target=spring-boot-2.7+
   when:
-    or:
-      - builtin.xml:
-          filepaths:
-            - pom.xml
-          namespaces:
-            m: http://maven.apache.org/POM/4.0.0
-          xpath: //m:spring-framework.version
-      - builtin.file:
-          filepaths:
-            - build.gradle
-            - build.gradle.kts
-          contains:
-            - springBootVersion
-            - spring-framework.version
-  description: Detects Spring Framework and Spring Boot versions
+    and:
+      - java.dependency:
+          name: org.springframework.boot:spring-boot-starter
+          versionCompare: greaterOrEqual
+          version: 2.5.0
+      - java.dependency:
+          name: org.springframework.boot:spring-boot-starter
+          versionCompare: lessThan
+          version: 2.7.0
+  description: Detects Spring Boot versions nearing end-of-life (>= 2.5.0 and < 2.7.0)
   message: |
-    Detected Spring Framework or Spring Boot version. Please check the extracted version and ensure it's supported.
+    Your Spring Boot version is between 2.5.x and 2.7.0, which is nearing end-of-life. 
+    Consider upgrading to 2.7.x or later to stay on a supported track.
   links:
-    - title: 'Spring Framework Support'
-      url: https://spring.io/projects/spring-framework#support
-    - title: 'Spring Boot Support'
-      url: https://spring.io/projects/spring-boot#support
+    - title: 'Spring Boot Upgrade Guide'
+      url: https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.7-Release-Notes
 
-- ruleID: spring-framework-version-check-00002
-  category: mandatory
-  effort: 3
+- ruleID: spring-supported-version
+  category: informational
+  effort: 1
   labels:
-    - konveyor.io/source=spring
-    - konveyor.io/target=spring-version-update
+    - konveyor.io/source=spring-boot
+    - konveyor.io/target=spring-boot-2.7+
   when:
     java.dependency:
-      name: org.springframework
-      version: "[2.0.0,5.1.9)"
-  description: Detects unsupported Spring Framework versions
+      name: org.springframework.boot:spring-boot-starter
+      versionCompare: greaterOrEqual
+      version: 2.7.0
+  description: Detects supported Spring Boot versions (>= 2.7.0)
   message: |
-    Detected unsupported Spring version. Please upgrade to a supported version immediately.
+    Spring Boot version is 2.7.0 or newer and currently supported. 
+    No action needed—your Spring Boot version is up to date.
   links:
-    - title: 'Spring Framework Support'
-      url: https://spring.io/projects/spring-framework#support
-
-- ruleID: spring-framework-version-check-00003
-  category: potential
-  effort: 2
-  labels:
-    - konveyor.io/source=spring
-    - konveyor.io/target=spring-version-update
-  when:
-    java.dependency:
-      nameregex: org\.springframework(\.boot)?.*
-      versionregex: (2\.5\.|5\.2\.).*
-  description: Detects Spring Framework or Spring Boot versions approaching end-of-life
-  message: |
-    Detected Spring version approaching end-of-life. Consider upgrading to a newer version soon.
-  links:
-    - title: 'Spring Framework Support'
-      url: https://spring.io/projects/spring-framework#support
-    - title: 'Spring Boot Support'
-      url: https://spring.io/projects/spring-boot#support
+    - title: 'Spring Boot Current Branch'
+      url: https://github.com/spring-projects/spring-boot
