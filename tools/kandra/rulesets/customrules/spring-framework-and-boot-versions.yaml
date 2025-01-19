@@ -1,0 +1,52 @@
+rules:
+  - id: detect-spring-framework-and-boot-versions
+    description: Detects Spring Framework and Spring Boot versions in the project and flags unsupported or near-EOL versions.
+    pattern:
+      anyOf:
+        - fileContent:
+            file: "**/pom.xml" # Maven
+            contains: "spring-framework.version"
+        - fileContent:
+            file: "**/build.gradle"
+            contains: "springBootVersion"
+        - fileContent:
+            file: "**/build.gradle.kts"
+            contains: "springBootVersion"
+    extractors:
+      - id: spring-framework-version-maven
+        when:
+          file: "**/pom.xml"
+        regex: "<spring-framework.version>(.*?)</spring-framework.version>"
+      - id: spring-boot-version-maven
+        when:
+          file: "**/pom.xml"
+        regex: "<parent>.*?<version>(.*?)</version>.*?</parent>"
+      - id: spring-boot-version-gradle
+        when:
+          file: "**/build.gradle"
+        regex: "springBootVersion\\s*=\\s*['\"](.*?)['\"]"
+      - id: spring-framework-version-gradle
+        when:
+          file: "**/build.gradle"
+        regex: "spring-framework.version\\s*=\\s*['\"](.*?)['\"]"
+    conditions:
+      - id: unsupported-version
+        matchesAnyOf:
+          - "{{ extracted_version }}" in ["2.3.x", "2.4.x", "5.0.x", "5.1.x"]
+        severity: error
+        message: >
+          Detected unsupported Spring version '{{ extracted_version }}' in '{{ matched_file }}'. 
+          Please upgrade to a supported version.
+      - id: near-eol-version
+        matchesAnyOf:
+          - "{{ extracted_version }}" in ["2.5.x", "5.2.x"]
+        severity: warning
+        message: >
+          Detected Spring version '{{ extracted_version }}' in '{{ matched_file }}', which is approaching end of life. 
+          Consider upgrading to a newer version soon.
+      - id: supported-version
+        matchesAnyOf:
+          - "{{ extracted_version }}" in ["2.6.x", "2.7.x", "6.0.x"]
+        severity: info
+        message: >
+          Detected supported Spring version '{{ extracted_version }}' in '{{ matched_file }}'.
