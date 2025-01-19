@@ -6,16 +6,15 @@
     - konveyor.io/target=spring-boot-2.7+
   when:
     java.dependency:
-      name: org.springframework.boot:spring-boot-starter
-      upperbound: 2.5.0
-      excludeupper: true
-  description: Detects unsupported Spring Boot versions (< 2.5.0)
+      name: "org.springframework.boot:spring-boot-starter"
+      versionRange: "(,2.5.0)"
+  description: "Detects unsupported Spring Boot versions (< 2.5.0)"
   message: |
     Spring Boot version is below 2.5.0, which is unsupported.
     Please upgrade to a supported release (2.7.x or above).
   links:
-    - title: 'Spring Boot Release Notes'
-      url: https://github.com/spring-projects/spring-boot/releases
+    - title: "Spring Boot Release Notes"
+      url: "https://github.com/spring-projects/spring-boot/releases"
 
 - ruleID: spring-nearing-eol-version
   category: optional
@@ -25,18 +24,15 @@
     - konveyor.io/target=spring-boot-2.7+
   when:
     java.dependency:
-      name: org.springframework.boot:spring-boot-starter
-      lowerbound: 2.5.0
-      upperbound: 2.7.0
-      excludelower: false
-      excludeupper: true
-  description: Detects Spring Boot versions nearing end-of-life (>= 2.5.0 and < 2.7.0)
+      name: "org.springframework.boot:spring-boot-starter"
+      versionRange: "[2.5.0,2.7.0)"
+  description: "Detects Spring Boot versions nearing end-of-life (>= 2.5.0 and < 2.7.0)"
   message: |
     Your Spring Boot version is between 2.5.x and 2.7.0, which is nearing end-of-life.
     Consider upgrading to 2.7.x or later to stay on a supported track.
   links:
-    - title: 'Spring Boot Upgrade Guide'
-      url: https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.7-Release-Notes
+    - title: "Spring Boot Upgrade Guide"
+      url: "https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.7-Release-Notes"
 
 - ruleID: spring-supported-version
   category: informational
@@ -46,13 +42,12 @@
     - konveyor.io/target=spring-boot-2.7+
   when:
     java.dependency:
-      name: org.springframework.boot:spring-boot-starter
-      lowerbound: 2.7.0
-      excludelower: false
-  description: Detects supported Spring Boot versions (>= 2.7.0)
+      name: "org.springframework.boot:spring-boot-starter"
+      versionRange: "[2.7.0,)"
+  description: "Detects supported Spring Boot versions (>= 2.7.0)"
   message: |
     Spring Boot version is 2.7.0 or newer and currently supported.
     No action needed—your Spring Boot version is up to date.
   links:
-    - title: 'Spring Boot Current Branch'
-      url: https://github.com/spring-projects/spring-boot
+    - title: "Spring Boot Current Branch"
+      url: "https://github.com/spring-projects/spring-boot"
