@@ -36,16 +36,14 @@
     - konveyor.io/target=spring-version-update
   when:
     java.dependency:
-      nameregex: org\.springframework(\.boot)?.*
-      versionregex: (2\.[0-4]\.|5\.[0-1]\.).*
-  description: Detects unsupported Spring Framework or Spring Boot versions
+      name: org.springframework
+      version: "[2.0.0,5.1.9)"
+  description: Detects unsupported Spring Framework versions
   message: |
     Detected unsupported Spring version. Please upgrade to a supported version immediately.
   links:
     - title: 'Spring Framework Support'
       url: https://spring.io/projects/spring-framework#support
-    - title: 'Spring Boot Support'
-      url: https://spring.io/projects/spring-boot#support
 
 - ruleID: spring-framework-version-check-00003
   category: potential
