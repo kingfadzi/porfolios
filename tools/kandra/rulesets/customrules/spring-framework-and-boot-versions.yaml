@@ -6,7 +6,7 @@
     - konveyor.io/target=spring-boot-2.7+
   when:
     java.dependency:
-      nameregex: ^org.springframework.boot:spring-boot-starter$
+      nameregex: org.springframework.boot:spring-boot-starter
       lowerbound: 0.0.0
       upperbound: 2.5.0
   description: Detects unsupported Spring Boot versions (< 2.5.0)
@@ -25,7 +25,7 @@
     - konveyor.io/target=spring-boot-2.7+
   when:
     java.dependency:
-      nameregex: ^org.springframework.boot:spring-boot-starter$
+      nameregex: org.springframework.boot:spring-boot-starter
       lowerbound: 2.5.0
       upperbound: 2.7.0
   description: Detects Spring Boot versions nearing end-of-life (>= 2.5.0 and < 2.7.0)
@@ -44,7 +44,7 @@
     - konveyor.io/target=spring-boot-2.7+
   when:
     java.dependency:
-      nameregex: ^org.springframework.boot:spring-boot-starter$
+      nameregex: org.springframework.boot:spring-boot-starter
       lowerbound: 2.7.0
   description: Detects supported Spring Boot versions (>= 2.7.0)
   message: |
