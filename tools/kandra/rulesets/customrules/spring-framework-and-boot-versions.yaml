@@ -7,11 +7,11 @@
   when:
     java.dependency:
       name: org.springframework.boot:spring-boot-starter
-      versionCompare: lessThan
-      version: 2.5.0
+      upperbound: 2.5.0
+      excludeupper: true
   description: Detects unsupported Spring Boot versions (< 2.5.0)
   message: |
-    Spring Boot version is below 2.5.0, which is unsupported. 
+    Spring Boot version is below 2.5.0, which is unsupported.
     Please upgrade to a supported release (2.7.x or above).
   links:
     - title: 'Spring Boot Release Notes'
@@ -24,18 +24,15 @@
     - konveyor.io/source=spring-boot
     - konveyor.io/target=spring-boot-2.7+
   when:
-    and:
-      - java.dependency:
-          name: org.springframework.boot:spring-boot-starter
-          versionCompare: greaterOrEqual
-          version: 2.5.0
-      - java.dependency:
-          name: org.springframework.boot:spring-boot-starter
-          versionCompare: lessThan
-          version: 2.7.0
+    java.dependency:
+      name: org.springframework.boot:spring-boot-starter
+      lowerbound: 2.5.0
+      upperbound: 2.7.0
+      excludelower: false
+      excludeupper: true
   description: Detects Spring Boot versions nearing end-of-life (>= 2.5.0 and < 2.7.0)
   message: |
-    Your Spring Boot version is between 2.5.x and 2.7.0, which is nearing end-of-life. 
+    Your Spring Boot version is between 2.5.x and 2.7.0, which is nearing end-of-life.
     Consider upgrading to 2.7.x or later to stay on a supported track.
   links:
     - title: 'Spring Boot Upgrade Guide'
@@ -50,11 +47,11 @@
   when:
     java.dependency:
       name: org.springframework.boot:spring-boot-starter
-      versionCompare: greaterOrEqual
-      version: 2.7.0
+      lowerbound: 2.7.0
+      excludelower: false
   description: Detects supported Spring Boot versions (>= 2.7.0)
   message: |
-    Spring Boot version is 2.7.0 or newer and currently supported. 
+    Spring Boot version is 2.7.0 or newer and currently supported.
     No action needed—your Spring Boot version is up to date.
   links:
     - title: 'Spring Boot Current Branch'
