@@ -1,4 +1,3 @@
-# detect-maven-java.yaml
 - ruleID: detect-maven-java-8
   category: informational
   effort: 1
@@ -14,8 +13,11 @@
       namespaces:
         m: "http://maven.apache.org/POM/4.0.0"
       xpath: |
-        //m:plugin[m:artifactId='maven-compiler-plugin']/m:configuration/*[self::m:source or self::m:target or self::m:release][.='1.8']
-  description: "Detects usage of Java 8 via Maven Compiler Plugin configuration in the effective POM."
+        //m:properties/m:java.version[.='1.8'] |
+        //m:properties/m:maven.compiler.source[.='1.8'] |
+        //m:properties/m:maven.compiler.target[.='1.8'] |
+        //m:properties/m:maven.compiler.release[.='1.8']
+  description: "Detects usage of Java 8 via Maven properties."
   message: |
     This Maven build is configured for Java 8.
 
@@ -34,8 +36,11 @@
       namespaces:
         m: "http://maven.apache.org/POM/4.0.0"
       xpath: |
-        //m:plugin[m:artifactId='maven-compiler-plugin']/m:configuration/*[self::m:source or self::m:target or self::m:release][number(.) >= 9]
-  description: "Detects usage of Java versions greater than 1.8 via Maven Compiler Plugin configuration in the effective POM."
+        //m:properties/m:java.version[. > '1.8'] |
+        //m:properties/m:maven.compiler.source[. > '1.8'] |
+        //m:properties/m:maven.compiler.target[. > '1.8'] |
+        //m:properties/m:maven.compiler.release[. > '1.8']
+  description: "Detects usage of Java versions greater than 1.8 via Maven properties."
   message: |
     This Maven build is configured for Java version greater than 1.8.
 
@@ -54,8 +59,11 @@
       namespaces:
         m: "http://maven.apache.org/POM/4.0.0"
       xpath: |
-        //m:plugin[m:artifactId='maven-compiler-plugin']/m:configuration/*[self::m:source or self::m:target or self::m:release][.='11']
-  description: "Detects usage of Java 11 via Maven Compiler Plugin configuration in the effective POM."
+        //m:properties/m:java.version[.='11'] |
+        //m:properties/m:maven.compiler.source[.='11'] |
+        //m:properties/m:maven.compiler.target[.='11'] |
+        //m:properties/m:maven.compiler.release[.='11']
+  description: "Detects usage of Java 11 via Maven properties."
   message: |
     This Maven build is configured for Java 11.
 
@@ -74,8 +82,11 @@
       namespaces:
         m: "http://maven.apache.org/POM/4.0.0"
       xpath: |
-        //m:plugin[m:artifactId='maven-compiler-plugin']/m:configuration/*[self::m:source or self::m:target or self::m:release][.='17']
-  description: "Detects usage of Java 17 via Maven Compiler Plugin configuration in the effective POM."
+        //m:properties/m:java.version[.='17'] |
+        //m:properties/m:maven.compiler.source[.='17'] |
+        //m:properties/m:maven.compiler.target[.='17'] |
+        //m:properties/m:maven.compiler.release[.='17']
+  description: "Detects usage of Java 17 via Maven properties."
   message: |
     This Maven build is configured for Java 17.
 
@@ -94,7 +105,10 @@
       namespaces:
         m: "http://maven.apache.org/POM/4.0.0"
       xpath: |
-        //m:plugin[m:artifactId='maven-compiler-plugin']/m:configuration/*[self::m:source or self::m:target or self::m:release][.='21']
-  description: "Detects usage of Java 21 via Maven Compiler Plugin configuration in the effective POM."
+        //m:properties/m:java.version[.='21'] |
+        //m:properties/m:maven.compiler.source[.='21'] |
+        //m:properties/m:maven.compiler.target[.='21'] |
+        //m:properties/m:maven.compiler.release[.='21']
+  description: "Detects usage of Java 21 via Maven properties."
   message: |
     This Maven build is configured for Java 21.
