@@ -58,7 +58,7 @@ class KantraAnalyzer(BaseLogger):
             # Execute Kantra analysis
             command = (
                 f"kantra analyze --input={repo_dir} --output={output_dir} "
-                f"--ruleset={os.path.abspath(self.RULESET_FILE)} --json-output --overwrite"
+                f"--rules={os.path.abspath(self.RULESET_FILE)} --json-output --overwrite"
             )
             self.logger.info(f"Executing Kantra command: {command}")
             subprocess.run(command, shell=True, capture_output=True, text=True, check=True)
