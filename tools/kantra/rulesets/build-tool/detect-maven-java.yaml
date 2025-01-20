@@ -1,0 +1,100 @@
+# detect-maven-java.yaml
+- ruleID: detect-maven-java-8
+  category: informational
+  effort: 1
+  labels:
+    - konveyor.io/source=maven
+    - konveyor.io/source=build-tool
+    - konveyor.io/language=java
+    - konveyor.io/tech=java-8
+  when:
+    builtin.xml:
+      filepaths:
+        - effective-pom.xml
+      namespaces:
+        m: "http://maven.apache.org/POM/4.0.0"
+      xpath: |
+        //m:plugin[m:artifactId='maven-compiler-plugin']/m:configuration/*[self::m:source or self::m:target or self::m:release][.='1.8']
+  description: "Detects usage of Java 8 via Maven Compiler Plugin configuration in the effective POM."
+  message: |
+    This Maven build is configured for Java 8.
+
+- ruleID: detect-maven-java-gt-1.8
+  category: informational
+  effort: 1
+  labels:
+    - konveyor.io/source=maven
+    - konveyor.io/source=build-tool
+    - konveyor.io/language=java
+    - konveyor.io/tech=java-gt-1.8
+  when:
+    builtin.xml:
+      filepaths:
+        - effective-pom.xml
+      namespaces:
+        m: "http://maven.apache.org/POM/4.0.0"
+      xpath: |
+        //m:plugin[m:artifactId='maven-compiler-plugin']/m:configuration/*[self::m:source or self::m:target or self::m:release][number(.) >= 9]
+  description: "Detects usage of Java versions greater than 1.8 via Maven Compiler Plugin configuration in the effective POM."
+  message: |
+    This Maven build is configured for Java version greater than 1.8.
+
+- ruleID: detect-maven-java-11
+  category: informational
+  effort: 1
+  labels:
+    - konveyor.io/source=maven
+    - konveyor.io/source=build-tool
+    - konveyor.io/language=java
+    - konveyor.io/tech=java-11
+  when:
+    builtin.xml:
+      filepaths:
+        - effective-pom.xml
+      namespaces:
+        m: "http://maven.apache.org/POM/4.0.0"
+      xpath: |
+        //m:plugin[m:artifactId='maven-compiler-plugin']/m:configuration/*[self::m:source or self::m:target or self::m:release][.='11']
+  description: "Detects usage of Java 11 via Maven Compiler Plugin configuration in the effective POM."
+  message: |
+    This Maven build is configured for Java 11.
+
+- ruleID: detect-maven-java-17
+  category: informational
+  effort: 1
+  labels:
+    - konveyor.io/source=maven
+    - konveyor.io/source=build-tool
+    - konveyor.io/language=java
+    - konveyor.io/tech=java-17
+  when:
+    builtin.xml:
+      filepaths:
+        - effective-pom.xml
+      namespaces:
+        m: "http://maven.apache.org/POM/4.0.0"
+      xpath: |
+        //m:plugin[m:artifactId='maven-compiler-plugin']/m:configuration/*[self::m:source or self::m:target or self::m:release][.='17']
+  description: "Detects usage of Java 17 via Maven Compiler Plugin configuration in the effective POM."
+  message: |
+    This Maven build is configured for Java 17.
+
+- ruleID: detect-maven-java-21
+  category: informational
+  effort: 1
+  labels:
+    - konveyor.io/source=maven
+    - konveyor.io/source=build-tool
+    - konveyor.io/language=java
+    - konveyor.io/tech=java-21
+  when:
+    builtin.xml:
+      filepaths:
+        - effective-pom.xml
+      namespaces:
+        m: "http://maven.apache.org/POM/4.0.0"
+      xpath: |
+        //m:plugin[m:artifactId='maven-compiler-plugin']/m:configuration/*[self::m:source or self::m:target or self::m:release][.='21']
+  description: "Detects usage of Java 21 via Maven Compiler Plugin configuration in the effective POM."
+  message: |
+    This Maven build is configured for Java 21.
