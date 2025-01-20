@@ -1,0 +1,118 @@
+- ruleID: "spring-boot-unsupported-version"
+  category: "optional"
+  effort: 1
+  labels:
+    - "konveyor.io/source=spring-boot"
+    - "konveyor.io/target=spring-boot-before-2.5"
+  when:
+    or:
+      # CASE A: Direct numeric version < 2.5 in <dependency>
+      - builtin.xml:
+          filepaths:
+            - "pom.xml"        # or "**/pom.xml" if you want to scan subfolders
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:project/m:dependencies/m:dependency[
+              m:groupId='org.springframework.boot'
+              and starts-with(m:artifactId, 'spring-boot-starter')
+              and not(contains(m:version, '${'))
+              and (
+                number(substring-before(m:version, '.')) < 2
+                or (
+                  number(substring-before(m:version, '.')) = 2
+                  and number(substring-before(substring-after(m:version, '.'), '.')) < 5
+                )
+              )
+            ]
+
+      # CASE B: Property reference + matching property value < 2.5 in <dependency>
+      - and:
+          # 1) The <dependency> references ${spring.boot.version}
+          - builtin.xml:
+              filepaths:
+                - "pom.xml"      # or "**/pom.xml"
+              namespaces:
+                m: "http://maven.apache.org/POM/4.0.0"
+              xpath: >
+                //m:project/m:dependencies/m:dependency[
+                  m:groupId='org.springframework.boot'
+                  and starts-with(m:artifactId, 'spring-boot-starter')
+                  and contains(m:version, '${spring.boot.version}')
+                ]
+          # 2) The property itself is numeric and < 2.5
+          - builtin.xml:
+              filepaths:
+                - "pom.xml"      # or "**/pom.xml"
+              namespaces:
+                m: "http://maven.apache.org/POM/4.0.0"
+              xpath: >
+                //m:project/m:properties/m:spring.boot.version[
+                  not(contains(text(), '${'))
+                  and (
+                    number(substring-before(text(), '.')) < 2
+                    or (
+                      number(substring-before(text(), '.')) = 2
+                      and number(substring-before(substring-after(text(), '.'), '.')) < 5
+                    )
+                  )
+                ]
+
+      # CASE C: Parent Spring Boot version < 2.5 (direct numeric)
+      - builtin.xml:
+          filepaths:
+            - "pom.xml"        # or "**/pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:project/m:parent[
+              m:groupId='org.springframework.boot'
+              and m:artifactId='spring-boot-starter-parent'
+              and not(contains(m:version, '${'))
+              and (
+                number(substring-before(m:version, '.')) < 2
+                or (
+                  number(substring-before(m:version, '.')) = 2
+                  and number(substring-before(substring-after(m:version, '.'), '.')) < 5
+                )
+              )
+            ]
+
+      # CASE D: Parent uses a version property < 2.5
+      - and:
+          # 1) The <parent> version references ${spring.boot.version}
+          - builtin.xml:
+              filepaths:
+                - "pom.xml"      # or "**/pom.xml"
+              namespaces:
+                m: "http://maven.apache.org/POM/4.0.0"
+              xpath: >
+                //m:project/m:parent[
+                  m:groupId='org.springframework.boot'
+                  and m:artifactId='spring-boot-starter-parent'
+                  and contains(m:version, '${spring.boot.version}')
+                ]
+          # 2) The property is numeric and < 2.5
+          - builtin.xml:
+              filepaths:
+                - "pom.xml"      # or "**/pom.xml"
+              namespaces:
+                m: "http://maven.apache.org/POM/4.0.0"
+              xpath: >
+                //m:project/m:properties/m:spring.boot.version[
+                  not(contains(text(), '${'))
+                  and (
+                    number(substring-before(text(), '.')) < 2
+                    or (
+                      number(substring-before(text(), '.')) = 2
+                      and number(substring-before(substring-after(text(), '.'), '.')) < 5
+                    )
+                  )
+                ]
+  description: "Detects Spring Boot versions that are < 2.5, typically unsupported."
+  message: |
+    Your Spring Boot version is older than 2.5, which is no longer supported.
+    Consider upgrading to 2.5.x or later for critical patches and updates.
+  links:
+    - title: "Spring Boot Wiki"
+      url: "https://github.com/spring-projects/spring-boot/wiki"
