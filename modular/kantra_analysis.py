@@ -4,14 +4,14 @@ import os
 import subprocess
 import logging
 
+# Hardcoded repository directory
+REPO_DIR = "~/tools/kantra/sonar-metrics"
+
+# Hardcoded ruleset paths
 RULESET_PATHS = [
     "~/porfolios/tools/kantra/rulesets/build-tool/detect-maven-java.yaml",
     "~/tools/kantra/rulesets"
 ]
-
-def find_pom_file(search_dir):
-    pom_path = os.path.join(search_dir, "pom.xml")
-    return pom_path if os.path.isfile(pom_path) else None
 
 def generate_effective_pom(project_dir, output_file="effective-pom.xml"):
     command = [
@@ -46,19 +46,26 @@ def run_kantra_analysis(input_dir, output_dir, ruleset_paths, overwrite=True):
 
 def main():
     logging.basicConfig(level=logging.INFO)
-    search_dir = os.getcwd()
-    pom_file = find_pom_file(search_dir)
-    if not pom_file:
-        logging.info("No pom.xml found in current directory. Exiting.")
+
+    # Expand and validate the hardcoded repository directory
+    repo_dir = os.path.expanduser(REPO_DIR)
+    if not os.path.isdir(repo_dir):
+        logging.info(f"Repository directory does not exist: {repo_dir}. Exiting.")
         return
-    logging.info(f"Found pom.xml at: {pom_file}")
-    effective_pom_file = generate_effective_pom(search_dir)
+
+    logging.info(f"Using hardcoded repository directory: {repo_dir}")
+
+    # Generate the effective POM
+    effective_pom_file = generate_effective_pom(repo_dir)
     if not effective_pom_file:
         logging.info("Failed to generate effective POM. Exiting.")
         return
+
     logging.info(f"Effective POM generated at: {effective_pom_file}")
-    output_dir = os.path.join(search_dir, "kantra-output")
-    run_kantra_analysis(search_dir, output_dir, RULESET_PATHS)
+
+    # Run Kantra analysis
+    output_dir = os.path.join(repo_dir, "kantra-output")
+    run_kantra_analysis(repo_dir, output_dir, RULESET_PATHS)
 
 if __name__ == "__main__":
     main()
