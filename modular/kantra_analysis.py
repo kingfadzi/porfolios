@@ -1,9 +1,13 @@
+#!/usr/bin/env python3
+
 import os
 import subprocess
 import logging
 
-RULESET_DIR = "/path/to/rulesets"
-RULESET_FILE = "ruleset.rulest"
+RULESET_PATHS = [
+    "~/porfolios/tools/kantra/rulesets/build-tool/detect-maven-java.yaml",
+    "~/tools/kantra/rulesets"
+]
 
 def find_pom_file(search_dir):
     pom_path = os.path.join(search_dir, "pom.xml")
@@ -22,16 +26,18 @@ def generate_effective_pom(project_dir, output_file="effective-pom.xml"):
         logging.error(f"Error generating effective POM: {e}")
         return None
 
-def run_kantra_analysis(input_dir, output_dir, ruleset_path, overwrite=True):
+def run_kantra_analysis(input_dir, output_dir, ruleset_paths, overwrite=True):
     command = [
         "kantra",
         "analyze",
         f"--input={input_dir}",
-        f"--output={output_dir}",
-        f"--rules={ruleset_path}"
+        f"--output={output_dir}"
     ]
+    for ruleset in ruleset_paths:
+        command.append(f"--rules={os.path.expanduser(ruleset)}")
     if overwrite:
         command.append("--overwrite")
+
     try:
         subprocess.run(command, check=True)
         logging.info("Kantra analysis completed successfully.")
@@ -51,13 +57,8 @@ def main():
         logging.info("Failed to generate effective POM. Exiting.")
         return
     logging.info(f"Effective POM generated at: {effective_pom_file}")
-    ruleset_path = os.path.join(RULESET_DIR, RULESET_FILE)
-    if not os.path.isfile(ruleset_path):
-        logging.info(f"No ruleset file found at: {ruleset_path}. Exiting.")
-        return
-    logging.info(f"Using ruleset file: {ruleset_path}")
     output_dir = os.path.join(search_dir, "kantra-output")
-    run_kantra_analysis(search_dir, output_dir, ruleset_path)
+    run_kantra_analysis(search_dir, output_dir, RULESET_PATHS)
 
 if __name__ == "__main__":
     main()
