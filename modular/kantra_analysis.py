@@ -10,6 +10,9 @@ REPO_DIR = "~/tools/kantra/sonar-metrics"
 # Hardcoded ruleset path
 RULESET_PATH = "~/tools/porfolios/tools/kantra/rulesets/java/detect-maven-java.yaml"
 
+# Hardcoded output directory
+OUTPUT_DIR = "~/tools/output"
+
 # Java home path
 JAVA_HOME = "/usr/lib/jvm/java-21-openjdk-21.0.5.0.11-1.fc40.x86_64/"
 
@@ -40,7 +43,7 @@ def run_kantra_analysis(input_dir, output_dir, ruleset_path, overwrite=True):
         "kantra",
         "analyze",
         f"--input={input_dir}",
-        f"--output={output_dir}",
+        f"--output={os.path.expanduser(output_dir)}",
         f"--rules={os.path.expanduser(ruleset_path)}"
     ]
     if overwrite:
@@ -73,8 +76,7 @@ def main():
 
     logging.info(f"Effective POM generated at: {effective_pom_file}")
 
-    output_dir = os.path.join(repo_dir, "kantra-output")
-    run_kantra_analysis(repo_dir, output_dir, RULESET_PATH)
+    run_kantra_analysis(repo_dir, OUTPUT_DIR, RULESET_PATH)
 
 if __name__ == "__main__":
     main()
