@@ -1,0 +1,39 @@
+- ruleID: "spring-framework-unsupported-version"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "konveyor.io/source=spring-framework"
+    - "konveyor.io/source=spring-framework-before-6.0"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:project/m:dependencies/m:dependency[
+              m:groupId='org.springframework'
+              and (
+                number(substring-before(m:version, '.')) < 6
+              )
+            ]
+
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:project/m:build/m:plugins/m:plugin[
+              m:groupId='org.springframework'
+              and (
+                number(substring-before(m:version, '.')) < 6
+              )
+            ]
+  description: "Spring Framework version is less than 6.0 and is unsupported."
+  message: |
+    Detected Spring Framework version < 6.0, which is unsupported. Upgrade to 6.2 or later for active support.
+  links:
+    - title: "Spring Framework End of Life Policy"
+      url: "https://spring.io/projects/spring-framework#support"

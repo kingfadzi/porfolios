@@ -8,9 +8,6 @@ from modular.base_logger import BaseLogger  # Import BaseLogger for consistent l
 import logging
 
 class ClocAnalyzer(BaseLogger):
-    """
-    Analyzer for running CLOC and processing results.
-    """
 
     def __init__(self):
         self.logger = self.get_logger("ClocAnalyzer")
@@ -18,15 +15,7 @@ class ClocAnalyzer(BaseLogger):
 
     @analyze_execution(session_factory=Session, stage="CLOC Analysis")
     def run_analysis(self, repo_dir, repo, session, run_id=None):
-        """
-        Run CLOC analysis on the given repo_dir and persist results to the database.
 
-        :param repo_dir: Directory path of the repository to be analyzed.
-        :param repo: Repository object containing metadata like repo_id and repo_slug.
-        :param session: Database session to persist the results.
-        :param run_id: DAG run ID passed for tracking.
-        :return: Success message with the number of processed languages or raises an exception on failure.
-        """
         self.logger.info(f"Starting CLOC analysis for repo_id: {repo.repo_id} (repo_slug: {repo.repo_slug}).")
 
         if not os.path.exists(repo_dir):
@@ -67,14 +56,7 @@ class ClocAnalyzer(BaseLogger):
         return f"{processed_languages} languages processed."
 
     def save_cloc_results(self, session, repo_id, results):
-        """
-        Save CLOC results to the database in the ClocMetric table.
 
-        :param session: Database session.
-        :param repo_id: Repository ID being analyzed.
-        :param results: Parsed CLOC JSON results.
-        :return: Number of languages processed.
-        """
         self.logger.debug(f"Processing CLOC results for repo_id: {repo_id}")
 
         try:
@@ -85,7 +67,7 @@ class ClocAnalyzer(BaseLogger):
                     continue
 
                 self.logger.debug(f"Saving metrics for language: {language} in repo_id: {repo_id}")
-                
+
                 session.execute(
                     insert(ClocMetric).values(
                         repo_id=repo_id,

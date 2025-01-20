@@ -1,22 +1,21 @@
 - ruleID: "spring-boot-supported-version"
-  category: "optional"
+  category: "informational"
   effort: 1
   labels:
     - "konveyor.io/source=spring-boot"
-    - "konveyor.io/target=spring-boot-2.7+"
+    - "konveyor.io/source=spring-boot-2.7+"
   when:
     or:
       # CASE A: Direct numeric version >= 2.7 in <dependency>
       - builtin.xml:
           filepaths:
-            - "pom.xml"        # or "**/pom.xml" to scan deeper folders
+            - "effective-pom.xml"
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
             //m:project/m:dependencies/m:dependency[
               m:groupId='org.springframework.boot'
               and starts-with(m:artifactId, 'spring-boot-starter')
-              and not(contains(m:version, '${'))
               and (
                 number(substring-before(m:version, '.')) > 2
                 or (
@@ -26,49 +25,16 @@
               )
             ]
 
-      # CASE B: Property reference + matching property value >= 2.7 in <dependency>
-      - and:
-          # 1) The <dependency> references ${spring.boot.version}
-          - builtin.xml:
-              filepaths:
-                - "pom.xml"
-              namespaces:
-                m: "http://maven.apache.org/POM/4.0.0"
-              xpath: >
-                //m:project/m:dependencies/m:dependency[
-                  m:groupId='org.springframework.boot'
-                  and starts-with(m:artifactId, 'spring-boot-starter')
-                  and contains(m:version, '${spring.boot.version}')
-                ]
-          # 2) The property itself is numeric and >= 2.7
-          - builtin.xml:
-              filepaths:
-                - "pom.xml"
-              namespaces:
-                m: "http://maven.apache.org/POM/4.0.0"
-              xpath: >
-                //m:project/m:properties/m:spring.boot.version[
-                  not(contains(text(), '${'))
-                  and (
-                    number(substring-before(text(), '.')) > 2
-                    or (
-                      number(substring-before(text(), '.')) = 2
-                      and number(substring-before(substring-after(text(), '.'), '.')) >= 7
-                    )
-                  )
-                ]
-
-      # CASE C: Parent Spring Boot version >= 2.7 (direct numeric)
+      # CASE B: Plugin version >= 2.7
       - builtin.xml:
           filepaths:
-            - "pom.xml"
+            - "effective-pom.xml"
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            //m:project/m:parent[
+            //m:project/m:build/m:plugins/m:plugin[
               m:groupId='org.springframework.boot'
-              and m:artifactId='spring-boot-starter-parent'
-              and not(contains(m:version, '${'))
+              and starts-with(m:artifactId, 'spring-boot-maven-plugin')
               and (
                 number(substring-before(m:version, '.')) > 2
                 or (
@@ -77,42 +43,9 @@
                 )
               )
             ]
-
-      # CASE D: Parent uses a version property >= 2.7
-      - and:
-          # 1) The <parent> block references ${spring.boot.version}
-          - builtin.xml:
-              filepaths:
-                - "pom.xml"
-              namespaces:
-                m: "http://maven.apache.org/POM/4.0.0"
-              xpath: >
-                //m:project/m:parent[
-                  m:groupId='org.springframework.boot'
-                  and m:artifactId='spring-boot-starter-parent'
-                  and contains(m:version, '${spring.boot.version}')
-                ]
-          # 2) The property is numeric and >= 2.7
-          - builtin.xml:
-              filepaths:
-                - "pom.xml"
-              namespaces:
-                m: "http://maven.apache.org/POM/4.0.0"
-              xpath: >
-                //m:project/m:properties/m:spring.boot.version[
-                  not(contains(text(), '${'))
-                  and (
-                    number(substring-before(text(), '.')) > 2
-                    or (
-                      number(substring-before(text(), '.')) = 2
-                      and number(substring-before(substring-after(text(), '.'), '.')) >= 7
-                    )
-                  )
-                ]
-  description: "Detects Spring Boot versions that are 2.7 or higher (generally supported)."
+  description: "Spring Boot version is 2.7.x or newer and is supported."
   message: |
-    Your Spring Boot version is 2.7.x or newer, which is generally considered supported.
-    No immediate upgrade is required (unless you want to move to a newer major release).
+    Detected Spring Boot version 2.7.x or newer, which is supported. No immediate action is required.
   links:
     - title: "Spring Boot Release Notes"
       url: "https://github.com/spring-projects/spring-boot/wiki"

@@ -1,0 +1,134 @@
+- ruleID: detect-gradle-java-8
+  category: Mandatory
+  effort: 1
+  labels:
+    - konveyor.io/source=gradle
+    - konveyor.io/source=java-8
+  when:
+    or:
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: sourceCompatibility\s*=\s*['"]1\.8['"]
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: targetCompatibility\s*=\s*['"]1\.8['"]
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: languageVersion\s*=\s*JavaLanguageVersion\.of\(8\)
+      - builtin.filecontent:
+          filePattern: gradle.properties
+          pattern: java.version\s*=\s*1\.8
+      - builtin.filecontent:
+          filePattern: gradle/wrapper/gradle-wrapper.properties
+          pattern: distributionUrl.*gradle-(2\.[0-9]|3\.[0-9]|4\.[0-2]) # Gradle 2.0-4.2 maps to Java 8
+  description: "Detects usage of Java 8 via Gradle properties or Gradle Wrapper."
+  message: |
+    This Gradle build is configured for Java 8. Gradle versions 2.0-4.2 map to Java 8.
+
+- ruleID: detect-gradle-java-1.8-11
+  category: Mandotory
+  effort: 1
+  labels:
+    - konveyor.io/source=gradle
+    - konveyor.io/source=java-1.8-11
+  when:
+    or:
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: sourceCompatibility\s*=\s*['"](1\.9|10|11)['"]
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: targetCompatibility\s*=\s*['"](1\.9|10|11)['"]
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: languageVersion\s*=\s*JavaLanguageVersion\.of\((9|10|11)\)
+      - builtin.filecontent:
+          filePattern: gradle.properties
+          pattern: java.version\s*=\s*(1\.9|10|11)
+      - builtin.filecontent:
+          filePattern: gradle/wrapper/gradle-wrapper.properties
+          pattern: distributionUrl.*gradle-(4\.[3-9]|5\.[0-9]) # Gradle 4.3-5.9 maps to Java 8-11
+  description: "Detects usage of Java versions between 1.8 and 11 via Gradle properties or Gradle Wrapper."
+  message: |
+    This Gradle build is configured for Java versions between 1.8 and 11. Gradle versions 4.3-5.9 map to Java 8-11.
+
+- ruleID: detect-gradle-java-11
+  category: informational
+  effort: 1
+  labels:
+    - konveyor.io/source=gradle
+    - konveyor.io/source=java-11
+  when:
+    or:
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: sourceCompatibility\s*=\s*['"]11['"]
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: targetCompatibility\s*=\s*['"]11['"]
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: languageVersion\s*=\s*JavaLanguageVersion\.of\(11\)
+      - builtin.filecontent:
+          filePattern: gradle.properties
+          pattern: java.version\s*=\s*11
+      - builtin.filecontent:
+          filePattern: gradle/wrapper/gradle-wrapper.properties
+          pattern: distributionUrl.*gradle-(6\.[0-2]) # Gradle 6.0-6.2 maps to Java 11
+  description: "Detects usage of Java 11 via Gradle properties or Gradle Wrapper."
+  message: |
+    This Gradle build is configured for Java 11. Gradle versions 6.0-6.2 map to Java 11.
+
+- ruleID: detect-gradle-java-17
+  category: informational
+  effort: 1
+  labels:
+    - konveyor.io/source=gradle
+    - konveyor.io/source=java-17
+  when:
+    or:
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: sourceCompatibility\s*=\s*['"]17['"]
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: targetCompatibility\s*=\s*['"]17['"]
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: languageVersion\s*=\s*JavaLanguageVersion\.of\(17\)
+      - builtin.filecontent:
+          filePattern: gradle.properties
+          pattern: java.version\s*=\s*17
+      - builtin.filecontent:
+          filePattern: gradle/wrapper/gradle-wrapper.properties
+          pattern: distributionUrl.*gradle-(7\.[3-6]|8\.[0-2]) # Gradle 7.3-8.2 maps to Java 17
+  description: "Detects usage of Java 17 via Gradle properties or Gradle Wrapper."
+  message: |
+    This Gradle build is configured for Java 17. Gradle versions 7.3-8.2 map to Java 17.
+
+- ruleID: detect-gradle-java-21
+  category: informational
+  effort: 1
+  labels:
+    - konveyor.io/source=gradle
+    - konveyor.io/source=java-21
+  when:
+    or:
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: sourceCompatibility\s*=\s*['"]21['"]
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: targetCompatibility\s*=\s*['"]21['"]
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: languageVersion\s*=\s*JavaLanguageVersion\.of\(21\)
+      - builtin.filecontent:
+          filePattern: gradle.properties
+          pattern: java.version\s*=\s*21
+      - builtin.filecontent:
+          filePattern: gradle/wrapper/gradle-wrapper.properties
+          pattern: distributionUrl.*gradle-(8\.[3-9]) # Gradle 8.3-8.10 maps to Java 21
+  description: "Detects usage of Java 21 via Gradle properties or Gradle Wrapper."
+  message: |
+    This Gradle build is configured for Java 21. Gradle versions 8.3-8.10 map to Java 21.

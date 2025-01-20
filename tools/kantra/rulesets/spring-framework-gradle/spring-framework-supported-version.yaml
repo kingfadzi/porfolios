@@ -1,0 +1,39 @@
+- ruleID: "spring-framework-supported-version"
+  category: "informational"
+  effort: 1
+  labels:
+    - "konveyor.io/source=spring-framework"
+    - "konveyor.io/source=spring-framework-6.2+"
+    - "konveyor.io/source=gradle"
+  when:
+    or:
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: implementation\s*\(['"]org\.springframework:spring-.*:6\.(2|[3-9]|\d{2,})['"]\) # Match Spring Framework version >= 6.2 in build.gradle
+
+      - builtin.filecontent:
+          filePattern: build.gradle.kts
+          pattern: implementation\(["']org\.springframework:spring-.*:6\.(2|[3-9]|\d{2,})["']\) # Match Spring Framework version >= 6.2 in build.gradle.kts
+
+      - and:
+          - builtin.filecontent:
+              filePattern: build.gradle
+              pattern: implementation\s*\(['"]org\.springframework:spring-.*:\$springFrameworkVersion['"]\) # Match dependency using property in build.gradle
+          - builtin.filecontent:
+              filePattern: gradle.properties
+              pattern: springFrameworkVersion\s*=\s*6\.(2|[3-9]|\d{2,}) # Match property value >= 6.2 in gradle.properties
+
+      - and:
+          - builtin.filecontent:
+              filePattern: build.gradle.kts
+              pattern: implementation\(["']org\.springframework:spring-.*:\$springFrameworkVersion["']\) # Match dependency using property in build.gradle.kts
+          - builtin.filecontent:
+              filePattern: gradle.properties
+              pattern: springFrameworkVersion\s*=\s*6\.(2|[3-9]|\d{2,}) # Match property value >= 6.2 in gradle.properties
+
+  description: "Spring Framework version is 6.2.x or newer in Gradle projects."
+  message: |
+    Detected Spring Framework version 6.2.x or newer, which is supported.
+  links:
+    - title: "Spring Framework Release Notes"
+      url: "https://github.com/spring-projects/spring-framework/wiki"

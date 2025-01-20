@@ -1,22 +1,21 @@
 - ruleID: "spring-boot-nearing-eol-version"
-  category: "optional"
+  category: "mandatory"
   effort: 1
   labels:
     - "konveyor.io/source=spring-boot"
-    - "konveyor.io/target=spring-boot-2.5-2.7"
+    - "konveyor.io/source=spring-boot-2.5-2.7"
   when:
     or:
       # CASE A: Direct numeric version >= 2.5 and < 2.7
       - builtin.xml:
           filepaths:
-            - pom.xml
+            - "effective-pom.xml"
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
             //m:project/m:dependencies/m:dependency[
               m:groupId='org.springframework.boot'
               and starts-with(m:artifactId, 'spring-boot-starter')
-              and not(contains(m:version, '${'))
               and (
                 number(substring-before(m:version, '.')) = 2
                 and (
@@ -26,47 +25,16 @@
               )
             ]
 
-      # CASE B: Property reference + matching property value in [2.5, 2.7)
-      - and:
-          - builtin.xml:
-              filepaths:
-                - pom.xml
-              namespaces:
-                m: "http://maven.apache.org/POM/4.0.0"
-              xpath: >
-                //m:project/m:dependencies/m:dependency[
-                  m:groupId='org.springframework.boot'
-                  and starts-with(m:artifactId, 'spring-boot-starter')
-                  and contains(m:version, '${spring.boot.version}')
-                ]
-          - builtin.xml:
-              filepaths:
-                - pom.xml
-              namespaces:
-                m: "http://maven.apache.org/POM/4.0.0"
-              xpath: >
-                //m:project/m:properties/m:spring.boot.version[
-                  not(contains(text(), '${'))
-                  and (
-                    number(substring-before(text(), '.')) = 2
-                    and (
-                      number(substring-before(substring-after(text(), '.'), '.')) >= 5
-                      and number(substring-before(substring-after(text(), '.'), '.')) < 7
-                    )
-                  )
-                ]
-
-      # CASE C: Parent Spring Boot version in [2.5, 2.7)
+      # CASE B: Plugin version >= 2.5 and < 2.7
       - builtin.xml:
           filepaths:
-            - pom.xml
+            - "effective-pom.xml"
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            //m:project/m:parent[
+            //m:project/m:build/m:plugins/m:plugin[
               m:groupId='org.springframework.boot'
-              and m:artifactId='spring-boot-starter-parent'
-              and not(contains(m:version, '${'))
+              and starts-with(m:artifactId, 'spring-boot-maven-plugin')
               and (
                 number(substring-before(m:version, '.')) = 2
                 and (
@@ -75,10 +43,9 @@
                 )
               )
             ]
-  description: "Detects Spring Boot versions nearing end-of-life (>= 2.5.0 and < 2.7.0)."
+  description: "Spring Boot version is between 2.5.x and 2.7.0, which is nearing end-of-life."
   message: |
-    Your Spring Boot version is between 2.5.x and 2.7.0, which is nearing end-of-life.
-    Consider upgrading to 2.7.x or later to stay on a supported track.
+    Detected Spring Boot version between 2.5.x and 2.7.0, which is nearing end-of-life. Consider upgrading to 2.7.x or later to stay on a supported track.
   links:
     - title: "Spring Boot Upgrade Guide"
       url: "https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-2.7-Release-Notes"

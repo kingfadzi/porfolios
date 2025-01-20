@@ -1,11 +1,9 @@
 - ruleID: detect-maven-java-8
-  category: informational
+  category: Mandatory
   effort: 1
   labels:
     - konveyor.io/source=maven
-    - konveyor.io/source=build-tool
-    - konveyor.io/language=java
-    - konveyor.io/tech=java-8
+    - konveyor.io/source=java-8
   when:
     builtin.xml:
       filepaths:
@@ -21,14 +19,12 @@
   message: |
     This Maven build is configured for Java 8.
 
-- ruleID: detect-maven-java-gt-1.8
+- ruleID: detect-maven-java-1.8-11
   category: informational
   effort: 1
   labels:
     - konveyor.io/source=maven
-    - konveyor.io/source=build-tool
-    - konveyor.io/language=java
-    - konveyor.io/tech=java-gt-1.8
+    - konveyor.io/source=java-1.8-11
   when:
     builtin.xml:
       filepaths:
@@ -36,22 +32,21 @@
       namespaces:
         m: "http://maven.apache.org/POM/4.0.0"
       xpath: |
-        //m:properties/m:java.version[. > '1.8'] |
-        //m:properties/m:maven.compiler.source[. > '1.8'] |
-        //m:properties/m:maven.compiler.target[. > '1.8'] |
-        //m:properties/m:maven.compiler.release[. > '1.8']
-  description: "Detects usage of Java versions greater than 1.8 via Maven properties."
+        //m:properties/m:java.version[. > '1.8' and . < '11'] |
+        //m:properties/m:maven.compiler.source[. > '1.8' and . < '11'] |
+        //m:properties/m:maven.compiler.target[. > '1.8' and . < '11'] |
+        //m:properties/m:maven.compiler.release[. > '1.8' and . < '11']
+  description: "Detects usage of Java versions greater than 1.8 and less than 11 via Maven properties."
   message: |
-    This Maven build is configured for Java version greater than 1.8.
+    This Maven build is configured for a Java version greater than 1.8 and less than 11.
+
 
 - ruleID: detect-maven-java-11
-  category: informational
+  category: Mandatory
   effort: 1
   labels:
     - konveyor.io/source=maven
-    - konveyor.io/source=build-tool
-    - konveyor.io/language=java
-    - konveyor.io/tech=java-11
+    - konveyor.io/source=java-11
   when:
     builtin.xml:
       filepaths:
@@ -72,9 +67,7 @@
   effort: 1
   labels:
     - konveyor.io/source=maven
-    - konveyor.io/source=build-tool
-    - konveyor.io/language=java
-    - konveyor.io/tech=java-17
+    - konveyor.io/source=java-17
   when:
     builtin.xml:
       filepaths:
@@ -95,9 +88,7 @@
   effort: 1
   labels:
     - konveyor.io/source=maven
-    - konveyor.io/source=build-tool
-    - konveyor.io/language=java
-    - konveyor.io/tech=java-21
+    - konveyor.io/source=java-21
   when:
     builtin.xml:
       filepaths:

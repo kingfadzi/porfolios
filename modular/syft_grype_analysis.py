@@ -11,9 +11,6 @@ from modular.base_logger import BaseLogger  # Assuming BaseLogger is correctly i
 import logging
 
 class SyftAndGrypeAnalyzer(BaseLogger):
-    """
-    Analyzer for running Syft to generate SBOM and Grype to analyze vulnerabilities.
-    """
 
     def __init__(self):
         self.logger = self.get_logger("SyftAndGrypeAnalyzer")

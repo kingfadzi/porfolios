@@ -1,0 +1,47 @@
+- ruleID: "spring-framework-supported-version"
+  category: "informational"
+  effort: 1
+  labels:
+    - "konveyor.io/source=spring-framework"
+    - "konveyor.io/source=spring-framework-6.2+"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:project/m:dependencies/m:dependency[
+              m:groupId='org.springframework'
+              and (
+                number(substring-before(m:version, '.')) > 6
+                or (
+                  number(substring-before(m:version, '.')) = 6
+                  and number(substring-before(substring-after(m:version, '.'), '.')) >= 2
+                )
+              )
+            ]
+
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:project/m:build/m:plugins/m:plugin[
+              m:groupId='org.springframework'
+              and (
+                number(substring-before(m:version, '.')) > 6
+                or (
+                  number(substring-before(m:version, '.')) = 6
+                  and number(substring-before(substring-after(m:version, '.'), '.')) >= 2
+                )
+              )
+            ]
+  description: "Spring Framework version is 6.2.x or newer and is currently supported."
+  message: |
+    Detected Spring Framework version 6.2.x or newer, which is currently supported.
+  links:
+    - title: "Spring Framework Release Notes"
+      url: "https://github.com/spring-projects/spring-framework/wiki"

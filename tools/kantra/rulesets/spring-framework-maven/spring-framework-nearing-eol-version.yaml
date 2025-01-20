@@ -1,0 +1,41 @@
+- ruleID: "spring-framework-nearing-eol-version"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "konveyor.io/source=spring-framework"
+    - "konveyor.io/source=spring-framework-6.1"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:project/m:dependencies/m:dependency[
+              m:groupId='org.springframework'
+              and (
+                number(substring-before(m:version, '.')) = 6
+                and number(substring-before(substring-after(m:version, '.'), '.')) = 1
+              )
+            ]
+
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:project/m:build/m:plugins/m:plugin[
+              m:groupId='org.springframework'
+              and (
+                number(substring-before(m:version, '.')) = 6
+                and number(substring-before(substring-after(m:version, '.'), '.')) = 1
+              )
+            ]
+  description: "Spring Framework version is 6.1.x and is nearing end-of-life."
+  message: |
+    Detected Spring Framework version 6.1.x, which is nearing end-of-life. Consider upgrading to 6.2 or later for ongoing support.
+  links:
+    - title: "Spring Framework End of Life Policy"
+      url: "https://spring.io/projects/spring-framework#support"

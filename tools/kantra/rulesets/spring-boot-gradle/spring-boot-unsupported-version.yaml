@@ -1,0 +1,46 @@
+- ruleID: "spring-boot-unsupported-version"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "konveyor.io/source=spring-boot"
+    - "konveyor.io/source=spring-boot-before-2.5"
+  when:
+    or:
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: implementation\s*\(['"]org\.springframework\.boot:spring-boot-starter.*:2\.[0-4](\.\d+)?['"]\) # Match direct Spring Boot version < 2.5 in build.gradle
+
+      - builtin.filecontent:
+          filePattern: build.gradle.kts
+          pattern: implementation\(["']org\.springframework\.boot:spring-boot-starter.*:2\.[0-4](\.\d+)?["']\) # Match direct Spring Boot version < 2.5 in build.gradle.kts
+
+      - and:
+          - builtin.filecontent:
+              filePattern: build.gradle
+              pattern: implementation\s*\(['"]org\.springframework\.boot:spring-boot-starter.*:\$springBootVersion['"]\) # Match dependency using property in build.gradle
+          - builtin.filecontent:
+              filePattern: gradle.properties
+              pattern: springBootVersion\s*=\s*2\.[0-4](\.\d+)? # Match property value < 2.5 in gradle.properties
+
+      - and:
+          - builtin.filecontent:
+              filePattern: build.gradle.kts
+              pattern: implementation\(["']org\.springframework\.boot:spring-boot-starter.*:\$springBootVersion["']\) # Match dependency using property in build.gradle.kts
+          - builtin.filecontent:
+              filePattern: gradle.properties
+              pattern: springBootVersion\s*=\s*2\.[0-4](\.\d+)? # Match property value < 2.5 in gradle.properties
+
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: id\s*\(['"]org\.springframework\.boot['"]\)\s*version\s*['"]2\.[0-4](\.\d+)?['"]\) # Match Spring Boot plugin version < 2.5 in build.gradle
+
+      - builtin.filecontent:
+          filePattern: build.gradle.kts
+          pattern: id\(["']org\.springframework\.boot["']\)\s*version\s*["']2\.[0-4](\.\d+)?["']\) # Match Spring Boot plugin version < 2.5 in build.gradle.kts
+
+  description: "Detects Spring Boot versions that are unsupported (< 2.5) in Gradle projects."
+  message: |
+    Your project uses Spring Boot version < 2.5, which is unsupported. Consider upgrading to a supported version (e.g., 2.7.x or later).
+  links:
+    - title: "Spring Boot End of Life Policy"
+      url: "https://spring.io/projects/spring-boot#support"

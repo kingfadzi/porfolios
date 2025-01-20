@@ -8,9 +8,6 @@ from modular.base_logger import BaseLogger  # BaseLogger for logging configurati
 import logging
 
 class CheckovAnalyzer(BaseLogger):
-    """
-    Analyzer for running Checkov and processing results.
-    """
 
     def __init__(self):
         self.logger = self.get_logger("CheckovAnalyzer")

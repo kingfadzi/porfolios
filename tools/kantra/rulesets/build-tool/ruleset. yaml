@@ -1,7 +1,0 @@
-# impact-build-tool.rulest
-metadata:
-name: "Build Tool RuleSet"
-description: "Placeholder for future rules. Currently contains no rules."
-fileVersion: "2.0"
-
-rules: []
