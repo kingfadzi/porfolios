@@ -6,23 +6,8 @@ from modular.execution_decorator import analyze_execution
 from modular.models import Session
 
 class KantraAnalyzer(BaseLogger):
-    OUTPUT_DIR = "~/tools/output"
-    RULESET_PATHS = [
-        "tools/kantra/rulesets/java-build-tool/detect-gradle-java.yaml",
-        "tools/kantra/rulesets/java-build-tool/detect-maven-java.yaml",
-        "tools/kantra/rulesets/spring-boot-gradle/spring-boot-nearing-eol-version.yaml",
-        "tools/kantra/rulesets/spring-boot-gradle/spring-boot-supported-version.yaml",
-        "tools/kantra/rulesets/spring-boot-gradle/spring-boot-unsupported-version.yaml",
-        "tools/kantra/rulesets/spring-boot-maven/spring-boot-nearing-eol-version.yaml",
-        "tools/kantra/rulesets/spring-boot-maven/spring-boot-supported-version.yaml",
-        "tools/kantra/rulesets/spring-boot-maven/spring-boot-unsupported-version.yaml",
-        "tools/kantra/rulesets/spring-framework-maven/spring-framework-nearing-eol-version.yaml",
-        "tools/kantra/rulesets/spring-framework-maven/spring-framework-supported-version.yaml",
-        "tools/kantra/rulesets/spring-framework-maven/spring-framework-unsupported-version.yaml",
-        "tools/kantra/rulesets/spring-framework-gradle/spring-framework-nearing-eol-version.yaml",
-        "tools/kantra/rulesets/spring-framework-gradle/spring-framework-supported-version.yaml",
-        "tools/kantra/rulesets/spring-framework-gradle/spring-framework-unsupported-version.yaml",
-    ]
+    RULESET_FILE = "tools/kantra/rulesets/ruleset.yaml"
+    OUTPUT_ROOT = "/tmp"  # Global root directory for outputs
 
     def __init__(self):
         self.logger = self.get_logger(self.__class__.__name__)
@@ -39,15 +24,15 @@ class KantraAnalyzer(BaseLogger):
         except FileNotFoundError:
             self.logger.error("Java is not installed or not in PATH. Please install Java or set PATH correctly.")
 
-    def generate_effective_pom(self, repo, output_file="effective-pom.xml"):
+    def generate_effective_pom(self, repo_dir, output_file="effective-pom.xml"):
         try:
-            pom_path = os.path.join(repo.directory, "pom.xml")
+            pom_path = os.path.join(repo_dir, "pom.xml")
             if not os.path.exists(pom_path):
                 self.logger.info("No pom.xml file found. Skipping effective POM generation.")
                 return None
             command = ["mvn", "help:effective-pom", f"-Doutput={output_file}"]
-            subprocess.run(command, cwd=repo.directory, capture_output=True, text=True, check=True)
-            return os.path.join(repo.directory, output_file)
+            subprocess.run(command, cwd=repo_dir, capture_output=True, text=True, check=True)
+            return os.path.join(repo_dir, output_file)
         except FileNotFoundError:
             self.logger.error("Maven is not installed or not in PATH. Please install Maven or set PATH correctly.")
         except subprocess.CalledProcessError as e:
@@ -65,10 +50,16 @@ class KantraAnalyzer(BaseLogger):
             self.logger.error(error_message)
             raise FileNotFoundError(error_message)
 
+        # Set dynamic output directory within the root directory
+        output_dir = os.path.join(self.OUTPUT_ROOT, f"kantra_output_{repo.repo_slug}")
+        os.makedirs(output_dir, exist_ok=True)
+
         try:
             # Execute Kantra analysis
-            ruleset_args = " ".join([f"--rules={os.path.abspath(path)}" for path in self.RULESET_PATHS])
-            command = f"kantra analyze --input={repo_dir} --output={os.path.expanduser(self.OUTPUT_DIR)} {ruleset_args} --overwrite"
+            command = (
+                f"kantra analyze --input={repo_dir} --output={output_dir} "
+                f"--ruleset={os.path.abspath(self.RULESET_FILE)} --json-output --overwrite"
+            )
             self.logger.info(f"Executing Kantra command: {command}")
             subprocess.run(command, shell=True, capture_output=True, text=True, check=True)
             self.logger.info(f"Kantra analysis completed successfully for repo_id: {repo.repo_id}")
@@ -83,18 +74,17 @@ class KantraAnalyzer(BaseLogger):
 
 
 if __name__ == "__main__":
-    repo_slug = "sonar-metrics"
-    repo_id = "sonar-metrics"
+    repo_slug = "WebGoat"
+    repo_id = "WebGoat"
 
     class MockRepo:
         def __init__(self, repo_id, repo_slug):
             self.repo_id = repo_id
             self.repo_slug = repo_slug
-            self.repo_name = repo_slug
-            self.directory = f"/Users/fadzi/tools/kantra/{repo_slug}"
 
     analyzer = KantraAnalyzer()
     repo = MockRepo(repo_id, repo_slug)
+    repo_dir = f"/tmp/{repo.repo_slug}"  # Directory path based on the repo slug
 
     # Attempt to initialize session
     try:
@@ -107,7 +97,7 @@ if __name__ == "__main__":
         analyzer.logger.info(f"Starting standalone Kantra analysis for repo_id: {repo.repo_id}.")
         if session is None:
             analyzer.logger.warning("Session is None. Skipping database-related operations.")
-        result = analyzer.run_analysis(repo_dir=repo.directory, repo=repo, session=session, run_id="STANDALONE_RUN_001")
+        result = analyzer.run_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id="STANDALONE_RUN_001")
         analyzer.logger.info(f"Standalone Kantra analysis result: {result}")
     except Exception as e:
         analyzer.logger.error(f"Error during standalone Kantra analysis: {e}")

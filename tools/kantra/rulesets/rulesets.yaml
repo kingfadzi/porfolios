@@ -1,0 +1,15 @@
+rulesets:
+  - file: java-build-tool/detect-gradle-java.yaml
+  - file: java-build-tool/detect-maven-java.yaml
+  - file: spring-boot-gradle/spring-boot-nearing-eol-version.yaml
+  - file: spring-boot-gradle/spring-boot-supported-version.yaml
+  - file: spring-boot-gradle/spring-boot-unsupported-version.yaml
+  - file: spring-boot-maven/spring-boot-nearing-eol-version.yaml
+  - file: spring-boot-maven/spring-boot-supported-version.yaml
+  - file: spring-boot-maven/spring-boot-unsupported-version.yaml
+  - file: spring-framework-maven/spring-framework-nearing-eol-version.yaml
+  - file: spring-framework-maven/spring-framework-supported-version.yaml
+  - file: spring-framework-maven/spring-framework-unsupported-version.yaml
+  - file: spring-framework-gradle/spring-framework-nearing-eol-version.yaml
+  - file: spring-framework-gradle/spring-framework-supported-version.yaml
+  - file: spring-framework-gradle/spring-framework-unsupported-version.yaml
