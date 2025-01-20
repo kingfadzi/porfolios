@@ -4,11 +4,13 @@ import os
 import subprocess
 import logging
 
+# Hardcoded repository directory
 REPO_DIR = "~/tools/kantra/sonar-metrics"
-RULESET_PATHS = [
-    "~/porfolios/tools/kantra/rulesets/build-tool/detect-maven-java.yaml",
-    "~/tools/kantra/rulesets"
-]
+
+# Hardcoded ruleset path
+RULESET_PATH = "~/tools/porfolios/tools/kantra/rulesets/java/detect-maven-java.yaml"
+
+# Java home path
 JAVA_HOME = "/usr/lib/jvm/java-21-openjdk-21.0.5.0.11-1.fc40.x86_64/"
 
 def check_java_version():
@@ -33,15 +35,14 @@ def generate_effective_pom(project_dir, output_file="effective-pom.xml"):
         logging.error(f"Error generating effective POM: {e}")
         return None
 
-def run_kantra_analysis(input_dir, output_dir, ruleset_paths, overwrite=True):
+def run_kantra_analysis(input_dir, output_dir, ruleset_path, overwrite=True):
     command = [
         "kantra",
         "analyze",
         f"--input={input_dir}",
-        f"--output={output_dir}"
+        f"--output={output_dir}",
+        f"--rules={os.path.expanduser(ruleset_path)}"
     ]
-    for ruleset in ruleset_paths:
-        command.append(f"--rules={os.path.expanduser(ruleset)}")
     if overwrite:
         command.append("--overwrite")
 
@@ -73,7 +74,7 @@ def main():
     logging.info(f"Effective POM generated at: {effective_pom_file}")
 
     output_dir = os.path.join(repo_dir, "kantra-output")
-    run_kantra_analysis(repo_dir, output_dir, RULESET_PATHS)
+    run_kantra_analysis(repo_dir, output_dir, RULESET_PATH)
 
 if __name__ == "__main__":
     main()
