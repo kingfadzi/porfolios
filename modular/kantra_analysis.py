@@ -4,14 +4,21 @@ import os
 import subprocess
 import logging
 
-# Hardcoded repository directory
 REPO_DIR = "~/tools/kantra/sonar-metrics"
-
-# Hardcoded ruleset paths
 RULESET_PATHS = [
     "~/porfolios/tools/kantra/rulesets/build-tool/detect-maven-java.yaml",
     "~/tools/kantra/rulesets"
 ]
+JAVA_HOME = "/usr/lib/jvm/java-21-openjdk-21.0.5.0.11-1.fc40.x86_64/"
+
+def check_java_version():
+    try:
+        result = subprocess.run(
+            ["java", "-version"], capture_output=True, text=True, check=True
+        )
+        logging.info(f"Java version:\n{result.stderr.strip()}")
+    except subprocess.CalledProcessError as e:
+        logging.error(f"Error checking Java version: {e}")
 
 def generate_effective_pom(project_dir, output_file="effective-pom.xml"):
     command = [
@@ -46,8 +53,11 @@ def run_kantra_analysis(input_dir, output_dir, ruleset_paths, overwrite=True):
 
 def main():
     logging.basicConfig(level=logging.INFO)
+    os.environ["JAVA_HOME"] = JAVA_HOME
+    os.environ["PATH"] = f"{os.path.join(JAVA_HOME, 'bin')}:{os.environ['PATH']}"
 
-    # Expand and validate the hardcoded repository directory
+    check_java_version()
+
     repo_dir = os.path.expanduser(REPO_DIR)
     if not os.path.isdir(repo_dir):
         logging.info(f"Repository directory does not exist: {repo_dir}. Exiting.")
@@ -55,7 +65,6 @@ def main():
 
     logging.info(f"Using hardcoded repository directory: {repo_dir}")
 
-    # Generate the effective POM
     effective_pom_file = generate_effective_pom(repo_dir)
     if not effective_pom_file:
         logging.info("Failed to generate effective POM. Exiting.")
@@ -63,7 +72,6 @@ def main():
 
     logging.info(f"Effective POM generated at: {effective_pom_file}")
 
-    # Run Kantra analysis
     output_dir = os.path.join(repo_dir, "kantra-output")
     run_kantra_analysis(repo_dir, output_dir, RULESET_PATHS)
 
