@@ -6,7 +6,7 @@ from modular.execution_decorator import analyze_execution
 from modular.models import Session
 
 class KantraAnalyzer(BaseLogger):
-    RULESET_FILE = "tools/kantra/rulesets/ruleset.yaml"
+    RULESET_FILE = "tools/kantra/rulesets"
     OUTPUT_ROOT = "/tmp"  # Global root directory for outputs
 
     def __init__(self):
