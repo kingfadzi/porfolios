@@ -6,7 +6,7 @@ from sqlalchemy.dialects.postgresql import insert
 
 from modular.base_logger import BaseLogger
 from modular.execution_decorator import analyze_execution
-from modular.models import Session, Ruleset, Violation, Label
+from modular.models import Session, Ruleset, Violation, Label, ViolationLabel
 from modular.config import Config
 
 
