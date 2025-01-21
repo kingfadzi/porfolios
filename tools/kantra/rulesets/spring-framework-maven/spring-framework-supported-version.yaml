@@ -41,7 +41,7 @@
                 )
               )
             ]
-  description: "Spring Framework version is 6.2.x or newer and is currently supported."
+  description: "Detected supported Spring Framework version (> 6.2.x)."
   message: |
     Detected Spring Framework version 6.2.x or newer, which is currently supported.
   links:

@@ -237,29 +237,51 @@ CREATE TABLE component_mapping (
 DROP TABLE IF EXISTS business_app_mapping;
 
 CREATE TABLE business_app_mapping (
-                                      id SERIAL PRIMARY KEY,
-                                      component_id INTEGER NOT NULL,
-                                      transaction_cycle VARCHAR NOT NULL,
-                                      component_name VARCHAR NOT NULL,
-                                      business_app_identifier VARCHAR NOT NULL
+  id SERIAL PRIMARY KEY,
+  component_id INTEGER NOT NULL,
+  transaction_cycle VARCHAR NOT NULL,
+  component_name VARCHAR NOT NULL,
+  business_app_identifier VARCHAR NOT NULL
 );
 
 DROP TABLE IF EXISTS version_control_mapping;
 
 CREATE TABLE version_control_mapping (
-                                         id SERIAL PRIMARY KEY,
-                                         component_id INTEGER NOT NULL,
-                                         project_key VARCHAR NOT NULL,
-                                         repo_slug VARCHAR NOT NULL,
-                                         web_url VARCHAR
+ id SERIAL PRIMARY KEY,
+ component_id INTEGER NOT NULL,
+ project_key VARCHAR NOT NULL,
+ repo_slug VARCHAR NOT NULL,
+ web_url VARCHAR
 );
 
 DROP TABLE IF EXISTS repo_business_mapping;
 
 CREATE TABLE repo_business_mapping (
-                                       id SERIAL PRIMARY KEY,
-                                       component_id INTEGER NOT NULL,
-                                       project_key VARCHAR NOT NULL,
-                                       repo_slug VARCHAR NOT NULL,
-                                       business_app_identifier VARCHAR NOT NULL
+   id SERIAL PRIMARY KEY,
+   component_id INTEGER NOT NULL,
+   project_key VARCHAR NOT NULL,
+   repo_slug VARCHAR NOT NULL,
+   business_app_identifier VARCHAR NOT NULL
+);
+
+CREATE TABLE kantra_rulesets (
+    name TEXT PRIMARY KEY,
+    description TEXT
+);
+
+CREATE TABLE kantra_violations (
+    id SERIAL PRIMARY KEY,
+    ruleset_name TEXT NOT NULL,
+    description TEXT,
+    category TEXT,
+    effort INTEGER,
+    repo_id TEXT NOT NULL,
+    UNIQUE (repo_id, ruleset_name, description)
+);
+
+CREATE TABLE kantra_labels (
+    id SERIAL PRIMARY KEY,
+    key TEXT NOT NULL,
+    value TEXT NOT NULL,
+    UNIQUE (key, value)
 );

@@ -2,22 +2,18 @@ import yaml
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from modular.models import Ruleset, Violation, Label
-from sqlalchemy.ext.declarative import declarative_base
-
-Base = declarative_base()
 
 # Database connection string
 DATABASE_URL = "postgresql://postgres:postgres@192.168.1.188:5422/gitlab-usage"
 
 # Create database engine
 engine = create_engine(DATABASE_URL)
-Base.metadata.create_all(engine)  # Ensure tables exist
 
 # YAML file to process
 YAML_FILE = "/tmp/kantra_output_sonar-metrics/output.yaml"
 
 # Function to process the YAML and populate the tables
-def populate_from_yaml(yaml_file):
+def populate_from_yaml(yaml_file, repo_id):
     # Load YAML file
     with open(yaml_file, "r") as file:
         data = yaml.safe_load(file)
@@ -40,14 +36,16 @@ def populate_from_yaml(yaml_file):
             for violation_key, violation_data in ruleset_data.get("violations", {}).items():
                 violation = session.query(Violation).filter_by(
                     description=violation_data.get("description"),
-                    ruleset_name=ruleset.name
+                    ruleset_name=ruleset.name,
+                    repo_id=repo_id
                 ).first()
                 if not violation:
                     violation = Violation(
                         ruleset_name=ruleset.name,
                         description=violation_data.get("description"),
                         category=violation_data.get("category"),
-                        effort=violation_data.get("effort")
+                        effort=violation_data.get("effort"),
+                        repo_id=repo_id
                     )
                     session.add(violation)
 
@@ -67,5 +65,6 @@ def populate_from_yaml(yaml_file):
 
 # Run the population script
 if __name__ == "__main__":
-    populate_from_yaml(YAML_FILE)
+    REPO_ID = "example-repo-id"  # Replace with the actual repository ID
+    populate_from_yaml(YAML_FILE, REPO_ID)
     print("Data populated successfully!")

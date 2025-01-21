@@ -1,140 +1,173 @@
 import os
+import yaml
 import subprocess
 import logging
+from sqlalchemy.dialects.postgresql import insert
+
 from modular.base_logger import BaseLogger
 from modular.execution_decorator import analyze_execution
-from modular.models import Session
+from modular.models import Session, Ruleset, Violation, Label
+from modular.config import Config  # <--- Use the existing Config from modular.config
+
 
 class KantraAnalyzer(BaseLogger):
-    RULESET_FILE = "tools/kantra/rulesets"
-    OUTPUT_ROOT = "/tmp"
-
     def __init__(self):
         self.logger = self.get_logger(self.__class__.__name__)
         self.logger.setLevel(logging.INFO)
 
-    def check_java_version(self):
+    @analyze_execution(session_factory=Session, stage="Kantra Analysis")
+    def run_analysis(self, repo_dir, repo, session, run_id=None):
+        self.logger.info(f"Starting Kantra analysis for repo_id: {repo.repo_id} ({repo.repo_slug}).")
+
+        if not os.path.exists(repo_dir):
+            raise FileNotFoundError(f"Repository directory does not exist: {repo_dir}")
+        if not os.path.exists(Config.KANTRA_RULESET_FILE):
+            raise FileNotFoundError(f"Ruleset file not found: {Config.KANTRA_RULESET_FILE}")
+
+        effective_pom_path = self.generate_effective_pom(repo_dir)
+        if effective_pom_path:
+            self.logger.info(f"Generated effective POM at: {effective_pom_path}")
+
+        output_dir = os.path.join(Config.KANTRA_OUTPUT_ROOT, f"kantra_output_{repo.repo_slug}")
+        os.makedirs(output_dir, exist_ok=True)
+
         try:
-            result = subprocess.run(
-                ["java", "-version"], capture_output=True, text=True, check=True
-            )
-            self.logger.info(f"Java version:\n{result.stderr.strip()}")
-        except subprocess.CalledProcessError as e:
-            self.logger.error(f"Error checking Java version: {e}")
-        except FileNotFoundError:
-            self.logger.error("Java is not installed or not in PATH. Please install Java or set PATH correctly.")
+            kantra_command = self.build_kantra_command(repo_dir, output_dir)
+            self.logger.info(f"Executing Kantra command: {kantra_command}")
+            subprocess.run(kantra_command, shell=True, capture_output=True, text=True, check=True)
+            self.logger.info(f"Kantra analysis completed for repo_id: {repo.repo_id}")
+
+            output_yaml_path = os.path.join(output_dir, "output.yaml")
+            analysis_data = self.parse_output_yaml(output_yaml_path)
+            self.save_kantra_results(session, repo.repo_id, analysis_data)
+            self.logger.info(f"Kantra results persisted for repo_id: {repo.repo_id}")
+
+        except Exception as e:
+            self.logger.error(f"Error during Kantra analysis: {e}")
+            raise
+
+    def build_kantra_command(self, repo_dir, output_dir):
+        return (
+            f"kantra analyze "
+            f"--input={repo_dir} "
+            f"--output={output_dir} "
+            f"--rules={os.path.abspath(Config.KANTRA_RULESET_FILE)} "
+            f"--overwrite"
+        )
 
     def generate_effective_pom(self, repo_dir, output_file="effective-pom.xml"):
         try:
             pom_path = os.path.join(repo_dir, "pom.xml")
             if not os.path.exists(pom_path):
-                self.logger.info("No pom.xml file found. Skipping effective POM generation.")
+                self.logger.info("No pom.xml found. Skipping effective POM generation.")
                 return None
 
-            command = [
-                "mvn",
-                "help:effective-pom",
-                f"-Doutput={output_file}"
-            ]
-
-            subprocess.run(
-                command,
-                cwd=repo_dir,
-                capture_output=True,
-                text=True,
-                check=True
-            )
-
+            command = ["mvn", "help:effective-pom", f"-Doutput={output_file}"]
+            subprocess.run(command, cwd=repo_dir, capture_output=True, text=True, check=True)
             return os.path.join(repo_dir, output_file)
-        except FileNotFoundError:
-            self.logger.error("Maven is not installed or not in PATH. Please install Maven or set PATH correctly.")
-        except subprocess.CalledProcessError as e:
-            self.logger.error(f"Error generating effective POM: {e}")
         except Exception as e:
             self.logger.error(f"Unexpected error during effective POM generation: {e}")
 
-    @analyze_execution(session_factory=Session, stage="Kantra Analysis")
-    def run_analysis(self, repo_dir, repo, session, run_id=None):
-        self.logger.info(f"Starting Kantra analysis for repo_id: {repo.repo_id} (repo_slug: {repo.repo_slug}).")
+    def parse_output_yaml(self, yaml_file):
+        if not os.path.isfile(yaml_file):
+            self.logger.warning(f"Output YAML file not found: {yaml_file}")
+            return None
+        try:
+            with open(yaml_file, "r") as file:
+                return yaml.safe_load(file)
+        except Exception as e:
+            self.logger.error(f"Error reading/parsing YAML file {yaml_file}: {e}")
+            return None
 
-        # Check if the directory exists
-        if not os.path.exists(repo_dir):
-            error_message = f"Repository directory does not exist: {repo_dir}"
-            self.logger.error(error_message)
-            raise FileNotFoundError(error_message)
-
-        # Check if the ruleset file exists
-        if not os.path.exists(self.RULESET_FILE):
-            error_message = f"Ruleset file not found: {self.RULESET_FILE}"
-            self.logger.error(error_message)
-            raise FileNotFoundError(error_message)
-
-        # Generate effective POM (if applicable)
-        effective_pom_path = self.generate_effective_pom(repo_dir)
-        if effective_pom_path:
-            self.logger.info(f"Generated effective POM at: {effective_pom_path}")
-
-        # Set dynamic output directory within the root directory
-        output_dir = os.path.join(self.OUTPUT_ROOT, f"kantra_output_{repo.repo_slug}")
-        os.makedirs(output_dir, exist_ok=True)
+    def save_kantra_results(self, session, repo_id, analysis_data):
+        self.logger.debug(f"Processing Kantra results for repo_id: {repo_id}")
+        if not analysis_data:
+            self.logger.warning("No data found to persist. Skipping database updates.")
+            return
 
         try:
-            # Execute Kantra analysis
-            command = (
-                f"kantra analyze "
-                f"--input={repo_dir} "
-                f"--output={output_dir} "
-                f"--rules={os.path.abspath(self.RULESET_FILE)} "
-                f"--overwrite"
-            )
+            for ruleset_data in analysis_data:
+                ruleset_name = ruleset_data.get("name")
+                description = ruleset_data.get("description")
 
-            self.logger.info(f"Executing Kantra command: {command}")
-            subprocess.run(command, shell=True, capture_output=True, text=True, check=True)
-            self.logger.info(f"Kantra analysis completed successfully for repo_id: {repo.repo_id}")
-        except subprocess.CalledProcessError as e:
-            error_message = f"Kantra command failed: {e.stderr.strip()}"
-            self.logger.error(error_message)
-            raise RuntimeError(error_message)
+                session.execute(
+                    insert(Ruleset)
+                    .values(name=ruleset_name, description=description)
+                    .on_conflict_do_update(
+                        index_elements=["name"],
+                        set_={"description": description}
+                    )
+                )
+
+                for _, violation_data in ruleset_data.get("violations", {}).items():
+                    if not violation_data or not violation_data.get("description"):
+                        continue
+
+                    violation_description = violation_data["description"]
+                    category = violation_data.get("category")
+                    effort = violation_data.get("effort")
+
+                    session.execute(
+                        insert(Violation)
+                        .values(
+                            repo_id=repo_id,
+                            ruleset_name=ruleset_name,
+                            description=violation_description,
+                            category=category,
+                            effort=effort
+                        )
+                        .on_conflict_do_update(
+                            index_elements=["repo_id", "ruleset_name", "description"],
+                            set_={"category": category, "effort": effort}
+                        )
+                    )
+
+                    labels = violation_data.get("labels", [])
+                    for label_str in labels:
+                        if "=" in label_str:
+                            key, value = label_str.split("=", 1)
+                            session.execute(
+                                insert(Label)
+                                .values(key=key, value=value)
+                                .on_conflict_do_nothing(index_elements=["key", "value"])
+                            )
+                        else:
+                            self.logger.warning(f"Skipping invalid label format: {label_str}")
+
+            session.commit()
+            self.logger.debug(f"Kantra results committed for repo_id: {repo_id}")
         except Exception as e:
-            error_message = f"Unexpected error during Kantra analysis: {str(e)}"
-            self.logger.error(error_message)
+            session.rollback()
+            self.logger.error(f"Error saving Kantra results for repo_id {repo_id}: {e}")
             raise
 
-
 if __name__ == "__main__":
-    repo_slug = "sonar-metrics"
-    repo_id = "sonar-metrics"
-
     class MockRepo:
         def __init__(self, repo_id, repo_slug):
             self.repo_id = repo_id
             self.repo_slug = repo_slug
 
     analyzer = KantraAnalyzer()
-    repo = MockRepo(repo_id, repo_slug)
-    repo_dir = f"/tmp/{repo.repo_slug}"  # Directory path based on the repo slug
+    mock_repo_id = "spring-boot-sample"
+    mock_repo_slug = "spring-boot-sample"
+    mock_repo_dir = f"/tmp/{mock_repo_slug}"
 
-    # Attempt to initialize session
     try:
-        session = Session()  # Ensure Session is properly imported and initialized
+        session = Session()
     except Exception as e:
         analyzer.logger.error(f"Failed to initialize database session: {e}")
         session = None
 
+    repo = MockRepo(mock_repo_id, mock_repo_slug)
+    analyzer.logger.info(f"Starting standalone Kantra analysis for repo_id: {mock_repo_id}.")
+    if session is None:
+        analyzer.logger.warning("Session is None. Skipping database-related operations.")
     try:
-        analyzer.logger.info(f"Starting standalone Kantra analysis for repo_id: {repo.repo_id}.")
-        if session is None:
-            analyzer.logger.warning("Session is None. Skipping database-related operations.")
-        result = analyzer.run_analysis(repo_dir=repo_dir, repo=repo, session=session, run_id="STANDALONE_RUN_001")
-        analyzer.logger.info(f"Standalone Kantra analysis result: {result}")
+        analyzer.run_analysis(
+            repo_dir=mock_repo_dir,
+            repo=repo,
+            session=session,
+            run_id="STANDALONE_RUN_001"
+        )
     except Exception as e:
         analyzer.logger.error(f"Error during standalone Kantra analysis: {e}")
-    finally:
-        if session is not None:
-            try:
-                session.close()
-                analyzer.logger.info(f"Database session closed for repo_id: {repo.repo_id}.")
-            except Exception as e:
-                analyzer.logger.error(f"Error closing session for repo_id: {repo.repo_id}: {e}")
-        else:
-            analyzer.logger.warning(f"No valid database session to close for repo_id: {repo.repo_id}.")

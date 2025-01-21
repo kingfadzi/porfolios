@@ -35,7 +35,7 @@
                 and number(substring-before(substring-after(m:version, '.'), '.')) = 1
               )
             ]
-  description: "Spring Framework version is 6.1.x and is nearing end-of-life."
+  description: "Detected Spring Framework version nearing end-of-life (6.1.x)."
   message: |
     Detected Spring Framework version 6.1.x, which is nearing end-of-life. Consider upgrading to 6.2 or later for ongoing support.
   links:

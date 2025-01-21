@@ -20,3 +20,6 @@ class Config:
     SYFT_CONFIG_PATH = os.getenv("SYFT_CONFIG_PATH", "/root/.syft/config.yaml")
     GRYPE_CONFIG_PATH = os.getenv("GRYPE_CONFIG_PATH", "/root/.grype/config.yaml")
     SEMGREP_CONFIG_DIR = os.getenv("SEMGREP_CONFIG_DIR", "./tools/semgrep")
+
+    KANTRA_RULESET_FILE = os.getenv("KANTRA_RULESET_FILE", "./tools/kantra/rulesets")
+    KANTRA_OUTPUT_ROOT = os.getenv("KANTRA_OUTPUT_ROOT", "/tmp")

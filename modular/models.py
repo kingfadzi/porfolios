@@ -273,20 +273,33 @@ class ComponentMapping(Base):
     repo_slug = Column(String)
 
 class Ruleset(Base):
-    __tablename__ = 'rulesets'
+    __tablename__ = 'kantra_rulesets'
     name = Column(String, primary_key=True)
     description = Column(Text, nullable=True)
 
 class Violation(Base):
-    __tablename__ = 'violations'
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    ruleset_name = Column(String, nullable=False)
-    description = Column(Text, nullable=True)
-    category = Column(String, nullable=True)
-    effort = Column(Integer, nullable=True)
+    __tablename__ = "kantra_violations"
+    id = Column(Integer, primary_key=True)
+    repo_id = Column(String)
+    ruleset_name = Column(String)
+    description = Column(String)
+    category = Column(String)
+    effort = Column(Integer)
+    __table_args__ = (
+        UniqueConstraint("repo_id", "ruleset_name", "description", name="uq_repo_rule_desc"),
+    )
 
 class Label(Base):
-    __tablename__ = 'labels'
+    __tablename__ = 'kantra_labels'
     id = Column(Integer, primary_key=True, autoincrement=True)
     key = Column(String, nullable=False)
     value = Column(String, nullable=False)
+    __table_args__ = (
+        UniqueConstraint("key", "value", name="unique_key_value_pair"),
+    )
+
+class CombinedRepoMetrics(Base):
+    __tablename__ = "combined_repo_metrics"
+    repo_id = Column(String, primary_key=True)
+    main_language = Column(String, nullable=False)
+    activity_status = Column(String, nullable=False)
