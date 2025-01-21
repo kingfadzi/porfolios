@@ -50,6 +50,12 @@ class KantraAnalyzer(BaseLogger):
             self.logger.error(error_message)
             raise FileNotFoundError(error_message)
 
+        # Check if the ruleset file exists
+        if not os.path.exists(self.RULESET_FILE):
+            error_message = f"Ruleset file not found: {self.RULESET_FILE}"
+            self.logger.error(error_message)
+            raise FileNotFoundError(error_message)
+
         # Generate effective POM (if applicable)
         effective_pom_path = self.generate_effective_pom(repo_dir)
         if effective_pom_path:
@@ -79,8 +85,8 @@ class KantraAnalyzer(BaseLogger):
 
 
 if __name__ == "__main__":
-    repo_slug = "sonar-metrics"
-    repo_id = "sonar-metrics"
+    repo_slug = "WebGoat"
+    repo_id = "WebGoat"
 
     class MockRepo:
         def __init__(self, repo_id, repo_slug):
