@@ -39,6 +39,7 @@ class KantraAnalyzer(BaseLogger):
                 command,
                 shell=True,
                 capture_output=True,
+                timeout=600,
                 text=True,
                 check=True
             )
@@ -57,6 +58,10 @@ class KantraAnalyzer(BaseLogger):
                 self.logger.error(f"Stderr:\n{e.stderr.strip()}")
             self.logger.error(err_msg)
             raise RuntimeError(f"Kantra command failed: {e.stderr.strip()}")
+
+        except subprocess.TimeoutExpired as e:
+            self.logger.error(f"Kantra command timed out: {e}")
+            raise
 
         except Exception as e:
             error_message = f"Unexpected error during Kantra analysis: {e}"
