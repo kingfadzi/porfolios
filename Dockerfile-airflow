@@ -58,9 +58,12 @@ RUN python3 -m pip install --no-cache-dir \
     checkov \
     sqlalchemy
 
-# Create a group and user with specified UID and GID
-#RUN groupadd -g ${HOST_GID} airflow && \
-#    useradd -m -u ${HOST_UID} -g airflow airflow
+# ---- Install Java 21 and set JAVA_HOME ----
+RUN dnf install -y java-21-openjdk-devel && \
+    dnf clean all
+
+ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk
+ENV PATH="$JAVA_HOME/bin:$PATH"
 
 # Ensure the airflow group exists, rename if GID is already taken
 RUN existing_group=$(getent group ${HOST_GID} | cut -d: -f1) && \
