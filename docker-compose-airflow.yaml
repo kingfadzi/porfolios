@@ -31,6 +31,10 @@ services:
       SYFT_CONFIG_PATH: ${SYFT_CONFIG_PATH}
       GRYPE_CONFIG_PATH: ${GRYPE_CONFIG_PATH}
       SEMGREP_CONFIG_DIR: ${SEMGREP_CONFIG_DIR}
+
+      KANTRA_RULESET_FILE: ${KANTRA_RULESET_FILE}
+      KANTRA_OUTPUT_ROOT: ${KANTRA_OUTPUT_ROOT}
+
     volumes:
       - ./cloned_repositories:/home/airflow/cloned_repositories
       - ${SSH_KEYS_PATH:-~/.ssh/porfolios_github_key}:/home/airflow/.ssh/id_rsa:ro
