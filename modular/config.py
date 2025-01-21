@@ -23,3 +23,6 @@ class Config:
 
     KANTRA_RULESET_FILE = os.getenv("KANTRA_RULESET_FILE", "./tools/kantra/custom-rulesets")
     KANTRA_OUTPUT_ROOT = os.getenv("KANTRA_OUTPUT_ROOT", "/tmp")
+
+    MAVEN_TRUSTSTORE = None
+    MAVEN_TRUSTSTORE_PASSWORD = None
