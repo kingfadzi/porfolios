@@ -285,3 +285,9 @@ CREATE TABLE kantra_labels (
     value TEXT NOT NULL,
     UNIQUE (key, value)
 );
+
+CREATE TABLE kantra_violation_labels (
+     violation_id INT NOT NULL,
+     label_id INT NOT NULL,
+     PRIMARY KEY (violation_id, label_id)
+);
