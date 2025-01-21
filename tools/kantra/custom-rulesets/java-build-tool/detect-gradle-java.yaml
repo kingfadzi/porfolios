@@ -129,6 +129,6 @@
       - builtin.filecontent:
           filePattern: gradle/wrapper/gradle-wrapper.properties
           pattern: distributionUrl.*gradle-(8\.[3-9]) # Gradle 8.3-8.10 maps to Java 21
-  description: "Detected usage of Java 21 via Gradle properties or Gradle Wrapper."
+  description: "Detected usage of Java 21"
   message: |
     This Gradle build is configured for Java 21. Gradle versions 8.3-8.10 map to Java 21.

@@ -39,9 +39,9 @@ class KantraAnalyzer(BaseLogger):
                 command,
                 shell=True,
                 capture_output=True,
-                timeout=600,
                 text=True,
-                check=True
+                check=True,
+                timeout=300  # 5-minute timeout
             )
             self.logger.info(f"Kantra analysis completed for repo_id: {repo.repo_id}")
 
@@ -51,32 +51,14 @@ class KantraAnalyzer(BaseLogger):
             self.logger.info(f"Kantra results persisted for repo_id: {repo.repo_id}")
 
         except subprocess.CalledProcessError as e:
-            err_msg = f"Kantra command failed with exit code {e.returncode}"
-            if e.stdout:
-                self.logger.error(f"Stdout:\n{e.stdout.strip()}")
-            if e.stderr:
-                self.logger.error(f"Stderr:\n{e.stderr.strip()}")
-            self.logger.error(err_msg)
-            raise RuntimeError(f"Kantra command failed: {e.stderr.strip()}")
-
+            handle_subprocess_error(e, self.logger, command)
         except subprocess.TimeoutExpired as e:
-            self.logger.error(f"Kantra command timed out: {e}")
-            raise
-
+            self.logger.error(f"Kantra command timed out after 300 seconds: {e}")
+            raise RuntimeError("Kantra command timed out.")
         except Exception as e:
             error_message = f"Unexpected error during Kantra analysis: {e}"
             self.logger.error(error_message)
             raise
-
-    def build_kantra_command(self, repo_dir, output_dir):
-        return (
-            f"kantra analyze "
-            f"--input={repo_dir} "
-            f"--output={output_dir} "
-            f"--rules={os.path.abspath(Config.KANTRA_RULESET_FILE)} "
-            f"--enable-default-rulesets=false "            
-            f"--overwrite"
-        )
 
     def generate_effective_pom(self, repo_dir, output_file="effective-pom.xml"):
         try:
@@ -85,12 +67,35 @@ class KantraAnalyzer(BaseLogger):
                 self.logger.info("No pom.xml found. Skipping effective POM generation.")
                 return None
 
-            command = ["mvn", "help:effective-pom", f"-Doutput={output_file}"]
-            subprocess.run(command, cwd=repo_dir, capture_output=True, text=True, check=True)
+            command_list = ["mvn", "help:effective-pom", f"-Doutput={output_file}"]
+            cmd_str = " ".join(command_list)
+            self.logger.debug(f"Running Maven command: {cmd_str} in {repo_dir}")
+
+            result = subprocess.run(
+                command_list,
+                cwd=repo_dir,
+                capture_output=True,
+                text=True,
+                check=True
+            )
+            self.logger.debug(f"Maven help:effective-pom completed. Stdout:\n{result.stdout.strip()}")
             return os.path.join(repo_dir, output_file)
 
+        except subprocess.CalledProcessError as e:
+            handle_subprocess_error(e, self.logger, " ".join(command_list))
         except Exception as e:
             self.logger.error(f"Unexpected error during effective POM generation: {e}")
+            raise
+
+    def build_kantra_command(self, repo_dir, output_dir):
+        return (
+            f"kantra analyze "
+            f"--input={repo_dir} "
+            f"--output={output_dir} "
+            f"--rules={os.path.abspath(Config.KANTRA_RULESET_FILE)} "
+            f"--enable-default-rulesets=false "
+            f"--overwrite"
+        )
 
     def parse_output_yaml(self, yaml_file):
         if not os.path.isfile(yaml_file):
@@ -108,7 +113,6 @@ class KantraAnalyzer(BaseLogger):
         if not analysis_data:
             self.logger.warning("No data found to persist. Skipping database updates.")
             return
-
         try:
             for ruleset_data in analysis_data:
                 ruleset_name = ruleset_data.get("name")
@@ -122,11 +126,9 @@ class KantraAnalyzer(BaseLogger):
                         set_={"description": description}
                     )
                 )
-
                 for _, violation_data in ruleset_data.get("violations", {}).items():
                     if not violation_data or not violation_data.get("description"):
                         continue
-
                     violation_desc = violation_data["description"]
                     category = violation_data.get("category")
                     effort = violation_data.get("effort")
@@ -145,7 +147,6 @@ class KantraAnalyzer(BaseLogger):
                             set_={"category": category, "effort": effort}
                         )
                     )
-
                     labels = violation_data.get("labels", [])
                     for label_str in labels:
                         if "=" in label_str:
@@ -168,11 +169,45 @@ class KantraAnalyzer(BaseLogger):
             self.logger.error(f"Error saving Kantra results for repo_id {repo_id}: {e}")
             raise
 
-    def check_java_version(self):
-        try:
-            result = subprocess.run(["java", "-version"], capture_output=True, text=True, check=True)
-            self.logger.info(f"Java version:\n{result.stderr.strip()}")
-        except subprocess.CalledProcessError as e:
-            self.logger.error(f"Error checking Java version: {e}")
-        except FileNotFoundError:
-            self.logger.error("Java is not installed or not in PATH.")
+
+def handle_subprocess_error(e, logger, command):
+    msg = [f"Subprocess command failed with exit code {e.returncode}.", f"Command: {command}"]
+    if e.stdout:
+        msg.append(f"Stdout:\n{e.stdout.strip()}")
+    if e.stderr:
+        msg.append(f"Stderr:\n{e.stderr.strip()}")
+    full_msg = "\n".join(msg)
+    logger.error(full_msg)
+    raise RuntimeError(full_msg) from e
+
+
+if __name__ == "__main__":
+    class MockRepo:
+        def __init__(self, repo_id, repo_slug):
+            self.repo_id = repo_id
+            self.repo_slug = repo_slug
+
+    analyzer = KantraAnalyzer()
+    mock_repo_id = "my-sample-repo"
+    mock_repo_slug = "my-sample-repo"
+    mock_repo_dir = "/tmp/my-sample-repo"
+
+    try:
+        session = Session()
+    except Exception as e:
+        analyzer.logger.error(f"Failed to initialize database session: {e}")
+        session = None
+
+    repo = MockRepo(mock_repo_id, mock_repo_slug)
+    if session is None:
+        analyzer.logger.warning("Session is None. Skipping DB-related operations.")
+
+    try:
+        analyzer.run_analysis(
+            repo_dir=mock_repo_dir,
+            repo=repo,
+            session=session,
+            run_id="STANDALONE_RUN_001"
+        )
+    except Exception as e:
+        analyzer.logger.error(f"Error during standalone Kantra analysis: {e}")
