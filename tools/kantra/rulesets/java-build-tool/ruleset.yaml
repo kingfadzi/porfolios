@@ -1,2 +1,2 @@
-name: java-build-tool 
-description: Ruleset for detecting java-build-tool 
+name: java-build-tool/java-build
+description: Ruleset for detecting java-build-tool

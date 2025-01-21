@@ -21,7 +21,7 @@
       - builtin.filecontent:
           filePattern: gradle/wrapper/gradle-wrapper.properties
           pattern: distributionUrl.*gradle-(2\.[0-9]|3\.[0-9]|4\.[0-2]) # Gradle 2.0-4.2 maps to Java 8
-  description: "Detects usage of Java 8 via Gradle properties or Gradle Wrapper."
+  description: "Detected the use of Java 8, which is no longer supported."
   message: |
     This Gradle build is configured for Java 8. Gradle versions 2.0-4.2 map to Java 8.
 
@@ -48,7 +48,7 @@
       - builtin.filecontent:
           filePattern: gradle/wrapper/gradle-wrapper.properties
           pattern: distributionUrl.*gradle-(4\.[3-9]|5\.[0-9]) # Gradle 4.3-5.9 maps to Java 8-11
-  description: "Detects usage of Java versions between 1.8 and 11 via Gradle properties or Gradle Wrapper."
+  description: "Detected usage of Java versions from 9 or 10 ."
   message: |
     This Gradle build is configured for Java versions between 1.8 and 11. Gradle versions 4.3-5.9 map to Java 8-11.
 
@@ -75,7 +75,7 @@
       - builtin.filecontent:
           filePattern: gradle/wrapper/gradle-wrapper.properties
           pattern: distributionUrl.*gradle-(6\.[0-2]) # Gradle 6.0-6.2 maps to Java 11
-  description: "Detects usage of Java 11 via Gradle properties or Gradle Wrapper."
+  description: "Detected usage of Java 11 consider upgrading."
   message: |
     This Gradle build is configured for Java 11. Gradle versions 6.0-6.2 map to Java 11.
 
@@ -102,7 +102,7 @@
       - builtin.filecontent:
           filePattern: gradle/wrapper/gradle-wrapper.properties
           pattern: distributionUrl.*gradle-(7\.[3-6]|8\.[0-2]) # Gradle 7.3-8.2 maps to Java 17
-  description: "Detects usage of Java 17 via Gradle properties or Gradle Wrapper."
+  description: "Detected usage of Java 17."
   message: |
     This Gradle build is configured for Java 17. Gradle versions 7.3-8.2 map to Java 17.
 
@@ -129,6 +129,6 @@
       - builtin.filecontent:
           filePattern: gradle/wrapper/gradle-wrapper.properties
           pattern: distributionUrl.*gradle-(8\.[3-9]) # Gradle 8.3-8.10 maps to Java 21
-  description: "Detects usage of Java 21 via Gradle properties or Gradle Wrapper."
+  description: "Detected usage of Java 21 via Gradle properties or Gradle Wrapper."
   message: |
     This Gradle build is configured for Java 21. Gradle versions 8.3-8.10 map to Java 21.

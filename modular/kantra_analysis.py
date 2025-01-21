@@ -7,7 +7,7 @@ from modular.models import Session
 
 class KantraAnalyzer(BaseLogger):
     RULESET_FILE = "tools/kantra/rulesets"
-    OUTPUT_ROOT = "/tmp"  # Global root directory for outputs
+    OUTPUT_ROOT = "/tmp"
 
     def __init__(self):
         self.logger = self.get_logger(self.__class__.__name__)
@@ -30,8 +30,21 @@ class KantraAnalyzer(BaseLogger):
             if not os.path.exists(pom_path):
                 self.logger.info("No pom.xml file found. Skipping effective POM generation.")
                 return None
-            command = ["mvn", "help:effective-pom", f"-Doutput={output_file}"]
-            subprocess.run(command, cwd=repo_dir, capture_output=True, text=True, check=True)
+
+            command = [
+                "mvn",
+                "help:effective-pom",
+                f"-Doutput={output_file}"
+            ]
+
+            subprocess.run(
+                command,
+                cwd=repo_dir,
+                capture_output=True,
+                text=True,
+                check=True
+            )
+
             return os.path.join(repo_dir, output_file)
         except FileNotFoundError:
             self.logger.error("Maven is not installed or not in PATH. Please install Maven or set PATH correctly.")
@@ -68,9 +81,13 @@ class KantraAnalyzer(BaseLogger):
         try:
             # Execute Kantra analysis
             command = (
-                f"kantra analyze --input={repo_dir} --output={output_dir} "
-                f"--rules={os.path.abspath(self.RULESET_FILE)} --json-output --overwrite"
+                f"kantra analyze "
+                f"--input={repo_dir} "
+                f"--output={output_dir} "
+                f"--rules={os.path.abspath(self.RULESET_FILE)} "
+                f"--overwrite"
             )
+
             self.logger.info(f"Executing Kantra command: {command}")
             subprocess.run(command, shell=True, capture_output=True, text=True, check=True)
             self.logger.info(f"Kantra analysis completed successfully for repo_id: {repo.repo_id}")
