@@ -19,32 +19,50 @@ class KantraAnalyzer(BaseLogger):
     def run_analysis(self, repo_dir, repo, session, run_id=None):
         self.logger.info(f"Starting Kantra analysis for repo_id: {repo.repo_id} ({repo.repo_slug}).")
 
-        if not os.path.exists(repo_dir):
-            raise FileNotFoundError(f"Repository directory does not exist: {repo_dir}")
-        if not os.path.exists(Config.KANTRA_RULESET_FILE):
-            raise FileNotFoundError(f"Ruleset file not found: {Config.KANTRA_RULESET_FILE}")
+    if not os.path.exists(repo_dir):
+        raise FileNotFoundError(f"Repository directory does not exist: {repo_dir}")
+    if not os.path.exists(Config.KANTRA_RULESET_FILE):
+        raise FileNotFoundError(f"Ruleset file not found: {Config.KANTRA_RULESET_FILE}")
 
-        effective_pom_path = self.generate_effective_pom(repo_dir)
-        if effective_pom_path:
-            self.logger.info(f"Generated effective POM at: {effective_pom_path}")
+    effective_pom_path = self.generate_effective_pom(repo_dir)
+    if effective_pom_path:
+        self.logger.info(f"Generated effective POM at: {effective_pom_path}")
 
-        output_dir = os.path.join(Config.KANTRA_OUTPUT_ROOT, f"kantra_output_{repo.repo_slug}")
-        os.makedirs(output_dir, exist_ok=True)
+    output_dir = os.path.join(Config.KANTRA_OUTPUT_ROOT, f"kantra_output_{repo.repo_slug}")
+    os.makedirs(output_dir, exist_ok=True)
 
-        try:
-            kantra_command = self.build_kantra_command(repo_dir, output_dir)
-            self.logger.info(f"Executing Kantra command: {kantra_command}")
-            subprocess.run(kantra_command, shell=True, capture_output=True, text=True, check=True)
-            self.logger.info(f"Kantra analysis completed for repo_id: {repo.repo_id}")
+    command = self.build_kantra_command(repo_dir, output_dir)
+    self.logger.info(f"Executing Kantra command: {command}")
 
-            output_yaml_path = os.path.join(output_dir, "output.yaml")
-            analysis_data = self.parse_output_yaml(output_yaml_path)
-            self.save_kantra_results(session, repo.repo_id, analysis_data)
-            self.logger.info(f"Kantra results persisted for repo_id: {repo.repo_id}")
+    try:
+        process_result = subprocess.run(
+            command,
+            shell=True,
+            capture_output=True,
+            text=True,
+            check=True
+        )
+        self.logger.info(f"Kantra analysis completed for repo_id: {repo.repo_id}")
 
-        except Exception as e:
-            self.logger.error(f"Error during Kantra analysis: {e}")
-            raise
+        output_yaml_path = os.path.join(output_dir, "output.yaml")
+        analysis_data = self.parse_output_yaml(output_yaml_path)
+        self.save_kantra_results(session, repo.repo_id, analysis_data)
+        self.logger.info(f"Kantra results persisted for repo_id: {repo.repo_id}")
+
+    except subprocess.CalledProcessError as e:
+        err_msg = f"Kantra command failed with exit code {e.returncode}"
+        if e.stdout:
+            self.logger.error(f"Stdout:\n{e.stdout.strip()}")
+        if e.stderr:
+            self.logger.error(f"Stderr:\n{e.stderr.strip()}")
+        self.logger.error(err_msg)
+        raise RuntimeError(f"Kantra command failed: {e.stderr.strip()}")
+
+    except Exception as e:
+        error_message = f"Unexpected error during Kantra analysis: {str(e)}"
+        self.logger.error(error_message)
+        raise
+
 
     def build_kantra_command(self, repo_dir, output_dir):
         return (
