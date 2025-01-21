@@ -32,7 +32,7 @@
               filePattern: gradle.properties
               pattern: springFrameworkVersion\s*=\s*6\.(2|[3-9]|\d{2,}) # Match property value >= 6.2 in gradle.properties
 
-  description: "Spring Framework version is 6.2.x or newer in Gradle projects."
+  description: "Detected supported Spring Framework version (> 6.2.x)."
   message: |
     Detected Spring Framework version 6.2.x or newer, which is supported.
   links:

@@ -32,7 +32,7 @@
               filePattern: gradle.properties
               pattern: springFrameworkVersion\s*=\s*6\.1 # Match property value 6.1 in gradle.properties
 
-  description: "Spring Framework version is 6.1.x in Gradle projects and is nearing end-of-life."
+  description: "Detected Spring Framework version nearing end-of-life (6.1.x)."
   message: |
     Detected Spring Framework version 6.1.x, which is nearing end-of-life. Consider upgrading to 6.2 or later for ongoing support.
   links:

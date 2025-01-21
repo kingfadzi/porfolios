@@ -45,7 +45,7 @@
                 )
               )
             ]
-  description: "Spring Boot version is 2.7.x or newer and is supported."
+  description: "Detected supported Spring Boot version (>2.7)."
   message: |
     Detected Spring Boot version 2.7.x or newer, which is supported. No immediate action is required.
   links:

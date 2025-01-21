@@ -45,7 +45,7 @@
                 )
               )
             ]
-  description: "Spring Boot version is between 2.5.x and 2.7.0, which is nearing end-of-life."
+  description: "Detected Spring Boot versions nearing end-of-life (2.5 ≤ version < 2.7)."
   message: |
     Detected Spring Boot version between 2.5.x and 2.7.0, which is nearing end-of-life. Consider upgrading to 2.7.x or later to stay on a supported track.
   links:
