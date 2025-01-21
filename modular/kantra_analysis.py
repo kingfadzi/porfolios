@@ -113,11 +113,11 @@ class KantraAnalyzer(BaseLogger):
         if not analysis_data:
             self.logger.warning("No data found to persist. Skipping database updates.")
             return
+
         try:
             for ruleset_data in analysis_data:
                 ruleset_name = ruleset_data.get("name")
                 description = ruleset_data.get("description")
-
                 session.execute(
                     insert(Ruleset)
                     .values(name=ruleset_name, description=description)
@@ -126,14 +126,16 @@ class KantraAnalyzer(BaseLogger):
                         set_={"description": description}
                     )
                 )
+
                 for _, violation_data in ruleset_data.get("violations", {}).items():
                     if not violation_data or not violation_data.get("description"):
                         continue
+
                     violation_desc = violation_data["description"]
                     category = violation_data.get("category")
                     effort = violation_data.get("effort")
 
-                    session.execute(
+                    viol_stmt = (
                         insert(Violation)
                         .values(
                             repo_id=repo_id,
@@ -146,20 +148,50 @@ class KantraAnalyzer(BaseLogger):
                             index_elements=["repo_id", "ruleset_name", "description"],
                             set_={"category": category, "effort": effort}
                         )
+                        .returning(Violation.id)
                     )
+                    viol_result = session.execute(viol_stmt)
+                    violation_id = viol_result.scalar()
+
+                    if violation_id is None:
+                        existing_vio = (
+                            session.query(Violation)
+                            .filter_by(
+                                repo_id=repo_id,
+                                ruleset_name=ruleset_name,
+                                description=violation_desc
+                            )
+                            .one()
+                        )
+                        violation_id = existing_vio.id
+
                     labels = violation_data.get("labels", [])
                     for label_str in labels:
-                        if "=" in label_str:
-                            key, value = label_str.split("=", 1)
-                            session.execute(
-                                insert(Label)
-                                .values(key=key, value=value)
-                                .on_conflict_do_nothing(
-                                    index_elements=["key", "value"]
-                                )
-                            )
-                        else:
+                        if "=" not in label_str:
                             self.logger.warning(f"Skipping invalid label format: {label_str}")
+                            continue
+
+                        key, value = label_str.split("=", 1)
+
+                        lbl_stmt = (
+                            insert(Label)
+                            .values(key=key, value=value)
+                            .on_conflict_do_nothing(index_elements=["key", "value"])
+                            .returning(Label.id)
+                        )
+                        lbl_result = session.execute(lbl_stmt)
+                        label_id = lbl_result.scalar()
+
+                        if label_id is None:
+                            existing_lbl = session.query(Label).filter_by(key=key, value=value).one()
+                            label_id = existing_lbl.id
+
+                        link_stmt = (
+                            insert(ViolationLabel)
+                            .values(violation_id=violation_id, label_id=label_id)
+                            .on_conflict_do_nothing(index_elements=["violation_id", "label_id"])
+                        )
+                        session.execute(link_stmt)
 
             session.commit()
             self.logger.debug(f"Kantra results committed for repo_id: {repo_id}")
