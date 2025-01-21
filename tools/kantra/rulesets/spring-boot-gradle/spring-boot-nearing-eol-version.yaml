@@ -2,8 +2,10 @@
   category: "mandatory"
   effort: 1
   labels:
-    - "konveyor.io/source=spring-boot"
-    - "konveyor.io/source=spring-boot-2.5-2.7"
+    - "cto.io/source=spring-boot"
+    - "cto.io/source=spring-boot-2.5-2.6"
+    - "cto.io/source=gradle"
+    - "cto.io/source=spring-boot-nearing-eol"
   when:
     or:
       - builtin.filecontent:
@@ -38,7 +40,7 @@
           filePattern: build.gradle.kts
           pattern: id\(["']org\.springframework\.boot["']\)\s*version\s*["']2\.[5-6](\.\d+)?["']\) # Match Spring Boot plugin version >= 2.5 and < 2.7 in build.gradle.kts
 
-  description: "Detects Spring Boot versions that are nearing end-of-life (2.5 ≤ version < 2.7) in Gradle projects."
+  description: "Detected Spring Boot versions nearing end-of-life (2.5 ≤ version < 2.7)."
   message: |
     Your project uses a Spring Boot version between 2.5 and 2.6.x, which is nearing end-of-life. Consider upgrading to a supported version (e.g., 2.7.x or later).
   links:

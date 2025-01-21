@@ -2,8 +2,10 @@
   category: "mandatory"
   effort: 1
   labels:
-    - "konveyor.io/source=spring-boot"
-    - "konveyor.io/source=spring-boot-before-2.5"
+    - "cto.io/source=spring-boot"
+    - "cto.io/source=spring-boot-before-2.5"
+    - "cto.io/source=gradle"
+    - "cto.io/source=spring-boot-deprecated"
   when:
     or:
       - builtin.filecontent:
@@ -38,7 +40,7 @@
           filePattern: build.gradle.kts
           pattern: id\(["']org\.springframework\.boot["']\)\s*version\s*["']2\.[0-4](\.\d+)?["']\) # Match Spring Boot plugin version < 2.5 in build.gradle.kts
 
-  description: "Detects Spring Boot versions that are unsupported (< 2.5) in Gradle projects."
+  description: "Detected unsupported Spring Boot version (< 2.5)."
   message: |
     Your project uses Spring Boot version < 2.5, which is unsupported. Consider upgrading to a supported version (e.g., 2.7.x or later).
   links:

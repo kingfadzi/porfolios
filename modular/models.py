@@ -271,3 +271,22 @@ class ComponentMapping(Base):
     web_url = Column(String)
     project_key = Column(String)
     repo_slug = Column(String)
+
+class Ruleset(Base):
+    __tablename__ = 'rulesets'
+    name = Column(String, primary_key=True)
+    description = Column(Text, nullable=True)
+
+class Violation(Base):
+    __tablename__ = 'violations'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    ruleset_name = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    category = Column(String, nullable=True)
+    effort = Column(Integer, nullable=True)
+
+class Label(Base):
+    __tablename__ = 'labels'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    key = Column(String, nullable=False)
+    value = Column(String, nullable=False)

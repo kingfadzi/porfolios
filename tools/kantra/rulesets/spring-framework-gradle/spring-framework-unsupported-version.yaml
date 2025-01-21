@@ -2,9 +2,10 @@
   category: "mandatory"
   effort: 1
   labels:
-    - "konveyor.io/source=spring-framework"
-    - "konveyor.io/source=spring-framework-before-6.0"
-    - "konveyor.io/source=gradle"
+    - "cto.io/source=spring-framework"
+    - "cto.io/source=spring-framework-before-6.0"
+    - "cto.io/source=gradle"
+    - "cto.io/source=spring-framework-deprecated"
   when:
     or:
       - builtin.filecontent:

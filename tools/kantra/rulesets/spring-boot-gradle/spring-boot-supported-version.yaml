@@ -1,10 +1,11 @@
 - ruleID: "spring-boot-supported-version-gradle"
-  category: "optional"
+  category: "informational"
   effort: 1
   labels:
-    - "konveyor.io/source=spring-boot"
-    - "konveyor.io/source=spring-boot-2.7+"
-    - "konveyor.io/source=gradle"
+    - "cto.io/source=spring-boot"
+    - "cto.io/source=spring-boot-2.7+"
+    - "cto.io/source=gradle"
+    - "cto.io/source=spring-boot-supported"
   when:
     or:
       - builtin.filecontent:
@@ -39,7 +40,7 @@
           filePattern: build.gradle.kts
           pattern: id\(["']org\.springframework\.boot["']\)\s*version\s*["']2\.(7|[8-9]|\d{2,})["']\) # Match Spring Boot plugin version >= 2.7 in build.gradle.kts
 
-  description: "Detects Spring Boot versions that are 2.7 or higher in Gradle projects."
+  description: "Detected supported Spring Boot version (>2.7)."
   message: |
     Your Gradle project uses Spring Boot version 2.7.x or newer, which is generally considered supported.
     No immediate upgrade is required (unless you want to move to a newer major release).

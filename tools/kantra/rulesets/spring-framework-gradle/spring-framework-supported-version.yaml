@@ -2,9 +2,10 @@
   category: "informational"
   effort: 1
   labels:
-    - "konveyor.io/source=spring-framework"
-    - "konveyor.io/source=spring-framework-6.2+"
-    - "konveyor.io/source=gradle"
+    - "cto.io/source=spring-framework"
+    - "cto.io/source=spring-framework-6.2+"
+    - "cto.io/source=gradle"
+    - "cto.io/source=spring-framework-supported"
   when:
     or:
       - builtin.filecontent:

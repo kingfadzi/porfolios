@@ -2,8 +2,10 @@
   category: "mandatory"
   effort: 1
   labels:
-    - "konveyor.io/source=spring-boot"
-    - "konveyor.io/source=spring-boot-2.5-2.7"
+    - "cto.io/source=spring-boot"
+    - "cto.io/source=spring-boot-2.5-2.6"
+    - "cto.io/source=maven"
+    - "cto.io/source=spring-boot-nearing-eol"
   when:
     or:
       # CASE A: Direct numeric version >= 2.5 and < 2.7

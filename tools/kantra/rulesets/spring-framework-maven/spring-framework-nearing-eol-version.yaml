@@ -2,8 +2,10 @@
   category: "mandatory"
   effort: 1
   labels:
-    - "konveyor.io/source=spring-framework"
-    - "konveyor.io/source=spring-framework-6.1"
+    - "cto.io/source=spring-framework"
+    - "cto.io/source=spring-framework-6.1"
+    - "cto.io/source=maven"
+    - "cto.io/source=spring-framework-nearing-eol"
   when:
     or:
       - builtin.xml:

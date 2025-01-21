@@ -2,8 +2,10 @@
   category: "mandatory"
   effort: 1
   labels:
-    - "konveyor.io/source=spring-boot"
-    - "konveyor.io/source=spring-boot-before-2.5"
+    - "cto.io/source=spring-boot"
+    - "cto.io/source=spring-boot-before-2.5"
+    - "cto.io/source=maven"
+    - "cto.io/source=spring-boot-deprecated"
   when:
     or:
       # CASE A: Direct numeric version < 2.5 in <dependency>
