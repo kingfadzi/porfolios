@@ -60,7 +60,7 @@ def fetch_repositories(batch_size=1000):
         batch = (
             session.query(Repository)
             .join(CombinedRepoMetrics, CombinedRepoMetrics.repo_id == Repository.repo_id)
-            .filter(CombinedRepoMetrics.main_language == "java")
+            .filter(CombinedRepoMetrics.main_language == "Java")
             .filter(CombinedRepoMetrics.activity_status == "ACTIVE")
             # .filter(Repository.status == "NEW")
             .offset(offset)
