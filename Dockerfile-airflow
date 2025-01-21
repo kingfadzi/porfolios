@@ -133,6 +133,7 @@ COPY --chown=airflow:airflow ./tools/semgrep/semgrep-rules  /home/airflow/.semgr
 COPY --chown=airflow:airflow ./tools/semgrep/config.ini /home/airflow/.semgrep/
 
 # kantra
+COPY --chown=airflow:airflow ./tools/kantra/kantra /usr/local/bin/kantra
 COPY --chown=airflow:airflow tools/kantra/custom-rulesets  /home/airflow/.kantra/custom-rulesets
 
 # Add and make start_services.sh executable
