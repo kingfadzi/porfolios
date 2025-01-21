@@ -59,8 +59,8 @@ RUN python3 -m pip install --no-cache-dir \
     sqlalchemy
 
 # ---- Install Java 21 and set JAVA_HOME ----
-RUN dnf install -y java-21-openjdk-devel && \
-    dnf clean all
+RUN dnf install -y java-21-openjdk-devel maven && dnf clean all
+
 
 ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk
 ENV PATH="$JAVA_HOME/bin:$PATH"
