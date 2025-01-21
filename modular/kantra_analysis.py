@@ -95,12 +95,6 @@ class KantraAnalyzer(BaseLogger):
             self.logger.error(f"Unexpected error during effective POM generation: {e}")
             raise
 
-        except subprocess.CalledProcessError as e:
-            handle_subprocess_error(e, self.logger, " ".join(command_list))
-        except Exception as e:
-            self.logger.error(f"Unexpected error during effective POM generation: {e}")
-            raise
-
     def build_kantra_command(self, repo_dir, output_dir):
         return (
             f"kantra analyze "
