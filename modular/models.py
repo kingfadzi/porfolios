@@ -303,6 +303,7 @@ class CombinedRepoMetrics(Base):
     repo_id = Column(String, primary_key=True)
     main_language = Column(String, nullable=False)
     activity_status = Column(String, nullable=False)
+    classification_label = Column(String, nullable=True)
 
 class ViolationLabel(Base):
     __tablename__ = "kantra_violation_labels"

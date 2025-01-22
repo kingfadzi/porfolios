@@ -84,6 +84,7 @@ RUN existing_user=$(getent passwd ${HOST_UID} | cut -d: -f1) && \
 # Set ownership for Airflow directories
 RUN mkdir -p $AIRFLOW_HOME && \
     mkdir -p /home/airflow/cloned_repositories && \
+    mkdir -p /home/airflow/output && \
     mkdir -p /home/airflow/.ssh && \
     mkdir -p /home/airflow/.syft && \
     mkdir -p /home/airflow/.grype && \

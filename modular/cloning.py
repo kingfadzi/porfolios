@@ -17,10 +17,7 @@ class CloningAnalyzer(BaseLogger):
 
     @analyze_execution(session_factory=Session, stage="Clone Repository")
     def clone_repository(self, repo, timeout_seconds=300, run_id=None):
-        """
-        Clone the specified repository into /mnt/tmpfs/cloned_repositories.
-        Logs execution details and accepts an optional run_id for tracking.
-        """
+
         self.logger.info(f"Starting cloning for repo: {repo.repo_id}")
 
         base_dir = Config.CLONED_REPOSITORIES_DIR

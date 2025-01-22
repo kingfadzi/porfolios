@@ -5,10 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 class Config:
-    """
-    Config class for accessing environment variables with defaults.
-    """
-    # Environment variables with sensible defaults
+
     RULESET_MAPPING_FILE = os.getenv("RULESET_MAPPING_FILE", "./tools/semgrep/language_ruleset_map.txt")
     METRICS_DATABASE_USER = os.getenv("METRICS_DATABASE_USER", "postgres")
     METRICS_DATABASE_PASSWORD = os.getenv("METRICS_DATABASE_PASSWORD", "postgres")
