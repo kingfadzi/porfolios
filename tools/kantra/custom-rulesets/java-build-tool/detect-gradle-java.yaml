@@ -29,8 +29,8 @@
   category: Mandotory
   effort: 1
   labels:
-    - cto.io/source=gradle
-    - cto.io/source=java-1.8-11
+    - cto.io/build-tool=gradle
+    - cto.io/java-version=java-1.8-11
   when:
     or:
       - builtin.filecontent:
@@ -56,8 +56,8 @@
   category: informational
   effort: 1
   labels:
-    - konveyor.io/source=gradle
-    - konveyor.io/source=java-11
+    - cto.io/build-tool=gradle
+    - cto.io/java-version=java-11
   when:
     or:
       - builtin.filecontent:
@@ -83,8 +83,8 @@
   category: informational
   effort: 1
   labels:
-    - cto.io/source=gradle
-    - cto.io/source=java-17
+    - cto.io/build-tool=gradle
+    - cto.io/java-version=java-17
   when:
     or:
       - builtin.filecontent:
@@ -110,8 +110,8 @@
   category: informational
   effort: 1
   labels:
-    - cto.io/source=gradle
-    - cto.io/source=java-21
+    - cto.io/build-tool=gradle
+    - cto.io/java-version=java-21
   when:
     or:
       - builtin.filecontent:
