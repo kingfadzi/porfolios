@@ -2,8 +2,8 @@
   category: Mandatory
   effort: 1
   labels:
-    - cto.io/source=maven
-    - cto.io/source=java-8
+    - cto.io/build-tool=maven
+    - cto.io/java-version=java-8
   when:
     builtin.xml:
       filepaths:

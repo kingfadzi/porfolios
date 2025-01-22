@@ -3,9 +3,9 @@
   effort: 1
   labels:
     - "cto.io/source=spring-boot"
-    - "cto.io/source=spring-boot-2.7+"
-    - "cto.io/source=maven"
-    - "cto.io/source=spring-boot-supported"
+    - "cto.io/spring-boot-version=spring-boot-2.7+"
+    - "cto.io/build-tool=maven"
+    - "cto.io/spring-boot-status=spring-boot-supported"
   when:
     or:
       # CASE A: Direct numeric version >= 2.7 in <dependency>

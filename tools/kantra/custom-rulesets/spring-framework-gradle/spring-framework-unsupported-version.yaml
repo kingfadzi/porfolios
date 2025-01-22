@@ -3,9 +3,9 @@
   effort: 1
   labels:
     - "cto.io/source=spring-framework"
-    - "cto.io/source=spring-framework-before-6.0"
-    - "cto.io/source=gradle"
-    - "cto.io/source=spring-framework-deprecated"
+    - "cto.io/spring-framework-version=spring-framework-before-6.0"
+    - "cto.io/build-tool=gradle"
+    - "cto.io/spring-framework-status=spring-framework-deprecated"
   when:
     or:
       - builtin.filecontent:

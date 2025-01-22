@@ -2,8 +2,8 @@
   category: Mandatory
   effort: 1
   labels:
-    - cto.io/source=gradle
-    - cto.io/source=java-8
+    - cto.io/build-tool=gradle
+    - cto.io/java-version=java-8
   when:
     or:
       - builtin.filecontent:
