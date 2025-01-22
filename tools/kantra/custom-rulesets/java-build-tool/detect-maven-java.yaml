@@ -24,7 +24,7 @@
   effort: 1
   labels:
     - cto.io/source=maven
-    - cto.io/source=java-1.8-11
+    - cto.io/java-version=java-1.8-11
   when:
     builtin.xml:
       filepaths:
@@ -45,8 +45,8 @@
   category: Mandatory
   effort: 1
   labels:
-    - cto.io/source=maven
-    - cto.io/source=java-11
+    - cto.io/build-tool=maven
+    - cto.io/java-version=java-11
   when:
     builtin.xml:
       filepaths:
@@ -66,8 +66,8 @@
   category: informational
   effort: 1
   labels:
-    - cto.io/source=maven
-    - cto.io/source=java-17
+    - cto.io/build-tool=maven
+    - cto.io/java-version=java-17
   when:
     builtin.xml:
       filepaths:
@@ -87,8 +87,8 @@
   category: informational
   effort: 1
   labels:
-    - cto.io/source=maven
-    - cto.io/source=java-21
+    - cto.io/build-tool=maven
+    - cto.io/java-version=java-21
   when:
     builtin.xml:
       filepaths:
