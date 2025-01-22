@@ -66,24 +66,21 @@ class KantraAnalyzer(BaseLogger):
                 self.logger.info(f"Deleted Kantra output directory to save space: {output_dir}")
 
     def generate_effective_pom(self, repo_dir, output_file="effective-pom.xml"):
+        pom_path = os.path.join(repo_dir, "pom.xml")
+        if not os.path.exists(pom_path):
+            self.logger.info("No pom.xml found. Skipping effective POM generation.")
+            return None
+
+        command_list = ["mvn", "help:effective-pom", f"-Doutput={output_file}"]
+        if Config.MAVEN_TRUSTSTORE:
+            command_list.append(f"-Djavax.net.ssl.trustStore={Config.MAVEN_TRUSTSTORE}")
+        if Config.MAVEN_TRUSTSTORE_PASSWORD:
+            command_list.append(f"-Djavax.net.ssl.trustStorePassword={Config.MAVEN_TRUSTSTORE_PASSWORD}")
+
+        cmd_str = " ".join(command_list)
+        self.logger.debug(f"Running Maven command: {cmd_str} in {repo_dir}")
+
         try:
-            pom_path = os.path.join(repo_dir, "pom.xml")
-            if not os.path.exists(pom_path):
-                self.logger.info("No pom.xml found. Skipping effective POM generation.")
-                return None
-
-            # Build the base Maven command
-            command_list = ["mvn", "help:effective-pom", f"-Doutput={output_file}"]
-
-            # If trust store is configured, add it
-            if Config.MAVEN_TRUSTSTORE:
-                command_list.append(f"-Djavax.net.ssl.trustStore={Config.MAVEN_TRUSTSTORE}")
-            if Config.MAVEN_TRUSTSTORE_PASSWORD:
-                command_list.append(f"-Djavax.net.ssl.trustStorePassword={Config.MAVEN_TRUSTSTORE_PASSWORD}")
-
-            cmd_str = " ".join(command_list)
-            self.logger.debug(f"Running Maven command: {cmd_str} in {repo_dir}")
-
             result = subprocess.run(
                 command_list,
                 cwd=repo_dir,
@@ -95,7 +92,12 @@ class KantraAnalyzer(BaseLogger):
             return os.path.join(repo_dir, output_file)
 
         except subprocess.CalledProcessError as e:
+            self.logger.warning("Failed to generate effective-pom.xml; falling back to raw pom.xml.")
             handle_subprocess_error(e, self.logger, cmd_str)
+            if os.path.exists(pom_path):
+                return pom_path
+            return None
+
         except Exception as e:
             self.logger.error(f"Unexpected error during effective POM generation: {e}")
             raise
