@@ -10,37 +10,37 @@
     or:
       - builtin.filecontent:
           filePattern: build.gradle
-          pattern: implementation\s*\(['"]org\.springframework\.boot:spring-boot-starter.*:2\.(7|[8-9]|\d{2,})['"]\) # Match direct Spring Boot version >= 2.7 in build.gradle
+          pattern: implementation\s*\(['"]org\.springframework\.boot:spring-boot-starter.*:((2\.(7|[8-9]|\d{2,}))|([3-9]|[1-9]\d+)\.\d+(\.\d+)?)['"]\)
 
       - builtin.filecontent:
           filePattern: build.gradle.kts
-          pattern: implementation\(["']org\.springframework\.boot:spring-boot-starter.*:2\.(7|[8-9]|\d{2,})["']\) # Match direct Spring Boot version >= 2.7 in build.gradle.kts
+          pattern: implementation\(["']org\.springframework\.boot:spring-boot-starter.*:((2\.(7|[8-9]|\d{2,}))|([3-9]|[1-9]\d+)\.\d+(\.\d+)?)["']\)
 
       - and:
           - builtin.filecontent:
               filePattern: build.gradle
-              pattern: implementation\s*\(['"]org\.springframework\.boot:spring-boot-starter.*:\$springBootVersion['"]\) # Match dependency using property in build.gradle
+              pattern: implementation\s*\(['"]org\.springframework\.boot:spring-boot-starter.*:\$springBootVersion['"]\)
           - builtin.filecontent:
               filePattern: gradle.properties
-              pattern: springBootVersion\s*=\s*[2-9]\.(7|[8-9]|\d{2,}) # Match property value >= 2.7 in gradle.properties
+              pattern: springBootVersion\s*=\s*((2\.(7|[8-9]|\d{2,}))|([3-9]|[1-9]\d+)\.\d+(\.\d+)?)
 
       - and:
           - builtin.filecontent:
               filePattern: build.gradle.kts
-              pattern: implementation\(["']org\.springframework\.boot:spring-boot-starter.*:\$springBootVersion["']\) # Match dependency using property in build.gradle.kts
+              pattern: implementation\(["']org\.springframework\.boot:spring-boot-starter.*:\$\{springBootVersion\}["']\)
           - builtin.filecontent:
               filePattern: gradle.properties
-              pattern: springBootVersion\s*=\s*[2-9]\.(7|[8-9]|\d{2,}) # Match property value >= 2.7 in gradle.properties
+              pattern: springBootVersion\s*=\s*((2\.(7|[8-9]|\d{2,}))|([3-9]|[1-9]\d+)\.\d+(\.\d+)?)
 
       - builtin.filecontent:
           filePattern: build.gradle
-          pattern: id\s*\(['"]org\.springframework\.boot['"]\)\s*version\s*['"]2\.(7|[8-9]|\d{2,})['"]\) # Match Spring Boot plugin version >= 2.7 in build.gradle
+          pattern: id\s*\(['"]org\.springframework\.boot['"]\)\s*version\s*['"]((2\.(7|[8-9]|\d{2,}))|([3-9]|[1-9]\d+)\.\d+(\.\d+)?)['"]\)
 
       - builtin.filecontent:
           filePattern: build.gradle.kts
-          pattern: id\(["']org\.springframework\.boot["']\)\s*version\s*["']2\.(7|[8-9]|\d{2,})["']\) # Match Spring Boot plugin version >= 2.7 in build.gradle.kts
+          pattern: id\(["']org\.springframework\.boot["']\)\s*version\s*["']((2\.(7|[8-9]|\d{2,}))|([3-9]|[1-9]\d+)\.\d+(\.\d+)?)["']\)
 
-  description: "Detected supported Spring Boot version (>2.7)."
+  description: "Detected supported Spring Boot version (>=2.7)."
   message: |
     Your Gradle project uses Spring Boot version 2.7.x or newer, which is generally considered supported.
     No immediate upgrade is required (unless you want to move to a newer major release).

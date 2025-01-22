@@ -6,35 +6,36 @@
     - "cto.io/spring-framework-version=spring-framework-6.2+"
     - "cto.io/build-tool=gradle"
     - "cto.io/spring-framework-version=spring-framework-supported"
+
   when:
     or:
       - builtin.filecontent:
           filePattern: build.gradle
-          pattern: implementation\s*\(['"]org\.springframework:spring-.*:6\.(2|[3-9]|\d{2,})['"]\) # Match Spring Framework version >= 6.2 in build.gradle
+          pattern: implementation\s*\(['"]org\.springframework:spring-.*:6\.(2|[3-9]|\d{2,})(\.\d+)*(-SNAPSHOT)?['"]\)
 
       - builtin.filecontent:
           filePattern: build.gradle.kts
-          pattern: implementation\(["']org\.springframework:spring-.*:6\.(2|[3-9]|\d{2,})["']\) # Match Spring Framework version >= 6.2 in build.gradle.kts
+          pattern: implementation\(["']org\.springframework:spring-.*:6\.(2|[3-9]|\d{2,})(\.\d+)*(-SNAPSHOT)?["']\)
 
       - and:
           - builtin.filecontent:
               filePattern: build.gradle
-              pattern: implementation\s*\(['"]org\.springframework:spring-.*:\$springFrameworkVersion['"]\) # Match dependency using property in build.gradle
+              pattern: implementation\s*\(['"]org\.springframework:spring-.*:\$(\{springFrameworkVersion\}|springFrameworkVersion)['"]\)
           - builtin.filecontent:
               filePattern: gradle.properties
-              pattern: springFrameworkVersion\s*=\s*6\.(2|[3-9]|\d{2,}) # Match property value >= 6.2 in gradle.properties
+              pattern: springFrameworkVersion\s*=\s*6\.(2|[3-9]|\d{2,})(\.\d+)*(-SNAPSHOT)?
 
       - and:
           - builtin.filecontent:
               filePattern: build.gradle.kts
-              pattern: implementation\(["']org\.springframework:spring-.*:\$springFrameworkVersion["']\) # Match dependency using property in build.gradle.kts
+              pattern: implementation\(["']org\.springframework:spring-.*:\$(\{springFrameworkVersion\}|springFrameworkVersion)["']\)
           - builtin.filecontent:
               filePattern: gradle.properties
-              pattern: springFrameworkVersion\s*=\s*6\.(2|[3-9]|\d{2,}) # Match property value >= 6.2 in gradle.properties
+              pattern: springFrameworkVersion\s*=\s*6\.(2|[3-9]|\d{2,})(\.\d+)*(-SNAPSHOT)?
 
-  description: "Detected supported Spring Framework version (> 6.2.x)."
+  description: "Detected Spring Framework version 6.2.x or newer, which is supported."
   message: |
-    Detected Spring Framework version 6.2.x or newer, which is supported.
+    Detected Spring Framework version 6.2.x or newer (including possible SNAPSHOT builds), which is supported.
   links:
     - title: "Spring Framework Release Notes"
       url: "https://github.com/spring-projects/spring-framework/wiki"

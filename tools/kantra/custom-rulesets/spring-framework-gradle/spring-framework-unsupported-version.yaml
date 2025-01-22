@@ -6,35 +6,37 @@
     - "cto.io/spring-framework-version=spring-framework-before-6.0"
     - "cto.io/build-tool=gradle"
     - "cto.io/spring-framework-status=spring-framework-deprecated"
+
   when:
     or:
       - builtin.filecontent:
           filePattern: build.gradle
-          pattern: implementation\s*\(['"]org\.springframework:spring-.*:([1-5]\.\d+|\d)\.?\d*['"]\) # Match Spring Framework version < 6.0 in build.gradle
+          pattern: implementation\s*\(['"]org\.springframework:spring-.*:([1-5]\.\d+|\d)(\.\d+)*(-SNAPSHOT)?['"]\)
 
       - builtin.filecontent:
           filePattern: build.gradle.kts
-          pattern: implementation\(["']org\.springframework:spring-.*:([1-5]\.\d+|\d)\.?\d*["']\) # Match Spring Framework version < 6.0 in build.gradle.kts
+          pattern: implementation\(["']org\.springframework:spring-.*:([1-5]\.\d+|\d)(\.\d+)*(-SNAPSHOT)?["']\)
 
       - and:
           - builtin.filecontent:
               filePattern: build.gradle
-              pattern: implementation\s*\(['"]org\.springframework:spring-.*:\$springFrameworkVersion['"]\) # Match dependency using property in build.gradle
+              pattern: implementation\s*\(['"]org\.springframework:spring-.*:\$(\{springFrameworkVersion\}|springFrameworkVersion)['"]\)
           - builtin.filecontent:
               filePattern: gradle.properties
-              pattern: springFrameworkVersion\s*=\s*([1-5]\.\d+|\d)\.?\d* # Match property value < 6.0 in gradle.properties
+              pattern: springFrameworkVersion\s*=\s*([1-5]\.\d+|\d)(\.\d+)*(-SNAPSHOT)?
 
       - and:
           - builtin.filecontent:
               filePattern: build.gradle.kts
-              pattern: implementation\(["']org\.springframework:spring-.*:\$springFrameworkVersion["']\) # Match dependency using property in build.gradle.kts
+              pattern: implementation\(["']org\.springframework:spring-.*:\$(\{springFrameworkVersion\}|springFrameworkVersion)["']\)
           - builtin.filecontent:
               filePattern: gradle.properties
-              pattern: springFrameworkVersion\s*=\s*([1-5]\.\d+|\d)\.?\d* # Match property value < 6.0 in gradle.properties
+              pattern: springFrameworkVersion\s*=\s*([1-5]\.\d+|\d)(\.\d+)*(-SNAPSHOT)?
 
   description: "Detected unsupported Spring Framework version (< 6.0)."
   message: |
-    Detected Spring Framework version older than 6.0, which is unsupported. Upgrade to 6.2 or later for active support.
+    Detected Spring Framework version older than 6.0, which is unsupported. 
+    Upgrade to 6.2 or later for active support.
   links:
     - title: "Spring Framework End of Life Policy"
       url: "https://spring.io/projects/spring-framework#support"

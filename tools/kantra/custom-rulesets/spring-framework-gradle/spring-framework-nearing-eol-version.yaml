@@ -6,35 +6,37 @@
     - "cto.io/spring-framework-version=spring-framework-6.1"
     - "cto.io/build-tool=gradle"
     - "cto.io/spring-framework-status=spring-framework-nearing-eol"
+
   when:
     or:
       - builtin.filecontent:
           filePattern: build.gradle
-          pattern: implementation\s*\(['"]org\.springframework:spring-.*:6\.1(['"])\) # Match Spring Framework version 6.1 in build.gradle
+          pattern: implementation\s*\(['"]org\.springframework:spring-.*:6\.1(\.\d+)*(-SNAPSHOT)?['"]\)
 
       - builtin.filecontent:
           filePattern: build.gradle.kts
-          pattern: implementation\(["']org\.springframework:spring-.*:6\.1(["']\) # Match Spring Framework version 6.1 in build.gradle.kts
+          pattern: implementation\(["']org\.springframework:spring-.*:6\.1(\.\d+)*(-SNAPSHOT)?["']\)
 
       - and:
           - builtin.filecontent:
               filePattern: build.gradle
-              pattern: implementation\s*\(['"]org\.springframework:spring-.*:\$springFrameworkVersion['"]\) # Match dependency using property in build.gradle
+              pattern: implementation\s*\(['"]org\.springframework:spring-.*:\$(\{springFrameworkVersion\}|springFrameworkVersion)['"]\)
           - builtin.filecontent:
               filePattern: gradle.properties
-              pattern: springFrameworkVersion\s*=\s*6\.1 # Match property value 6.1 in gradle.properties
+              pattern: springFrameworkVersion\s*=\s*6\.1(\.\d+)*(-SNAPSHOT)?
 
       - and:
           - builtin.filecontent:
               filePattern: build.gradle.kts
-              pattern: implementation\(["']org\.springframework:spring-.*:\$springFrameworkVersion["']\) # Match dependency using property in build.gradle.kts
+              pattern: implementation\(["']org\.springframework:spring-.*:\$(\{springFrameworkVersion\}|springFrameworkVersion)["']\)
           - builtin.filecontent:
               filePattern: gradle.properties
-              pattern: springFrameworkVersion\s*=\s*6\.1 # Match property value 6.1 in gradle.properties
+              pattern: springFrameworkVersion\s*=\s*6\.1(\.\d+)*(-SNAPSHOT)?
 
   description: "Detected Spring Framework version nearing end-of-life (6.1.x)."
   message: |
-    Detected Spring Framework version 6.1.x, which is nearing end-of-life. Consider upgrading to 6.2 or later for ongoing support.
+    Detected Spring Framework version 6.1.x (including possible SNAPSHOT builds), which is nearing end-of-life. 
+    Consider upgrading to 6.2 or later for ongoing support.
   links:
     - title: "Spring Framework End of Life Policy"
       url: "https://spring.io/projects/spring-framework#support"
