@@ -74,7 +74,7 @@ def fetch_repositories(batch_size=1000):
         offset += batch_size
     session.close()
 
-def create_batches(batch_size=1000, num_tasks=10):
+def create_batches(batch_size=1000, num_tasks=5):
     all_repos = [r for b in fetch_repositories(batch_size) for r in b]
     return [all_repos[i::num_tasks] for i in range(num_tasks)]
 
@@ -88,10 +88,10 @@ with DAG(
         'process_java_repos',
         default_args=default_args,
         schedule_interval=None,
-        max_active_tasks=10,
+        max_active_tasks=5,
         catchup=False,
 ) as dag:
-    batches = create_batches(batch_size=1000, num_tasks=10)
+    batches = create_batches(batch_size=1000, num_tasks=5)
     for i, batch in enumerate(batches):
         PythonOperator(
             task_id=f"process_batch_{i}",
