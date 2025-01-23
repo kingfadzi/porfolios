@@ -62,7 +62,7 @@ def fetch_repositories(batch_size=1000):
             .join(CombinedRepoMetrics, CombinedRepoMetrics.repo_id == Repository.repo_id)
             .filter(CombinedRepoMetrics.main_language == "Java")
             .filter(CombinedRepoMetrics.activity_status == "ACTIVE")
-            .filter(CombinedRepoMetrics.classification_label != "Code -> Massive")
+            # .filter(CombinedRepoMetrics.classification_label != "Code -> Massive")
             # .filter(Repository.status == "NEW")
             .offset(offset)
             .limit(batch_size)
