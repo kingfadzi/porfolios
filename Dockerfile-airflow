@@ -59,7 +59,16 @@ RUN python3 -m pip install --no-cache-dir \
     sqlalchemy
 
 # ---- Install Java 21 and set JAVA_HOME ----
-RUN dnf install -y java-21-openjdk-devel maven && dnf clean all
+RUN dnf install -y java-21-openjdk-devel
+
+RUN dnf -y update && \
+    dnf -y install dnf-plugins-core && \
+    # Reset existing Maven module, enable the 3.8 stream, then install
+    dnf module reset -y maven && \
+    dnf module enable -y maven:3.8 && \
+    dnf module install -y maven && \
+    # Clean up
+    dnf clean all
 
 
 ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk
