@@ -1,0 +1,167 @@
+- ruleID: "appserver-tomcat-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/appserver=Tomcat"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='org.apache.tomcat'
+            ]
+  description: "Detected Tomcat usage"
+  message: |
+    Application is using Tomcat as an application server. Consider evaluating its configuration for modernization opportunities.
+  links:
+    - title: "Tomcat Official Documentation"
+      url: "http://tomcat.apache.org/"
+
+- ruleID: "appserver-jetty-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/appserver=Jetty"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='org.eclipse.jetty'
+            ]
+  description: "Detected Jetty usage"
+  message: |
+    Application is using Jetty as an application server. Consider evaluating its configuration for modernization opportunities.
+  links:
+    - title: "Jetty Official Documentation"
+      url: "https://www.eclipse.org/jetty/"
+
+- ruleID: "appserver-jboss-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/appserver=JBoss"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='org.jboss'
+              and (
+                starts-with(m:artifactId, 'jboss-eap') or
+                starts-with(m:artifactId, 'wildfly') or
+                starts-with(m:artifactId, 'jboss-as') or
+                starts-with(m:artifactId, 'jboss-modules') or
+                starts-with(m:artifactId, 'jboss-server')
+              )
+            ]
+  description: "Detected JBoss/WildFly usage"
+  message: |
+    Application is using JBoss/WildFly as an application server. Consider evaluating its configuration for modernization opportunities.
+  links:
+    - title: "WildFly Official Documentation"
+      url: "https://www.wildfly.org/"
+
+- ruleID: "appserver-weblogic-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/appserver=WebLogic"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='com.oracle.weblogic'
+            ]
+  description: "Detected WebLogic usage"
+  message: |
+    Application is using Oracle WebLogic as an application server. Consider evaluating its configuration for modernization opportunities.
+  links:
+    - title: "WebLogic Official Documentation"
+      url: "https://www.oracle.com/middleware/technologies/weblogic.html"
+
+- ruleID: "appserver-websphere-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/appserver=WebSphere"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='com.ibm.websphere'
+            ]
+  description: "Detected WebSphere usage"
+  message: |
+    Application is using IBM WebSphere as an application server. Consider evaluating its configuration for modernization opportunities.
+  links:
+    - title: "WebSphere Official Documentation"
+      url: "https://www.ibm.com/products/websphere-application-server"
+
+- ruleID: "appserver-glassfish-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/appserver=GlassFish"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='org.glassfish'
+            ]
+  description: "Detected GlassFish usage"
+  message: |
+    Application is using GlassFish as an application server. Consider evaluating its configuration for modernization opportunities.
+  links:
+    - title: "GlassFish Official Documentation"
+      url: "https://javaee.github.io/glassfish/"
+
+- ruleID: "appserver-payara-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/appserver=Payara"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='fish.payara'
+            ]
+  description: "Detected Payara usage"
+  message: |
+    Application is using Payara as an application server. Consider evaluating its configuration for modernization opportunities.
+  links:
+    - title: "Payara Official Documentation"
+      url: "https://www.payara.fish/"

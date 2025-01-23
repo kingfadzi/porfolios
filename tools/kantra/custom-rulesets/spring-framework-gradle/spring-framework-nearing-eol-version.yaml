@@ -2,11 +2,8 @@
   category: "mandatory"
   effort: 1
   labels:
-    - "cto.io/source=spring-framework"
     - "cto.io/spring-framework-version=spring-framework-6.1"
-    - "cto.io/build-tool=gradle"
     - "cto.io/spring-framework-status=spring-framework-nearing-eol"
-
   when:
     or:
       - builtin.filecontent:

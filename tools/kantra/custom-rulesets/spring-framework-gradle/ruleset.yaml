@@ -1,2 +1,4 @@
 name: spring-framework-gradle/spring-framework
 description: Ruleset for detecting spring-framework-gradle
+labels:
+  - "cto.io/source=spring-framework"

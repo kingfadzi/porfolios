@@ -60,10 +60,10 @@ class KantraAnalyzer(BaseLogger):
             error_message = f"Unexpected error during Kantra analysis: {e}"
             self.logger.error(error_message)
             raise
-        finally:
-            if os.path.exists(output_dir):
-                shutil.rmtree(output_dir, ignore_errors=True)
-                self.logger.info(f"Deleted Kantra output directory to save space: {output_dir}")
+        #finally:
+            #if os.path.exists(output_dir):
+                #shutil.rmtree(output_dir, ignore_errors=True)
+                #self.logger.info(f"Deleted Kantra output directory to save space: {output_dir}")
 
     def generate_effective_pom(self, repo_dir, output_file="effective-pom.xml"):
         pom_path = os.path.join(repo_dir, "pom.xml")
@@ -142,7 +142,7 @@ class KantraAnalyzer(BaseLogger):
                     )
                 )
 
-                for _, violation_data in ruleset_data.get("violations", {}).items():
+                for rulename, violation_data in ruleset_data.get("violations", {}).items():
                     if not violation_data or not violation_data.get("description"):
                         continue
 
@@ -150,17 +150,19 @@ class KantraAnalyzer(BaseLogger):
                     category = violation_data.get("category")
                     effort = violation_data.get("effort")
 
+                    # Insert or update the violation in the database
                     viol_stmt = (
                         insert(Violation)
                         .values(
                             repo_id=repo_id,
                             ruleset_name=ruleset_name,
+                            rule_name=rulename,  # Include the rulename here
                             description=violation_desc,
                             category=category,
                             effort=effort
                         )
                         .on_conflict_do_update(
-                            index_elements=["repo_id", "ruleset_name", "description"],
+                            index_elements=["repo_id", "ruleset_name", "rule_name", "description"],
                             set_={"category": category, "effort": effort}
                         )
                         .returning(Violation.id)
@@ -169,11 +171,13 @@ class KantraAnalyzer(BaseLogger):
                     violation_id = viol_result.scalar()
 
                     if violation_id is None:
+
                         existing_vio = (
                             session.query(Violation)
                             .filter_by(
                                 repo_id=repo_id,
                                 ruleset_name=ruleset_name,
+                                rule_name=rulename,
                                 description=violation_desc
                             )
                             .one()
@@ -207,8 +211,7 @@ class KantraAnalyzer(BaseLogger):
                             .on_conflict_do_nothing(index_elements=["violation_id", "label_id"])
                         )
                         session.execute(link_stmt)
-
-            session.commit()
+                        session.commit()
             self.logger.debug(f"Kantra results committed for repo_id: {repo_id}")
 
         except Exception as e:
@@ -235,9 +238,9 @@ if __name__ == "__main__":
             self.repo_slug = repo_slug
 
     analyzer = KantraAnalyzer()
-    mock_repo_id = "my-sample-repo"
-    mock_repo_slug = "my-sample-repo"
-    mock_repo_dir = "/tmp/my-sample-repo"
+    mock_repo_id = "sonar-metrics"
+    mock_repo_slug = "sonar-metrics"
+    mock_repo_dir = "/Users/fadzi/tools/sonar-metrics"
 
     try:
         session = Session()

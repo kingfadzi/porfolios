@@ -2,11 +2,8 @@
   category: "mandatory"
   effort: 1
   labels:
-    - "cto.io/source=spring-boot"
     - "cto.io/spring-boot-version=spring-boot-2.5-2.6"
-    - "cto.io/build-tool=gradle"
     - "cto.io/spring-boot-status=spring-boot-nearing-eol"
-
   when:
     or:
       - builtin.filecontent:

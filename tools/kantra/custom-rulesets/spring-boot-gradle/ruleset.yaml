@@ -1,2 +1,5 @@
 name: spring-boot-gradle/spring-boot
 description: Ruleset for detecting spring-boot-gradle
+labels:
+  - "cto.io/source=spring-boot"
+

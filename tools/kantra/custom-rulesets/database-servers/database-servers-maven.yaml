@@ -1,0 +1,179 @@
+- ruleID: "database-mysql-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/database=MySQL"
+    - "cto.io/database-type=relational"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='mysql' and m:artifactId='mysql-connector-java'
+            ]
+  message: "Detected usage of MySQL database."
+  description: "Detected usage of MySQL database."
+
+- ruleID: "database-postgresql-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/database=PostgreSQL"
+    - "cto.io/database-type=relational"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='org.postgresql' and m:artifactId='postgresql'
+            ]
+  message: "Detected usage of PostgreSQL database."
+  description: "Detected usage of PostgreSQL database."
+
+- ruleID: "database-oracle-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/database=Oracle"
+    - "cto.io/database-type=relational"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='com.oracle.database.jdbc' and m:artifactId='ojdbc8'
+            ]
+  message: "Detected usage of Oracle database."
+  description: "Detected usage of Oracle database."
+
+- ruleID: "database-sqlserver-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/database=SQLServer"
+    - "cto.io/database-type=relational"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='com.microsoft.sqlserver' and m:artifactId='mssql-jdbc'
+            ]
+  message: "Detected usage of SQL Server database."
+  description: "Detected usage of SQL Server database."
+
+- ruleID: "database-mariadb-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/database=MariaDB"
+    - "cto.io/database-type=relational"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='org.mariadb.jdbc' and m:artifactId='mariadb-java-client'
+            ]
+  message: "Detected usage of MariaDB database."
+  description: "Detected usage of MariaDB database."
+
+- ruleID: "database-h2-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/database=H2"
+    - "cto.io/database-type=relational"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='com.h2database' and m:artifactId='h2'
+            ]
+  message: "Detected usage of H2 database."
+  description: "Detected usage of H2 database."
+
+- ruleID: "database-db2-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/database=Db2"
+    - "cto.io/database-type=relational"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='com.ibm.db2' and m:artifactId='jcc'
+            ]
+  message: "Detected usage of IBM Db2 database."
+  description: "Detected usage of IBM Db2 database."
+
+- ruleID: "database-neo4j-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/database=Neo4j"
+    - "cto.io/database-type=graph"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='org.neo4j.driver' and m:artifactId='neo4j-java-driver'
+            ]
+  message: "Detected usage of Neo4j database."
+  description: "Detected usage of Neo4j database."
+
+- ruleID: "database-hbase-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/database=HBase"
+    - "cto.io/database-type=columnar"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='org.apache.hbase' and m:artifactId='hbase-client'
+            ]
+  message: "Detected usage of HBase database."
+  description: "Detected usage of HBase database."

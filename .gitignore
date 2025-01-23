@@ -1,3 +1,4 @@
 /.idea/
 /tools/cloc/cloc
 /tools/go-enry/go-enry
+/output/

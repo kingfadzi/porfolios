@@ -1,0 +1,220 @@
+- ruleID: "messaging-kafka-gradle"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/middleware=Kafka"
+    - "cto.io/middleware-type=messaging"
+  when:
+    or:
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: implementation\s*['"]org.apache.kafka:.*['"]
+      - builtin.filecontent:
+          filePattern: build.gradle.kts
+          pattern: implementation\(['"]org.apache.kafka:.*['"]\)
+  message: "Detected usage of Apache Kafka."
+  description: "Detected usage of Apache Kafka."
+
+- ruleID: "messaging-rabbitmq-gradle"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/middleware=RabbitMQ"
+    - "cto.io/middleware-type=messaging"
+  when:
+    or:
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: implementation\s*['"]com.rabbitmq:.*['"]
+      - builtin.filecontent:
+          filePattern: build.gradle.kts
+          pattern: implementation\(['"]com.rabbitmq:.*['"]\)
+  message: "Detected usage of RabbitMQ."
+  description: "Detected usage of RabbitMQ."
+
+- ruleID: "messaging-activemq-gradle"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/middleware=ActiveMQ"
+    - "cto.io/middleware-type=messaging"
+  when:
+    or:
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: implementation\s*['"]org.apache.activemq:.*['"]
+      - builtin.filecontent:
+          filePattern: build.gradle.kts
+          pattern: implementation\(['"]org.apache.activemq:.*['"]\)
+  message: "Detected usage of ActiveMQ."
+  description: "Detected usage of ActiveMQ."
+
+- ruleID: "integration-camel-gradle"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/middleware=Camel"
+    - "cto.io/middleware-type=integration"
+  when:
+    or:
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: implementation\s*['"]org.apache.camel:.*['"]
+      - builtin.filecontent:
+          filePattern: build.gradle.kts
+          pattern: implementation\(['"]org.apache.camel:.*['"]\)
+  message: "Detected usage of Apache Camel."
+  description: "Detected usage of Apache Camel."
+
+- ruleID: "integration-mulesoft-gradle"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/middleware=MuleSoft"
+    - "cto.io/middleware-type=integration"
+  when:
+    or:
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: implementation\s*['"]org.mule:.*['"]
+      - builtin.filecontent:
+          filePattern: build.gradle.kts
+          pattern: implementation\(['"]org.mule:.*['"]\)
+  message: "Detected usage of MuleSoft."
+  description: "Detected usage of MuleSoft."
+
+- ruleID: "integration-spring-integration-gradle"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/middleware=SpringIntegration"
+    - "cto.io/middleware-type=integration"
+  when:
+    or:
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: implementation\s*['"]org.springframework.integration:.*['"]
+      - builtin.filecontent:
+          filePattern: build.gradle.kts
+          pattern: implementation\(['"]org.springframework.integration:.*['"]\)
+  message: "Detected usage of Spring Integration."
+  description: "Detected usage of Spring Integration."
+
+- ruleID: "caching-hazelcast-gradle"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/middleware=Hazelcast"
+    - "cto.io/middleware-type=caching"
+  when:
+    or:
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: implementation\s*['"]com.hazelcast:.*['"]
+      - builtin.filecontent:
+          filePattern: build.gradle.kts
+          pattern: implementation\(['"]com.hazelcast:.*['"]\)
+  message: "Detected usage of Hazelcast."
+  description: "Detected usage of Hazelcast."
+
+- ruleID: "caching-redis-gradle"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/middleware=Redis"
+    - "cto.io/middleware-type=caching"
+  when:
+    or:
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: implementation\s*['"]redis.clients:.*['"]
+      - builtin.filecontent:
+          filePattern: build.gradle.kts
+          pattern: implementation\(['"]redis.clients:.*['"]\)
+  message: "Detected usage of Redis."
+  description: "Detected usage of Redis."
+
+- ruleID: "caching-infinispan-gradle"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/middleware=Infinispan"
+    - "cto.io/middleware-type=caching"
+  when:
+    or:
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: implementation\s*['"]org.infinispan:.*['"]
+      - builtin.filecontent:
+          filePattern: build.gradle.kts
+          pattern: implementation\(['"]org.infinispan:.*['"]\)
+  message: "Detected usage of Infinispan."
+  description: "Detected usage of Infinispan."
+
+- ruleID: "integration-apache-cxf-gradle"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/middleware=ApacheCXF"
+    - "cto.io/middleware-type=integration"
+  when:
+    or:
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: implementation\s*['"]org.apache.cxf:.*['"]
+      - builtin.filecontent:
+          filePattern: build.gradle.kts
+          pattern: implementation\(['"]org.apache.cxf:.*['"]\)
+  message: "Detected usage of Apache CXF."
+  description: "Detected usage of Apache CXF for SOAP-based integration."
+
+- ruleID: "integration-spring-ws-gradle"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/middleware=SpringWS"
+    - "cto.io/middleware-type=integration"
+  when:
+    or:
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: implementation\s*['"]org.springframework.ws:.*['"]
+      - builtin.filecontent:
+          filePattern: build.gradle.kts
+          pattern: implementation\(['"]org.springframework.ws:.*['"]\)
+  message: "Detected usage of Spring Web Services."
+  description: "Detected usage of Spring Web Services for SOAP-based integration."
+
+- ruleID: "integration-metro-gradle"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/middleware=Metro"
+    - "cto.io/middleware-type=integration"
+  when:
+    or:
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: implementation\s*['"]com.sun.xml.ws:.*['"]
+      - builtin.filecontent:
+          filePattern: build.gradle.kts
+          pattern: implementation\(['"]com.sun.xml.ws:.*['"]\)
+  message: "Detected usage of Metro SOAP Framework."
+  description: "Detected usage of Metro SOAP Framework for SOAP-based integration."
+
+- ruleID: "integration-axis2-gradle"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/middleware=Axis2"
+    - "cto.io/middleware-type=integration"
+  when:
+    or:
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: implementation\s*['"]org.apache.axis2:.*['"]
+      - builtin.filecontent:
+          filePattern: build.gradle.kts
+          pattern: implementation\(['"]org.apache.axis2:.*['"]\)
+  message: "Detected usage of Apache Axis2."
+  description: "Detected usage of Apache Axis2 for SOAP-based integration."

@@ -272,11 +272,12 @@ CREATE TABLE kantra_rulesets (
 CREATE TABLE kantra_violations (
     id SERIAL PRIMARY KEY,
     ruleset_name TEXT NOT NULL,
+    rule_name TEXT NOT NULL,
     description TEXT,
     category TEXT,
     effort INTEGER,
     repo_id TEXT NOT NULL,
-    UNIQUE (repo_id, ruleset_name, description)
+    UNIQUE (repo_id, ruleset_name, rule_name, description)
 );
 
 CREATE TABLE kantra_labels (

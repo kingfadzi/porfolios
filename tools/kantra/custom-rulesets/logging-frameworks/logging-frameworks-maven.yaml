@@ -1,0 +1,179 @@
+- ruleID: "logging-log4j1-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/logging=Log4j1"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='log4j'
+              and m:artifactId='log4j'
+            ]
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: implementation\s*['"]log4j:log4j
+  description: "Detected Apache Log4j 1.x usage"
+  message: |
+    Application uses Log4j 1.x. This framework is deprecated and no longer maintained. Consider upgrading to Log4j 2 or migrating to SLF4J.
+  links:
+    - title: "Log4j 1.x End of Life Announcement"
+      url: "https://logging.apache.org/log4j/1.2/"
+
+- ruleID: "logging-log4j2-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/logging=Log4j2"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='org.apache.logging.log4j'
+            ]
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: implementation\s*['"]org.apache.logging.log4j
+  description: "Detected Apache Log4j 2 usage"
+  message: |
+    Application uses Log4j 2, a modern and actively maintained logging framework.
+  links:
+    - title: "Log4j 2 Official Documentation"
+      url: "https://logging.apache.org/log4j/2.x/"
+
+- ruleID: "logging-slf4j-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/logging=SLF4J"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='org.slf4j'
+            ]
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: implementation\s*['"]org.slf4j
+  description: "Detected SLF4J usage"
+  message: |
+    Application uses SLF4J, which is a popular logging facade.
+  links:
+    - title: "SLF4J Official Documentation"
+      url: "http://www.slf4j.org/"
+
+- ruleID: "logging-logback-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/logging=Logback"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='ch.qos.logback'
+            ]
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: implementation\s*['"]ch.qos.logback
+  description: "Detected Logback usage"
+  message: |
+    Application uses Logback, the native implementation of SLF4J.
+  links:
+    - title: "Logback Official Documentation"
+      url: "https://logback.qos.ch/"
+
+- ruleID: "logging-commons-logging=-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/logging=CommonsLogging"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='commons-logging'
+            ]
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: implementation\s*['"]commons-logging
+  description: "Detected Apache Commons Logging usage"
+  message: |
+    Application uses Apache Commons Logging. Consider migrating to SLF4J for better compatibility and maintainability.
+  links:
+    - title: "Commons Logging Official Documentation"
+      url: "https://commons.apache.org/proper/commons-logging/"
+
+- ruleID: "logging-jbosslogging--maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/logging=JBossLogging"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='org.jboss.logging'
+            ]
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: implementation\s*['"]org.jboss.logging
+  description: "Detected JBoss Logging usage"
+  message: |
+    Application uses JBoss Logging. Consider standardizing on SLF4J for a more flexible logging implementation.
+  links:
+    - title: "JBoss Logging Official Documentation"
+      url: "https://github.com/jboss-logging/jboss-logging"
+
+- ruleID: "logging-javautil-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/logging=JavaUtil"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='java.util.logging'
+            ]
+  description: "Detected Java Util Logging usage"
+  message: |
+    Application uses Java Util Logging (JUL). Consider using a more modern logging framework such as SLF4J or Log4j 2.
+  links:
+    - title: "Java Util Logging Overview"
+      url: "https://docs.oracle.com/javase/8/docs/api/java/util/logging/package-summary.html"

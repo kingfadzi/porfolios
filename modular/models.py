@@ -282,11 +282,12 @@ class Violation(Base):
     id = Column(Integer, primary_key=True)
     repo_id = Column(String)
     ruleset_name = Column(String)
+    rule_name = Column(String)
     description = Column(String)
     category = Column(String)
     effort = Column(Integer)
     __table_args__ = (
-        UniqueConstraint("repo_id", "ruleset_name", "description", name="uq_repo_rule_desc"),
+        UniqueConstraint("repo_id", "ruleset_name", "rule_name", "description", name="uq_repo_rule_desc"),
     )
 
 class Label(Base):

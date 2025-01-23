@@ -2,9 +2,7 @@
   category: "informational"
   effort: 1
   labels:
-    - "cto.io/source=spring-framework"
     - "cto.io/spring-framework-version=spring-framework-6.2+"
-    - "cto.io/build-tool=maven"
     - "cto.io/spring-framework-status=spring-framework-supported"
   when:
     or:

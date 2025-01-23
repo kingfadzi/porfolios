@@ -2,9 +2,7 @@
   category: "mandatory"
   effort: 1
   labels:
-    - "cto.io/source=spring-boot"
     - "cto.io/spring-boot-version=spring-boot-before-2.5"
-    - "cto.io/build-tool=maven"
     - "cto.io/spring-boot-status=spring-boot-deprecated"
   when:
     or:

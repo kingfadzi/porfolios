@@ -1,0 +1,239 @@
+- ruleID: "messaging-kafka-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/middleware=Kafka"
+    - "cto.io/middleware-type=messaging"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='org.apache.kafka'
+            ]
+  message: "Detected usage of Apache Kafka."
+  description: "Detected usage of Apache Kafka."
+
+- ruleID: "messaging-rabbitmq-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/middleware=RabbitMQ"
+    - "cto.io/middleware-type=messaging"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='com.rabbitmq'
+            ]
+  message: "Detected usage of RabbitMQ."
+  description: "Detected usage of RabbitMQ."
+
+- ruleID: "messaging-activemq-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/middleware=ActiveMQ"
+    - "cto.io/middleware-type=messaging"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='org.apache.activemq'
+            ]
+  message: "Detected usage of ActiveMQ."
+  description: "Detected usage of ActiveMQ."
+
+- ruleID: "integration-camel-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/middleware=Camel"
+    - "cto.io/middleware-type=integration"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='org.apache.camel'
+            ]
+  message: "Detected usage of Apache Camel."
+  description: "Detected usage of Apache Camel."
+
+- ruleID: "integration-mulesoft-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/middleware=MuleSoft"
+    - "cto.io/middleware-type=integration"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='org.mule'
+            ]
+  message: "Detected usage of MuleSoft."
+  description: "Detected usage of MuleSoft."
+
+- ruleID: "integration-spring-integration-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/middleware=SpringIntegration"
+    - "cto.io/middleware-type=integration"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='org.springframework.integration'
+            ]
+  message: "Detected usage of Spring Integration."
+  description: "Detected usage of Spring Integration."
+
+- ruleID: "caching-hazelcast-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/middleware=Hazelcast"
+    - "cto.io/middleware-type=caching"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='com.hazelcast'
+            ]
+  message: "Detected usage of Hazelcast."
+  description: "Detected usage of Hazelcast."
+
+- ruleID: "caching-redis-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/middleware=Redis"
+    - "cto.io/middleware-type=caching"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='redis.clients'
+            ]
+  message: "Detected usage of Redis."
+  description: "Detected usage of Redis."
+
+- ruleID: "integration-apache-cxf-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/middleware=ApacheCXF"
+    - "cto.io/middleware-type=integration"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='org.apache.cxf'
+            ]
+  message: "Detected usage of Apache CXF."
+  description: "Detected usage of Apache CXF for SOAP-based integration."
+
+- ruleID: "integration-spring-ws-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/middleware=SpringWS"
+    - "cto.io/middleware-type=integration"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='org.springframework.ws'
+            ]
+  message: "Detected usage of Spring Web Services."
+  description: "Detected usage of Spring Web Services for SOAP-based integration."
+
+- ruleID: "integration-metro-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/middleware=Metro"
+    - "cto.io/middleware-type=integration"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='com.sun.xml.ws'
+            ]
+  message: "Detected usage of Metro SOAP Framework."
+  description: "Detected usage of Metro SOAP Framework for SOAP-based integration."
+
+- ruleID: "integration-axis2-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/middleware=Axis2"
+    - "cto.io/middleware-type=integration"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='org.apache.axis2'
+            ]
+  message: "Detected usage of Apache Axis2."
+  description: "Detected usage of Apache Axis2 for SOAP-based integration."

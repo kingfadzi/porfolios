@@ -2,11 +2,8 @@
   category: "informational"
   effort: 1
   labels:
-    - "cto.io/source=spring-framework"
     - "cto.io/spring-framework-version=spring-framework-6.2+"
-    - "cto.io/build-tool=gradle"
     - "cto.io/spring-framework-version=spring-framework-supported"
-
   when:
     or:
       - builtin.filecontent:
