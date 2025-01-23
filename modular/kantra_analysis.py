@@ -42,7 +42,7 @@ class KantraAnalyzer(BaseLogger):
                 capture_output=True,
                 text=True,
                 check=True,
-                timeout=300  # 5-minute timeout
+                timeout=300
             )
             self.logger.info(f"Kantra analysis completed for repo_id: {repo.repo_id}")
 
