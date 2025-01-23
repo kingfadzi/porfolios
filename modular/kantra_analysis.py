@@ -107,8 +107,8 @@ class KantraAnalyzer(BaseLogger):
             f"kantra analyze "
             f"--input={repo_dir} "
             f"--output={output_dir} "
-          #  f"--rules={os.path.abspath(Config.KANTRA_RULESET_FILE)} "
-          #  f"--enable-default-rulesets=false "
+            f"--rules={os.path.abspath(Config.KANTRA_RULESET_FILE)} "
+            f"--enable-default-rulesets=false "
             f"--overwrite"
         )
 
