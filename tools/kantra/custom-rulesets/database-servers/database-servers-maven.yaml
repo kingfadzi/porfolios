@@ -177,3 +177,103 @@
             ]
   message: "Detected usage of HBase database."
   description: "Detected usage of HBase database."
+
+- ruleID: "database-mongodb-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/database=MongoDB"
+    - "cto.io/database-type=document"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='org.mongodb' and m:artifactId='mongodb-driver-sync'
+            ]
+  message: "Detected usage of MongoDB database."
+  description: "Detected usage of MongoDB database."
+
+- ruleID: "database-cassandra-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/database=Cassandra"
+    - "cto.io/database-type=nosql"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='com.datastax.cassandra' and m:artifactId='cassandra-driver-core'
+            ]
+  message: "Detected usage of Cassandra database."
+  description: "Detected usage of Cassandra database."
+
+- ruleID: "database-elasticsearch-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/database=Elasticsearch"
+    - "cto.io/database-type=search"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='org.elasticsearch.client' and m:artifactId='elasticsearch-rest-high-level-client'
+            ]
+  message: "Detected usage of Elasticsearch database."
+  description: "Detected usage of Elasticsearch database."
+
+- ruleID: "database-dynamodb-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/database=DynamoDB"
+    - "cto.io/database-type=nosql"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='com.amazonaws' and m:artifactId='aws-java-sdk-dynamodb'
+            ]
+  message: "Detected usage of DynamoDB database."
+  description: "Detected usage of DynamoDB database."
+
+- ruleID: "database-couchbase-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/database=Couchbase"
+    - "cto.io/database-type=nosql"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            //m:dependency[
+              m:groupId='com.couchbase.client' and m:artifactId='java-client'
+            ]
+  message: "Detected usage of Couchbase database."
+  description: "Detected usage of Couchbase database."

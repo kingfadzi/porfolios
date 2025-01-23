@@ -240,7 +240,7 @@ if __name__ == "__main__":
     analyzer = KantraAnalyzer()
     mock_repo_id = "sonar-metrics"
     mock_repo_slug = "sonar-metrics"
-    mock_repo_dir = "/Users/fadzi/tools/sonar-metrics"
+    mock_repo_dir = "/Users/fadzi/tools/nosql-injection-vulnapp"
 
     try:
         session = Session()
