@@ -13,7 +13,11 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            (/m:project/m:dependencies/m:dependency | /m:projects/m:project/m:dependencies/m:dependency)[
+            (
+              /m:project/m:build/m:plugins[not(ancestor::m:pluginManagement)]/m:plugin
+              |
+              /m:projects/m:project/m:build/m:plugins[not(ancestor::m:pluginManagement)]/m:plugin
+            )[
               m:groupId='org.springframework.boot'
               and starts-with(m:artifactId, 'spring-boot-starter')
               and (
@@ -32,7 +36,11 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            (/m:project/m:build/m:plugins/m:plugin | /m:projects/m:project/m:build/m:plugins/m:plugin)[
+            (
+              /m:project/m:build/m:plugins[not(ancestor::m:pluginManagement)]/m:plugin
+              |
+              /m:projects/m:project/m:build/m:plugins[not(ancestor::m:pluginManagement)]/m:plugin
+            )[
               m:groupId='org.springframework.boot'
               and starts-with(m:artifactId, 'spring-boot-maven-plugin')
               and (

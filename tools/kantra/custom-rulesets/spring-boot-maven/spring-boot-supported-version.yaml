@@ -16,15 +16,14 @@
             ( //m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency )[
               m:groupId = 'org.springframework.boot'
               and starts-with(m:artifactId, 'spring-boot-starter')
-            and (
-              number(substring-before(m:version, '.')) > 2
-            or (
-              number(substring-before(m:version, '.')) = 2
-              and number(substring-before(substring-after(m:version, '.'), '.')) >= 7
-            )
-            )
-        ]
-
+              and (
+                number(substring-before(m:version, '.')) > 2
+                or (
+                  number(substring-before(m:version, '.')) = 2
+                  and number(substring-before(substring-after(m:version, '.'), '.')) >= 7
+                )
+              )
+            ]
 
       # CASE B: Plugin version >= 2.7
       - builtin.xml:
@@ -34,21 +33,20 @@
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
             (
-            /m:project/m:build/m:plugins[not(ancestor::m:pluginManagement)]/m:plugin
-            |
-            /m:projects/m:project/m:build/m:plugins[not(ancestor::m:pluginManagement)]/m:plugin
+              /m:project/m:build/m:plugins[not(ancestor::m:pluginManagement)]/m:plugin
+              |
+              /m:projects/m:project/m:build/m:plugins[not(ancestor::m:pluginManagement)]/m:plugin
             )[
-            m:groupId='org.springframework.boot'
-            and starts-with(m:artifactId, 'spring-boot-maven-plugin')
-            and (
-              number(substring-before(m:version, '.')) > 2
-              or (
-              number(substring-before(m:version, '.')) = 2
-              and number(substring-before(substring-after(m:version, '.'), '.')) >= 7
-            )
-            )
-          ]
-
+              m:groupId='org.springframework.boot'
+              and starts-with(m:artifactId, 'spring-boot-maven-plugin')
+              and (
+                number(substring-before(m:version, '.')) > 2
+                or (
+                  number(substring-before(m:version, '.')) = 2
+                  and number(substring-before(substring-after(m:version, '.'), '.')) >= 7
+                )
+              )
+            ]
   description: "Detected supported Spring Boot version (>2.7)."
   message: |
     Detected Spring Boot version 2.7.x or newer, which is supported. No immediate action is required.
