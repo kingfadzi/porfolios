@@ -1,4 +1,4 @@
-- ruleID: "spring-framework-unsupported-version"
+- ruleID: "spring-framework-unsupported-version-maven"
   category: "mandatory"
   effort: 1
   labels:

@@ -1,4 +1,4 @@
-- ruleID: "spring-framework-supported-version"
+- ruleID: "spring-framework-supported-version-maven"
   category: "informational"
   effort: 1
   labels:

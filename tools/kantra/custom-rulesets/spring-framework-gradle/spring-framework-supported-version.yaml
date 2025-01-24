@@ -1,4 +1,4 @@
-- ruleID: "spring-framework-supported-version"
+- ruleID: "spring-framework-supported-version-gradle"
   category: "informational"
   effort: 1
   labels:
