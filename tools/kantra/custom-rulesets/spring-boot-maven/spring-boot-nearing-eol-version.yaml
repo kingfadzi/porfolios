@@ -13,11 +13,7 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            (
-              /m:project/m:build/m:plugins[not(ancestor::m:pluginManagement)]/m:plugin
-              |
-              /m:projects/m:project/m:build/m:plugins[not(ancestor::m:pluginManagement)]/m:plugin
-            )[
+            ( //m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency )[
               m:groupId='org.springframework.boot'
               and starts-with(m:artifactId, 'spring-boot-starter')
               and (
@@ -29,28 +25,6 @@
               )
             ]
 
-      # CASE B: Plugin version >= 2.5 and < 2.7
-      - builtin.xml:
-          filepaths:
-            - "effective-pom.xml"
-          namespaces:
-            m: "http://maven.apache.org/POM/4.0.0"
-          xpath: >
-            (
-              /m:project/m:build/m:plugins[not(ancestor::m:pluginManagement)]/m:plugin
-              |
-              /m:projects/m:project/m:build/m:plugins[not(ancestor::m:pluginManagement)]/m:plugin
-            )[
-              m:groupId='org.springframework.boot'
-              and starts-with(m:artifactId, 'spring-boot-maven-plugin')
-              and (
-                number(substring-before(m:version, '.')) = 2
-                and (
-                  number(substring-before(substring-after(m:version, '.'), '.')) >= 5
-                  and number(substring-before(substring-after(m:version, '.'), '.')) < 7
-                )
-              )
-            ]
   description: "Detected Spring Boot versions nearing end-of-life (2.5 ≤ version < 2.7)."
   message: |
     Detected Spring Boot version between 2.5.x and 2.7.0, which is nearing end-of-life. Consider upgrading to 2.7.x or later to stay on a supported track.

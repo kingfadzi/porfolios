@@ -13,37 +13,18 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            (
-              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-              |
-              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-            )[
+            ( //m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency )[
               m:groupId='org.springframework'
+              and starts-with(m:artifactId, 'spring')
               and (
                 number(substring-before(m:version, '.')) < 6
               )
             ]
 
-      # CASE B: Plugin with version < 6.0
-      - builtin.xml:
-          filepaths:
-            - "effective-pom.xml"
-          namespaces:
-            m: "http://maven.apache.org/POM/4.0.0"
-          xpath: >
-            (
-              /m:project/m:build/m:plugins[not(ancestor::m:pluginManagement)]/m:plugin
-              |
-              /m:projects/m:project/m:build/m:plugins[not(ancestor::m:pluginManagement)]/m:plugin
-            )[
-              m:groupId='org.springframework'
-              and (
-                number(substring-before(m:version, '.')) < 6
-              )
-            ]
   description: "Detected unsupported Spring Framework version (< 6.0)."
   message: |
-    Detected Spring Framework version < 6.0, which is unsupported. Upgrade to 6.2 or later for active support.
+    Detected Spring Framework version older than 6.0, which is unsupported. 
+    Upgrade to 6.2 or later for active support.
   links:
     - title: "Spring Framework End of Life Policy"
       url: "https://spring.io/projects/spring-framework#support"

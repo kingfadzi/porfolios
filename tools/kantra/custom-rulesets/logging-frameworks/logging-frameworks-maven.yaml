@@ -11,11 +11,7 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            (
-              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-              |
-              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-            )[
+            ( //m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency )[
               m:groupId='log4j'
               and m:artifactId='log4j'
             ]
@@ -42,11 +38,7 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            (
-              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-              |
-              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-            )[
+            ( //m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency )[
               m:groupId='org.apache.logging.log4j'
             ]
       - builtin.filecontent:
@@ -72,11 +64,7 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            (
-              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-              |
-              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-            )[
+            ( //m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency )[
               m:groupId='org.slf4j'
             ]
       - builtin.filecontent:
@@ -102,11 +90,7 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            (
-              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-              |
-              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-            )[
+            ( //m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency )[
               m:groupId='ch.qos.logback'
             ]
       - builtin.filecontent:
@@ -132,11 +116,7 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            (
-              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-              |
-              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-            )[
+            ( //m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency )[
               m:groupId='commons-logging'
             ]
       - builtin.filecontent:
@@ -162,11 +142,7 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            (
-              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-              |
-              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-            )[
+            ( //m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency )[
               m:groupId='org.jboss.logging'
             ]
       - builtin.filecontent:
@@ -192,11 +168,7 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            (
-              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-              |
-              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-            )[
+            ( //m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency )[
               m:groupId='java.util.logging'
             ]
   description: "Detected Java Util Logging usage"

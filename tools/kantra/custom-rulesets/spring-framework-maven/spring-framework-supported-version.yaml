@@ -13,12 +13,9 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            (
-              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-              |
-              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-            )[
+            ( //m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency )[
               m:groupId='org.springframework'
+              and starts-with(m:artifactId, 'spring')
               and (
                 number(substring-before(m:version, '.')) > 6
                 or (
@@ -28,30 +25,9 @@
               )
             ]
 
-      # CASE B: Plugins with version ≥ 6.2
-      - builtin.xml:
-          filepaths:
-            - "effective-pom.xml"
-          namespaces:
-            m: "http://maven.apache.org/POM/4.0.0"
-          xpath: >
-            (
-              /m:project/m:build/m:plugins[not(ancestor::m:pluginManagement)]/m:plugin
-              |
-              /m:projects/m:project/m:build/m:plugins[not(ancestor::m:pluginManagement)]/m:plugin
-            )[
-              m:groupId='org.springframework'
-              and (
-                number(substring-before(m:version, '.')) > 6
-                or (
-                  number(substring-before(m:version, '.')) = 6
-                  and number(substring-before(substring-after(m:version, '.'), '.')) >= 2
-                )
-              )
-            ]
-  description: "Detected supported Spring Framework version (> 6.2.x)."
+  description: "Detected Spring Framework version 6.2.x or newer, which is supported."
   message: |
-    Detected Spring Framework version 6.2.x or newer, which is currently supported.
+    Detected Spring Framework version 6.2.x or newer (including possible SNAPSHOT builds), which is supported.
   links:
     - title: "Spring Framework Release Notes"
       url: "https://github.com/spring-projects/spring-framework/wiki"

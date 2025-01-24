@@ -12,11 +12,7 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            (
-              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-              |
-              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-            )[
+            ( //m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency )[
               m:groupId='org.mongodb'
               and m:artifactId='mongodb-driver-sync'
             ]
@@ -37,11 +33,7 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            (
-              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-              |
-              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-            )[
+            ( //m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency )[
               m:groupId='org.elasticsearch.client'
               and m:artifactId='elasticsearch-rest-high-level-client'
             ]
@@ -62,11 +54,7 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            (
-              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-              |
-              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-            )[
+            ( //m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency )[
               m:groupId='com.datastax.cassandra'
               and m:artifactId='cassandra-driver-core'
             ]
@@ -87,11 +75,7 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            (
-              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-              |
-              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-            )[
+            ( //m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency )[
               m:groupId='com.couchbase.client'
               and m:artifactId='java-client'
             ]
@@ -112,11 +96,7 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            (
-              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-              |
-              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-            )[
+            ( //m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency )[
               m:groupId='org.neo4j.driver'
               and m:artifactId='neo4j-java-driver'
             ]
@@ -137,11 +117,7 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            (
-              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-              |
-              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-            )[
+            ( //m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency )[
               m:groupId='com.amazonaws'
               and m:artifactId='aws-java-sdk-dynamodb'
             ]
@@ -162,11 +138,7 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            (
-              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-              |
-              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-            )[
+            ( //m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency )[
               m:groupId='org.apache.hbase'
               and m:artifactId='hbase-client'
             ]
@@ -187,11 +159,7 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            (
-              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-              |
-              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-            )[
+            ( //m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency )[
               m:groupId='com.oracle.database.jdbc'
               and m:artifactId='ojdbc8'
             ]
@@ -212,11 +180,7 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            (
-              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-              |
-              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-            )[
+            ( //m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency )[
               m:groupId='com.microsoft.sqlserver'
               and m:artifactId='mssql-jdbc'
             ]
@@ -237,11 +201,7 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            (
-              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-              |
-              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-            )[
+            ( //m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency )[
               m:groupId='org.postgresql'
               and m:artifactId='postgresql'
             ]
@@ -262,11 +222,7 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            (
-              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-              |
-              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-            )[
+            ( //m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency )[
               m:groupId='mysql'
               and m:artifactId='mysql-connector-java'
             ]
@@ -287,11 +243,7 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            (
-              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-              |
-              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-            )[
+            ( //m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency )[
               m:groupId='org.mariadb.jdbc'
               and m:artifactId='mariadb-java-client'
             ]
@@ -312,11 +264,7 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            (
-              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-              |
-              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-            )[
+            ( //m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency )[
               m:groupId='com.h2database'
               and m:artifactId='h2'
             ]
@@ -337,11 +285,7 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            (
-              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-              |
-              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-            )[
+            ( //m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency )[
               m:groupId='com.ibm.db2'
               and m:artifactId='jcc'
             ]
@@ -362,11 +306,7 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            (
-              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-              |
-              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-            )[
+            ( //m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency )[
               m:groupId='com.oracle.coherence'
               and m:artifactId='coherence'
             ]
