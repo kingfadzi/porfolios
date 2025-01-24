@@ -13,28 +13,8 @@ def main_layout():
             ),
             dbc.Row(
                 [
-                    # Filter Section
                     dbc.Col(filter_layout(), md=3),
-
-                    # Chart/Table Toggle and Display Section
-                    dbc.Col(
-                        [
-                            # Add a toggle for switching between chart and table
-                            dbc.RadioItems(
-                                id="toggle-view",
-                                options=[
-                                    {"label": "Visualization", "value": "viz"},
-                                    {"label": "Table", "value": "table"},
-                                ],
-                                value="viz",
-                                inline=True,
-                                className="mb-3",
-                            ),
-                            # This will dynamically update between chart and table
-                            html.Div(id="chart-or-table"),
-                        ],
-                        md=9,
-                    ),
+                    dbc.Col(chart_layout(), md=9),  # No arguments needed
                 ]
             ),
         ],
