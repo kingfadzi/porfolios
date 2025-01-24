@@ -5,7 +5,7 @@ SELECT DISTINCT ON (crm.repo_id, crm.component_id, crm.app_id, crm.clone_url_ssh
     crm.repo_slug AS repo_slug,
     crm.component_id AS component_id,
     crm.app_id AS app_id,
-    crm.tc AS total_checks,
+    crm.tc AS tc,
     crm.web_url AS web_url,
     crm.clone_url_ssh AS clone_url_ssh,
     crm.status AS status,
