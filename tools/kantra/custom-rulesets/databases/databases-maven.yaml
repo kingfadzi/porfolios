@@ -1,9 +1,9 @@
-- ruleID: "database-mysql-maven"
+- ruleID: "database-mongodb-maven"
   category: "mandatory"
   effort: 1
   labels:
-    - "cto.io/database=MySQL"
-    - "cto.io/database-type=relational"
+    - "cto.io/database=MongoDB"
+    - "cto.io/database-type=document"
   when:
     or:
       - builtin.xml:
@@ -17,18 +17,18 @@
               |
               /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
             )[
-              m:groupId='mysql'
-              and m:artifactId='mysql-connector-java'
+              m:groupId='org.mongodb'
+              and m:artifactId='mongodb-driver-sync'
             ]
-  message: "Detected usage of MySQL database."
-  description: "Detected usage of MySQL database."
+  message: "Detected usage of MongoDB database."
+  description: "Detected usage of MongoDB database."
 
-- ruleID: "database-postgresql-maven"
+- ruleID: "database-elasticsearch-maven"
   category: "mandatory"
   effort: 1
   labels:
-    - "cto.io/database=PostgreSQL"
-    - "cto.io/database-type=relational"
+    - "cto.io/database=Elasticsearch"
+    - "cto.io/database-type=search"
   when:
     or:
       - builtin.xml:
@@ -42,11 +42,136 @@
               |
               /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
             )[
-              m:groupId='org.postgresql'
-              and m:artifactId='postgresql'
+              m:groupId='org.elasticsearch.client'
+              and m:artifactId='elasticsearch-rest-high-level-client'
             ]
-  message: "Detected usage of PostgreSQL database."
-  description: "Detected usage of PostgreSQL database."
+  message: "Detected usage of Elasticsearch database."
+  description: "Detected usage of Elasticsearch database."
+
+- ruleID: "database-cassandra-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/database=Cassandra"
+    - "cto.io/database-type=nosql"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            (
+              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+              |
+              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+            )[
+              m:groupId='com.datastax.cassandra'
+              and m:artifactId='cassandra-driver-core'
+            ]
+  message: "Detected usage of Cassandra database."
+  description: "Detected usage of Cassandra database."
+
+- ruleID: "database-couchbase-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/database=Couchbase"
+    - "cto.io/database-type=nosql"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            (
+              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+              |
+              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+            )[
+              m:groupId='com.couchbase.client'
+              and m:artifactId='java-client'
+            ]
+  message: "Detected usage of Couchbase database."
+  description: "Detected usage of Couchbase database."
+
+- ruleID: "database-neo4j-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/database=Neo4j"
+    - "cto.io/database-type=graph"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            (
+              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+              |
+              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+            )[
+              m:groupId='org.neo4j.driver'
+              and m:artifactId='neo4j-java-driver'
+            ]
+  message: "Detected usage of Neo4j database."
+  description: "Detected usage of Neo4j database."
+
+- ruleID: "database-dynamodb-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/database=DynamoDB"
+    - "cto.io/database-type=nosql"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            (
+              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+              |
+              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+            )[
+              m:groupId='com.amazonaws'
+              and m:artifactId='aws-java-sdk-dynamodb'
+            ]
+  message: "Detected usage of DynamoDB database."
+  description: "Detected usage of DynamoDB database."
+
+- ruleID: "database-hbase-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/database=HBase"
+    - "cto.io/database-type=columnar"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            (
+              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+              |
+              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+            )[
+              m:groupId='org.apache.hbase'
+              and m:artifactId='hbase-client'
+            ]
+  message: "Detected usage of HBase database."
+  description: "Detected usage of HBase database."
 
 - ruleID: "database-oracle-maven"
   category: "mandatory"
@@ -97,6 +222,56 @@
             ]
   message: "Detected usage of SQL Server database."
   description: "Detected usage of SQL Server database."
+
+- ruleID: "database-postgresql-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/database=PostgreSQL"
+    - "cto.io/database-type=relational"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            (
+              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+              |
+              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+            )[
+              m:groupId='org.postgresql'
+              and m:artifactId='postgresql'
+            ]
+  message: "Detected usage of PostgreSQL database."
+  description: "Detected usage of PostgreSQL database."
+
+- ruleID: "database-mysql-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/database=MySQL"
+    - "cto.io/database-type=relational"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            (
+              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+              |
+              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+            )[
+              m:groupId='mysql'
+              and m:artifactId='mysql-connector-java'
+            ]
+  message: "Detected usage of MySQL database."
+  description: "Detected usage of MySQL database."
 
 - ruleID: "database-mariadb-maven"
   category: "mandatory"
@@ -173,181 +348,6 @@
   message: "Detected usage of IBM Db2 database."
   description: "Detected usage of IBM Db2 database."
 
-- ruleID: "database-neo4j-maven"
-  category: "mandatory"
-  effort: 1
-  labels:
-    - "cto.io/database=Neo4j"
-    - "cto.io/database-type=graph"
-  when:
-    or:
-      - builtin.xml:
-          filepaths:
-            - "effective-pom.xml"
-          namespaces:
-            m: "http://maven.apache.org/POM/4.0.0"
-          xpath: >
-            (
-              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-              |
-              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-            )[
-              m:groupId='org.neo4j.driver'
-              and m:artifactId='neo4j-java-driver'
-            ]
-  message: "Detected usage of Neo4j database."
-  description: "Detected usage of Neo4j database."
-
-- ruleID: "database-hbase-maven"
-  category: "mandatory"
-  effort: 1
-  labels:
-    - "cto.io/database=HBase"
-    - "cto.io/database-type=columnar"
-  when:
-    or:
-      - builtin.xml:
-          filepaths:
-            - "effective-pom.xml"
-          namespaces:
-            m: "http://maven.apache.org/POM/4.0.0"
-          xpath: >
-            (
-              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-              |
-              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-            )[
-              m:groupId='org.apache.hbase'
-              and m:artifactId='hbase-client'
-            ]
-  message: "Detected usage of HBase database."
-  description: "Detected usage of HBase database."
-
-- ruleID: "database-mongodb-maven"
-  category: "mandatory"
-  effort: 1
-  labels:
-    - "cto.io/database=MongoDB"
-    - "cto.io/database-type=document"
-  when:
-    or:
-      - builtin.xml:
-          filepaths:
-            - "effective-pom.xml"
-          namespaces:
-            m: "http://maven.apache.org/POM/4.0.0"
-          xpath: >
-            (
-              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-              |
-              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-            )[
-              m:groupId='org.mongodb'
-              and m:artifactId='mongodb-driver-sync'
-            ]
-  message: "Detected usage of MongoDB database."
-  description: "Detected usage of MongoDB database."
-
-- ruleID: "database-cassandra-maven"
-  category: "mandatory"
-  effort: 1
-  labels:
-    - "cto.io/database=Cassandra"
-    - "cto.io/database-type=nosql"
-  when:
-    or:
-      - builtin.xml:
-          filepaths:
-            - "effective-pom.xml"
-          namespaces:
-            m: "http://maven.apache.org/POM/4.0.0"
-          xpath: >
-            (
-              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-              |
-              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-            )[
-              m:groupId='com.datastax.cassandra'
-              and m:artifactId='cassandra-driver-core'
-            ]
-  message: "Detected usage of Cassandra database."
-  description: "Detected usage of Cassandra database."
-
-- ruleID: "database-elasticsearch-maven"
-  category: "mandatory"
-  effort: 1
-  labels:
-    - "cto.io/database=Elasticsearch"
-    - "cto.io/database-type=search"
-  when:
-    or:
-      - builtin.xml:
-          filepaths:
-            - "effective-pom.xml"
-          namespaces:
-            m: "http://maven.apache.org/POM/4.0.0"
-          xpath: >
-            (
-              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-              |
-              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-            )[
-              m:groupId='org.elasticsearch.client'
-              and m:artifactId='elasticsearch-rest-high-level-client'
-            ]
-  message: "Detected usage of Elasticsearch database."
-  description: "Detected usage of Elasticsearch database."
-
-- ruleID: "database-dynamodb-maven"
-  category: "mandatory"
-  effort: 1
-  labels:
-    - "cto.io/database=DynamoDB"
-    - "cto.io/database-type=nosql"
-  when:
-    or:
-      - builtin.xml:
-          filepaths:
-            - "effective-pom.xml"
-          namespaces:
-            m: "http://maven.apache.org/POM/4.0.0"
-          xpath: >
-            (
-              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-              |
-              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-            )[
-              m:groupId='com.amazonaws'
-              and m:artifactId='aws-java-sdk-dynamodb'
-            ]
-  message: "Detected usage of DynamoDB database."
-  description: "Detected usage of DynamoDB database."
-
-- ruleID: "database-couchbase-maven"
-  category: "mandatory"
-  effort: 1
-  labels:
-    - "cto.io/database=Couchbase"
-    - "cto.io/database-type=nosql"
-  when:
-    or:
-      - builtin.xml:
-          filepaths:
-            - "effective-pom.xml"
-          namespaces:
-            m: "http://maven.apache.org/POM/4.0.0"
-          xpath: >
-            (
-              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-              |
-              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-            )[
-              m:groupId='com.couchbase.client'
-              and m:artifactId='java-client'
-            ]
-  message: "Detected usage of Couchbase database."
-  description: "Detected usage of Couchbase database."
-
 - ruleID: "caching-coherence-maven"
   category: "mandatory"
   effort: 1
@@ -372,29 +372,3 @@
             ]
   message: "Detected usage of Oracle Coherence."
   description: "Detected usage of Oracle Coherence, a distributed caching and in-memory data grid solution."
-
-
-- ruleID: "caching-ehcache-maven"
-  category: "mandatory"
-  effort: 1
-  labels:
-    - "cto.io/middleware=Ehcache"
-    - "cto.io/middleware-type=caching"
-  when:
-    or:
-      - builtin.xml:
-          filepaths:
-            - "effective-pom.xml"
-          namespaces:
-            m: "http://maven.apache.org/POM/4.0.0"
-          xpath: >
-            (
-              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-              |
-              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
-            )[
-              m:groupId='org.ehcache'
-              and m:artifactId='ehcache'
-            ]
-  message: "Detected usage of Ehcache."
-  description: "Detected usage of Ehcache, a popular Java-based caching solution."

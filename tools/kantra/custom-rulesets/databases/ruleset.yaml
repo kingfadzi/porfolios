@@ -1,0 +1,4 @@
+name: databases/databases
+description: Ruleset for detecting databases
+labels:
+  - "cto.io/source=spring-framework"
