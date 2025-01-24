@@ -235,3 +235,20 @@
           pattern: implementation\(['"]com.couchbase.client:java-client:.*['"]\)
   message: "Detected usage of Couchbase database."
   description: "Detected usage of Couchbase database."
+
+- ruleID: "database-couchbase-gradle"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/database=Couchbase"
+    - "cto.io/database-type=nosql"
+  when:
+    or:
+      - builtin.filecontent:
+          filePattern: build.gradle
+          pattern: implementation\s*['"]com\.couchbase\.client:java-client:.*['"]
+      - builtin.filecontent:
+          filePattern: build.gradle.kts
+          pattern: implementation\(\s*['"]com\.couchbase\.client:java-client:.*['"]\s*\)
+  message: "Detected usage of Couchbase database."
+  description: "Detected usage of Couchbase database."

@@ -12,9 +12,13 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            /m:project/m:dependencies/m:dependency | 
-            /m:projects/m:project/m:dependencies/m:dependency[
-              m:groupId='mysql' and m:artifactId='mysql-connector-java'
+            (
+              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+              |
+              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+            )[
+              m:groupId='mysql'
+              and m:artifactId='mysql-connector-java'
             ]
   message: "Detected usage of MySQL database."
   description: "Detected usage of MySQL database."
@@ -33,9 +37,13 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            /m:project/m:dependencies/m:dependency | 
-            /m:projects/m:project/m:dependencies/m:dependency[
-              m:groupId='org.postgresql' and m:artifactId='postgresql'
+            (
+              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+              |
+              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+            )[
+              m:groupId='org.postgresql'
+              and m:artifactId='postgresql'
             ]
   message: "Detected usage of PostgreSQL database."
   description: "Detected usage of PostgreSQL database."
@@ -54,9 +62,13 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            /m:project/m:dependencies/m:dependency | 
-            /m:projects/m:project/m:dependencies/m:dependency[
-              m:groupId='com.oracle.database.jdbc' and m:artifactId='ojdbc8'
+            (
+              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+              |
+              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+            )[
+              m:groupId='com.oracle.database.jdbc'
+              and m:artifactId='ojdbc8'
             ]
   message: "Detected usage of Oracle database."
   description: "Detected usage of Oracle database."
@@ -75,9 +87,13 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            /m:project/m:dependencies/m:dependency | 
-            /m:projects/m:project/m:dependencies/m:dependency[
-              m:groupId='com.microsoft.sqlserver' and m:artifactId='mssql-jdbc'
+            (
+              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+              |
+              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+            )[
+              m:groupId='com.microsoft.sqlserver'
+              and m:artifactId='mssql-jdbc'
             ]
   message: "Detected usage of SQL Server database."
   description: "Detected usage of SQL Server database."
@@ -96,9 +112,13 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            /m:project/m:dependencies/m:dependency | 
-            /m:projects/m:project/m:dependencies/m:dependency[
-              m:groupId='org.mariadb.jdbc' and m:artifactId='mariadb-java-client'
+            (
+              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+              |
+              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+            )[
+              m:groupId='org.mariadb.jdbc'
+              and m:artifactId='mariadb-java-client'
             ]
   message: "Detected usage of MariaDB database."
   description: "Detected usage of MariaDB database."
@@ -117,9 +137,13 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            /m:project/m:dependencies/m:dependency | 
-            /m:projects/m:project/m:dependencies/m:dependency[
-              m:groupId='com.h2database' and m:artifactId='h2'
+            (
+              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+              |
+              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+            )[
+              m:groupId='com.h2database'
+              and m:artifactId='h2'
             ]
   message: "Detected usage of H2 database."
   description: "Detected usage of H2 database."
@@ -138,9 +162,13 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            /m:project/m:dependencies/m:dependency | 
-            /m:projects/m:project/m:dependencies/m:dependency[
-              m:groupId='com.ibm.db2' and m:artifactId='jcc'
+            (
+              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+              |
+              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+            )[
+              m:groupId='com.ibm.db2'
+              and m:artifactId='jcc'
             ]
   message: "Detected usage of IBM Db2 database."
   description: "Detected usage of IBM Db2 database."
@@ -159,9 +187,13 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            /m:project/m:dependencies/m:dependency | 
-            /m:projects/m:project/m:dependencies/m:dependency[
-              m:groupId='org.neo4j.driver' and m:artifactId='neo4j-java-driver'
+            (
+              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+              |
+              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+            )[
+              m:groupId='org.neo4j.driver'
+              and m:artifactId='neo4j-java-driver'
             ]
   message: "Detected usage of Neo4j database."
   description: "Detected usage of Neo4j database."
@@ -180,9 +212,13 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            /m:project/m:dependencies/m:dependency | 
-            /m:projects/m:project/m:dependencies/m:dependency[
-              m:groupId='org.apache.hbase' and m:artifactId='hbase-client'
+            (
+              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+              |
+              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+            )[
+              m:groupId='org.apache.hbase'
+              and m:artifactId='hbase-client'
             ]
   message: "Detected usage of HBase database."
   description: "Detected usage of HBase database."
@@ -201,9 +237,13 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            /m:project/m:dependencies/m:dependency | 
-            /m:projects/m:project/m:dependencies/m:dependency[
-              m:groupId='org.mongodb' and m:artifactId='mongodb-driver-sync'
+            (
+              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+              |
+              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+            )[
+              m:groupId='org.mongodb'
+              and m:artifactId='mongodb-driver-sync'
             ]
   message: "Detected usage of MongoDB database."
   description: "Detected usage of MongoDB database."
@@ -222,9 +262,13 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            /m:project/m:dependencies/m:dependency | 
-            /m:projects/m:project/m:dependencies/m:dependency[
-              m:groupId='com.datastax.cassandra' and m:artifactId='cassandra-driver-core'
+            (
+              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+              |
+              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+            )[
+              m:groupId='com.datastax.cassandra'
+              and m:artifactId='cassandra-driver-core'
             ]
   message: "Detected usage of Cassandra database."
   description: "Detected usage of Cassandra database."
@@ -243,9 +287,13 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            /m:project/m:dependencies/m:dependency | 
-            /m:projects/m:project/m:dependencies/m:dependency[
-              m:groupId='org.elasticsearch.client' and m:artifactId='elasticsearch-rest-high-level-client'
+            (
+              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+              |
+              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+            )[
+              m:groupId='org.elasticsearch.client'
+              and m:artifactId='elasticsearch-rest-high-level-client'
             ]
   message: "Detected usage of Elasticsearch database."
   description: "Detected usage of Elasticsearch database."
@@ -264,9 +312,13 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            /m:project/m:dependencies/m:dependency | 
-            /m:projects/m:project/m:dependencies/m:dependency[
-              m:groupId='com.amazonaws' and m:artifactId='aws-java-sdk-dynamodb'
+            (
+              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+              |
+              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+            )[
+              m:groupId='com.amazonaws'
+              and m:artifactId='aws-java-sdk-dynamodb'
             ]
   message: "Detected usage of DynamoDB database."
   description: "Detected usage of DynamoDB database."
@@ -285,9 +337,64 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            /m:project/m:dependencies/m:dependency | 
-            /m:projects/m:project/m:dependencies/m:dependency[
-              m:groupId='com.couchbase.client' and m:artifactId='java-client'
+            (
+              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+              |
+              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+            )[
+              m:groupId='com.couchbase.client'
+              and m:artifactId='java-client'
             ]
   message: "Detected usage of Couchbase database."
   description: "Detected usage of Couchbase database."
+
+- ruleID: "caching-coherence-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/middleware=Coherence"
+    - "cto.io/middleware-type=caching"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            (
+              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+              |
+              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+            )[
+              m:groupId='com.oracle.coherence'
+              and m:artifactId='coherence'
+            ]
+  message: "Detected usage of Oracle Coherence."
+  description: "Detected usage of Oracle Coherence, a distributed caching and in-memory data grid solution."
+
+
+- ruleID: "caching-ehcache-maven"
+  category: "mandatory"
+  effort: 1
+  labels:
+    - "cto.io/middleware=Ehcache"
+    - "cto.io/middleware-type=caching"
+  when:
+    or:
+      - builtin.xml:
+          filepaths:
+            - "effective-pom.xml"
+          namespaces:
+            m: "http://maven.apache.org/POM/4.0.0"
+          xpath: >
+            (
+              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+              |
+              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+            )[
+              m:groupId='org.ehcache'
+              and m:artifactId='ehcache'
+            ]
+  message: "Detected usage of Ehcache."
+  description: "Detected usage of Ehcache, a popular Java-based caching solution."

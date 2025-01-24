@@ -6,26 +6,36 @@
     - "cto.io/spring-framework-status=spring-framework-deprecated"
   when:
     or:
+      # CASE A: Dependency with version < 6.0
       - builtin.xml:
           filepaths:
             - "effective-pom.xml"
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            (/m:project/m:dependencies/m:dependency | /m:projects/m:project/m:dependencies/m:dependency)[
+            (
+              /m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+              |
+              /m:projects/m:project/m:dependencies[not(ancestor::m:dependencyManagement)]/m:dependency
+            )[
               m:groupId='org.springframework'
               and (
                 number(substring-before(m:version, '.')) < 6
               )
             ]
 
+      # CASE B: Plugin with version < 6.0
       - builtin.xml:
           filepaths:
             - "effective-pom.xml"
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            (/m:project/m:build/m:plugins/m:plugin | /m:projects/m:project/m:build/m:plugins/m:plugin)[
+            (
+              /m:project/m:build/m:plugins[not(ancestor::m:pluginManagement)]/m:plugin
+              |
+              /m:projects/m:project/m:build/m:plugins[not(ancestor::m:pluginManagement)]/m:plugin
+            )[
               m:groupId='org.springframework'
               and (
                 number(substring-before(m:version, '.')) < 6
