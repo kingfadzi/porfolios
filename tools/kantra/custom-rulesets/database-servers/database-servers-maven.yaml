@@ -12,7 +12,8 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            //m:dependency[
+            /m:project/m:dependencies/m:dependency | 
+            /m:projects/m:project/m:dependencies/m:dependency[
               m:groupId='mysql' and m:artifactId='mysql-connector-java'
             ]
   message: "Detected usage of MySQL database."
@@ -32,7 +33,8 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            //m:dependency[
+            /m:project/m:dependencies/m:dependency | 
+            /m:projects/m:project/m:dependencies/m:dependency[
               m:groupId='org.postgresql' and m:artifactId='postgresql'
             ]
   message: "Detected usage of PostgreSQL database."
@@ -52,7 +54,8 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            //m:dependency[
+            /m:project/m:dependencies/m:dependency | 
+            /m:projects/m:project/m:dependencies/m:dependency[
               m:groupId='com.oracle.database.jdbc' and m:artifactId='ojdbc8'
             ]
   message: "Detected usage of Oracle database."
@@ -72,7 +75,8 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            //m:dependency[
+            /m:project/m:dependencies/m:dependency | 
+            /m:projects/m:project/m:dependencies/m:dependency[
               m:groupId='com.microsoft.sqlserver' and m:artifactId='mssql-jdbc'
             ]
   message: "Detected usage of SQL Server database."
@@ -92,7 +96,8 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            //m:dependency[
+            /m:project/m:dependencies/m:dependency | 
+            /m:projects/m:project/m:dependencies/m:dependency[
               m:groupId='org.mariadb.jdbc' and m:artifactId='mariadb-java-client'
             ]
   message: "Detected usage of MariaDB database."
@@ -112,7 +117,8 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            //m:dependency[
+            /m:project/m:dependencies/m:dependency | 
+            /m:projects/m:project/m:dependencies/m:dependency[
               m:groupId='com.h2database' and m:artifactId='h2'
             ]
   message: "Detected usage of H2 database."
@@ -132,7 +138,8 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            //m:dependency[
+            /m:project/m:dependencies/m:dependency | 
+            /m:projects/m:project/m:dependencies/m:dependency[
               m:groupId='com.ibm.db2' and m:artifactId='jcc'
             ]
   message: "Detected usage of IBM Db2 database."
@@ -152,7 +159,8 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            //m:dependency[
+            /m:project/m:dependencies/m:dependency | 
+            /m:projects/m:project/m:dependencies/m:dependency[
               m:groupId='org.neo4j.driver' and m:artifactId='neo4j-java-driver'
             ]
   message: "Detected usage of Neo4j database."
@@ -172,7 +180,8 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            //m:dependency[
+            /m:project/m:dependencies/m:dependency | 
+            /m:projects/m:project/m:dependencies/m:dependency[
               m:groupId='org.apache.hbase' and m:artifactId='hbase-client'
             ]
   message: "Detected usage of HBase database."
@@ -192,7 +201,8 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            //m:dependency[
+            /m:project/m:dependencies/m:dependency | 
+            /m:projects/m:project/m:dependencies/m:dependency[
               m:groupId='org.mongodb' and m:artifactId='mongodb-driver-sync'
             ]
   message: "Detected usage of MongoDB database."
@@ -212,7 +222,8 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            //m:dependency[
+            /m:project/m:dependencies/m:dependency | 
+            /m:projects/m:project/m:dependencies/m:dependency[
               m:groupId='com.datastax.cassandra' and m:artifactId='cassandra-driver-core'
             ]
   message: "Detected usage of Cassandra database."
@@ -232,7 +243,8 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            //m:dependency[
+            /m:project/m:dependencies/m:dependency | 
+            /m:projects/m:project/m:dependencies/m:dependency[
               m:groupId='org.elasticsearch.client' and m:artifactId='elasticsearch-rest-high-level-client'
             ]
   message: "Detected usage of Elasticsearch database."
@@ -252,7 +264,8 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            //m:dependency[
+            /m:project/m:dependencies/m:dependency | 
+            /m:projects/m:project/m:dependencies/m:dependency[
               m:groupId='com.amazonaws' and m:artifactId='aws-java-sdk-dynamodb'
             ]
   message: "Detected usage of DynamoDB database."
@@ -272,7 +285,8 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            //m:dependency[
+            /m:project/m:dependencies/m:dependency | 
+            /m:projects/m:project/m:dependencies/m:dependency[
               m:groupId='com.couchbase.client' and m:artifactId='java-client'
             ]
   message: "Detected usage of Couchbase database."

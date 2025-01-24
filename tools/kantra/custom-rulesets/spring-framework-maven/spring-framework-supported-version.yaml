@@ -12,7 +12,7 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            //m:project/m:dependencies/m:dependency[
+            (/m:project/m:dependencies/m:dependency | /m:projects/m:project/m:dependencies/m:dependency)[
               m:groupId='org.springframework'
               and (
                 number(substring-before(m:version, '.')) > 6
@@ -29,7 +29,7 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            //m:project/m:build/m:plugins/m:plugin[
+            (/m:project/m:build/m:plugins/m:plugin | /m:projects/m:project/m:build/m:plugins/m:plugin)[
               m:groupId='org.springframework'
               and (
                 number(substring-before(m:version, '.')) > 6

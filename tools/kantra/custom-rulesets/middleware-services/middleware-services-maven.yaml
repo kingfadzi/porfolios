@@ -12,7 +12,7 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            //m:dependency[
+            (/m:project/m:dependencies/m:dependency | /m:projects/m:project/m:dependencies/m:dependency)[
               m:groupId='org.apache.kafka'
             ]
   message: "Detected usage of Apache Kafka."
@@ -32,7 +32,7 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            //m:dependency[
+            (/m:project/m:dependencies/m:dependency | /m:projects/m:project/m:dependencies/m:dependency)[
               m:groupId='com.rabbitmq'
             ]
   message: "Detected usage of RabbitMQ."
@@ -52,7 +52,7 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            //m:dependency[
+            (/m:project/m:dependencies/m:dependency | /m:projects/m:project/m:dependencies/m:dependency)[
               m:groupId='org.apache.activemq'
             ]
   message: "Detected usage of ActiveMQ."
@@ -72,7 +72,7 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            //m:dependency[
+            (/m:project/m:dependencies/m:dependency | /m:projects/m:project/m:dependencies/m:dependency)[
               m:groupId='org.apache.camel'
             ]
   message: "Detected usage of Apache Camel."
@@ -92,7 +92,7 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            //m:dependency[
+            (/m:project/m:dependencies/m:dependency | /m:projects/m:project/m:dependencies/m:dependency)[
               m:groupId='org.mule'
             ]
   message: "Detected usage of MuleSoft."
@@ -112,7 +112,7 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            //m:dependency[
+            (/m:project/m:dependencies/m:dependency | /m:projects/m:project/m:dependencies/m:dependency)[
               m:groupId='org.springframework.integration'
             ]
   message: "Detected usage of Spring Integration."
@@ -132,7 +132,7 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            //m:dependency[
+            (/m:project/m:dependencies/m:dependency | /m:projects/m:project/m:dependencies/m:dependency)[
               m:groupId='com.hazelcast'
             ]
   message: "Detected usage of Hazelcast."
@@ -152,7 +152,7 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            //m:dependency[
+            (/m:project/m:dependencies/m:dependency | /m:projects/m:project/m:dependencies/m:dependency)[
               m:groupId='redis.clients'
             ]
   message: "Detected usage of Redis."
@@ -172,7 +172,7 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            //m:dependency[
+            (/m:project/m:dependencies/m:dependency | /m:projects/m:project/m:dependencies/m:dependency)[
               m:groupId='org.apache.cxf'
             ]
   message: "Detected usage of Apache CXF."
@@ -192,7 +192,7 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            //m:dependency[
+            (/m:project/m:dependencies/m:dependency | /m:projects/m:project/m:dependencies/m:dependency)[
               m:groupId='org.springframework.ws'
             ]
   message: "Detected usage of Spring Web Services."
@@ -212,7 +212,7 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            //m:dependency[
+            (/m:project/m:dependencies/m:dependency | /m:projects/m:project/m:dependencies/m:dependency)[
               m:groupId='com.sun.xml.ws'
             ]
   message: "Detected usage of Metro SOAP Framework."
@@ -232,7 +232,7 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            //m:dependency[
+            (/m:project/m:dependencies/m:dependency | /m:projects/m:project/m:dependencies/m:dependency)[
               m:groupId='org.apache.axis2'
             ]
   message: "Detected usage of Apache Axis2."

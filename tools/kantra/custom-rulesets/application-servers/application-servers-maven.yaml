@@ -11,7 +11,8 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            //m:dependency[
+            /m:project/m:dependencies/m:dependency | 
+            /m:projects/m:project/m:dependencies/m:dependency[
               m:groupId='org.apache.tomcat'
             ]
   description: "Detected Tomcat usage"
@@ -34,7 +35,8 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            //m:dependency[
+            /m:project/m:dependencies/m:dependency | 
+            /m:projects/m:project/m:dependencies/m:dependency[
               m:groupId='org.eclipse.jetty'
             ]
   description: "Detected Jetty usage"
@@ -57,7 +59,8 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            //m:dependency[
+            /m:project/m:dependencies/m:dependency | 
+            /m:projects/m:project/m:dependencies/m:dependency[
               m:groupId='org.jboss'
               and (
                 starts-with(m:artifactId, 'jboss-eap') or
@@ -87,7 +90,8 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            //m:dependency[
+            /m:project/m:dependencies/m:dependency | 
+            /m:projects/m:project/m:dependencies/m:dependency[
               m:groupId='com.oracle.weblogic'
             ]
   description: "Detected WebLogic usage"
@@ -110,7 +114,8 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            //m:dependency[
+            /m:project/m:dependencies/m:dependency | 
+            /m:projects/m:project/m:dependencies/m:dependency[
               m:groupId='com.ibm.websphere'
             ]
   description: "Detected WebSphere usage"
@@ -133,7 +138,8 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            //m:dependency[
+            /m:project/m:dependencies/m:dependency | 
+            /m:projects/m:project/m:dependencies/m:dependency[
               m:groupId='org.glassfish'
             ]
   description: "Detected GlassFish usage"
@@ -156,7 +162,8 @@
           namespaces:
             m: "http://maven.apache.org/POM/4.0.0"
           xpath: >
-            //m:dependency[
+            /m:project/m:dependencies/m:dependency | 
+            /m:projects/m:project/m:dependencies/m:dependency[
               m:groupId='fish.payara'
             ]
   description: "Detected Payara usage"
