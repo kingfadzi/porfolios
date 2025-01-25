@@ -39,11 +39,10 @@ task {TASK_NAME} {
     }
 }
 """
-
 class GradleHelper(BaseLogger):
     def __init__(self):
         self.logger = self.get_logger(self.__class__.__name__)
-        self.logger.setLevel(logging.INFO)
+        self.logger.setLevel(logging.DEBUG)
 
     def generate_resolved_dependencies(self, repo_dir, output_file="all-deps-nodupes.txt"):
         self.logger.info(f"Generating resolved dependencies for repo: {repo_dir}")
@@ -71,6 +70,12 @@ class GradleHelper(BaseLogger):
         final_path = self._get_output_path(repo_dir, output_file)
         if final_path:
             self.logger.info(f"Gradle dependencies written to: {final_path}")
+            try:
+                with open(final_path, "r", encoding="utf-8") as f:
+                    contents = f.read()
+                self.logger.debug(f"--- all-deps-nodupes.txt contents ---\n{contents}\n--- end of file ---")
+            except Exception as e:
+                self.logger.warning(f"Could not read {final_path} for debug logging: {e}")
         else:
             self.logger.debug("No dependencies file found after running the custom task.")
         return final_path
