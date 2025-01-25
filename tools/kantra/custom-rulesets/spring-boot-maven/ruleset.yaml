@@ -1,4 +1,4 @@
 name: spring-boot-maven/spring-boot
 description: Ruleset for detecting spring-boot-maven
 labels:
-  - "cto.io/source=spring-framework"
+  - "cto.io/source=spring-boot"
