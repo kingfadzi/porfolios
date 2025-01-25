@@ -60,10 +60,10 @@ class KantraAnalyzer(BaseLogger):
             error_message = f"Unexpected error during Kantra analysis: {e}"
             self.logger.error(error_message)
             raise
-        #finally:
-            #if os.path.exists(output_dir):
-                #shutil.rmtree(output_dir, ignore_errors=True)
-                #self.logger.info(f"Deleted Kantra output directory to save space: {output_dir}")
+        finally:
+            if os.path.exists(output_dir):
+                shutil.rmtree(output_dir, ignore_errors=True)
+                self.logger.info(f"Deleted Kantra output directory to save space: {output_dir}")
 
     def generate_effective_pom(self, repo_dir, output_file="effective-pom.xml"):
         pom_path = os.path.join(repo_dir, "pom.xml")
