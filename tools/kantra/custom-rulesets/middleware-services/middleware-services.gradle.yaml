@@ -7,6 +7,9 @@
   when:
     or:
       - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: org\.apache\.kafka:.*
+      - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]org.apache.kafka:.*['"]
       - builtin.filecontent:
@@ -23,6 +26,9 @@
     - "cto.io/middleware-type=messaging"
   when:
     or:
+      - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: com\.rabbitmq:.*
       - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]com.rabbitmq:.*['"]
@@ -41,6 +47,9 @@
   when:
     or:
       - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: org\.apache\.activemq:.*
+      - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]org.apache.activemq:.*['"]
       - builtin.filecontent:
@@ -57,6 +66,9 @@
     - "cto.io/middleware-type=integration"
   when:
     or:
+      - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: org\.apache\.camel:.*
       - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]org.apache.camel:.*['"]
@@ -75,6 +87,9 @@
   when:
     or:
       - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: org\.mule:.*
+      - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]org.mule:.*['"]
       - builtin.filecontent:
@@ -91,6 +106,9 @@
     - "cto.io/middleware-type=integration"
   when:
     or:
+      - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: org\.springframework\.integration:.*
       - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]org.springframework.integration:.*['"]
@@ -109,6 +127,9 @@
   when:
     or:
       - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: com\.hazelcast:.*
+      - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]com.hazelcast:.*['"]
       - builtin.filecontent:
@@ -125,6 +146,9 @@
     - "cto.io/middleware-type=caching"
   when:
     or:
+      - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: redis\.clients:.*
       - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]redis.clients:.*['"]
@@ -143,6 +167,9 @@
   when:
     or:
       - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: org\.infinispan:.*
+      - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]org.infinispan:.*['"]
       - builtin.filecontent:
@@ -159,6 +186,9 @@
     - "cto.io/middleware-type=integration"
   when:
     or:
+      - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: org\.apache\.cxf:.*
       - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]org.apache.cxf:.*['"]
@@ -177,6 +207,9 @@
   when:
     or:
       - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: org\.springframework\.ws:.*
+      - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]org.springframework.ws:.*['"]
       - builtin.filecontent:
@@ -194,6 +227,9 @@
   when:
     or:
       - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: com\.sun\.xml\.ws:.*
+      - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]com.sun.xml.ws:.*['"]
       - builtin.filecontent:
@@ -210,6 +246,9 @@
     - "cto.io/middleware-type=integration"
   when:
     or:
+      - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: org\.apache\.axis2:.*
       - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]org.apache.axis2:.*['"]

@@ -9,6 +9,8 @@ from modular.base_logger import BaseLogger
 from modular.execution_decorator import analyze_execution
 from modular.models import Session, Ruleset, Violation, Label, ViolationLabel
 from modular.config import Config
+from modular.maven_helper import MavenHelper
+from modular.gradle_helper import GradleHelper
 
 
 class KantraAnalyzer(BaseLogger):
@@ -22,12 +24,12 @@ class KantraAnalyzer(BaseLogger):
 
         if not os.path.exists(repo_dir):
             raise FileNotFoundError(f"Repository directory does not exist: {repo_dir}")
-        if not os.path.exists(Config.KANTRA_RULESET_FILE):
-            raise FileNotFoundError(f"Ruleset file not found: {Config.KANTRA_RULESET_FILE}")
+        if not os.path.exists(Config.KANTRA_RULESETS):
+            raise FileNotFoundError(f"Ruleset file not found: {Config.KANTRA_RULESETS}")
 
-        effective_pom_path = self.generate_effective_pom(repo_dir)
-        if effective_pom_path:
-            self.logger.info(f"Generated effective POM at: {effective_pom_path}")
+        MavenHelper().generate_effective_pom(repo_dir)
+
+        GradleHelper().generate_resolved_dependencies(repo_dir)
 
         output_dir = os.path.join(Config.KANTRA_OUTPUT_ROOT, f"kantra_output_{repo.repo_slug}")
         os.makedirs(output_dir, exist_ok=True)
@@ -65,49 +67,12 @@ class KantraAnalyzer(BaseLogger):
                 shutil.rmtree(output_dir, ignore_errors=True)
                 self.logger.info(f"Deleted Kantra output directory to save space: {output_dir}")
 
-    def generate_effective_pom(self, repo_dir, output_file="effective-pom.xml"):
-        pom_path = os.path.join(repo_dir, "pom.xml")
-        if not os.path.exists(pom_path):
-            self.logger.info("No pom.xml found. Skipping effective POM generation.")
-            return None
-
-        command_list = ["mvn", "help:effective-pom", f"-Doutput={output_file}"]
-        if Config.MAVEN_TRUSTSTORE:
-            command_list.append(f"-Djavax.net.ssl.trustStore={Config.MAVEN_TRUSTSTORE}")
-        if Config.MAVEN_TRUSTSTORE_PASSWORD:
-            command_list.append(f"-Djavax.net.ssl.trustStorePassword={Config.MAVEN_TRUSTSTORE_PASSWORD}")
-
-        cmd_str = " ".join(command_list)
-        self.logger.debug(f"Running Maven command: {cmd_str} in {repo_dir}")
-
-        try:
-            result = subprocess.run(
-                command_list,
-                cwd=repo_dir,
-                capture_output=True,
-                text=True,
-                check=True
-            )
-            self.logger.debug(f"Maven help:effective-pom completed. Stdout:\n{result.stdout.strip()}")
-            return os.path.join(repo_dir, output_file)
-
-        except subprocess.CalledProcessError as e:
-            self.logger.warning("Failed to generate effective-pom.xml; falling back to raw pom.xml.")
-            handle_subprocess_error(e, self.logger, cmd_str)
-            if os.path.exists(pom_path):
-                return pom_path
-            return None
-
-        except Exception as e:
-            self.logger.error(f"Unexpected error during effective POM generation: {e}")
-            raise
-
     def build_kantra_command(self, repo_dir, output_dir):
         return (
             f"kantra analyze "
             f"--input={repo_dir} "
             f"--output={output_dir} "
-            f"--rules={os.path.abspath(Config.KANTRA_RULESET_FILE)} "
+            f"--rules={os.path.abspath(Config.KANTRA_RULESETS)} "
             f"--enable-default-rulesets=false "
             f"--overwrite"
         )
@@ -128,7 +93,6 @@ class KantraAnalyzer(BaseLogger):
         if not analysis_data:
             self.logger.warning("No data found to persist. Skipping database updates.")
             return
-
         try:
             for ruleset_data in analysis_data:
                 ruleset_name = ruleset_data.get("name")
@@ -141,22 +105,18 @@ class KantraAnalyzer(BaseLogger):
                         set_={"description": description}
                     )
                 )
-
                 for rulename, violation_data in ruleset_data.get("violations", {}).items():
                     if not violation_data or not violation_data.get("description"):
                         continue
-
                     violation_desc = violation_data["description"]
                     category = violation_data.get("category")
                     effort = violation_data.get("effort")
-
-                    # Insert or update the violation in the database
                     viol_stmt = (
                         insert(Violation)
                         .values(
                             repo_id=repo_id,
                             ruleset_name=ruleset_name,
-                            rule_name=rulename,  # Include the rulename here
+                            rule_name=rulename,
                             description=violation_desc,
                             category=category,
                             effort=effort
@@ -169,9 +129,7 @@ class KantraAnalyzer(BaseLogger):
                     )
                     viol_result = session.execute(viol_stmt)
                     violation_id = viol_result.scalar()
-
                     if violation_id is None:
-
                         existing_vio = (
                             session.query(Violation)
                             .filter_by(
@@ -183,15 +141,12 @@ class KantraAnalyzer(BaseLogger):
                             .one()
                         )
                         violation_id = existing_vio.id
-
                     labels = violation_data.get("labels", [])
                     for label_str in labels:
                         if "=" not in label_str:
                             self.logger.warning(f"Skipping invalid label format: {label_str}")
                             continue
-
                         key, value = label_str.split("=", 1)
-
                         lbl_stmt = (
                             insert(Label)
                             .values(key=key, value=value)
@@ -200,11 +155,13 @@ class KantraAnalyzer(BaseLogger):
                         )
                         lbl_result = session.execute(lbl_stmt)
                         label_id = lbl_result.scalar()
-
                         if label_id is None:
-                            existing_lbl = session.query(Label).filter_by(key=key, value=value).one()
+                            existing_lbl = (
+                                session.query(Label)
+                                .filter_by(key=key, value=value)
+                                .one()
+                            )
                             label_id = existing_lbl.id
-
                         link_stmt = (
                             insert(ViolationLabel)
                             .values(violation_id=violation_id, label_id=label_id)
@@ -213,7 +170,6 @@ class KantraAnalyzer(BaseLogger):
                         session.execute(link_stmt)
                         session.commit()
             self.logger.debug(f"Kantra results committed for repo_id: {repo_id}")
-
         except Exception as e:
             session.rollback()
             self.logger.error(f"Error saving Kantra results for repo_id {repo_id}: {e}")
@@ -221,7 +177,10 @@ class KantraAnalyzer(BaseLogger):
 
 
 def handle_subprocess_error(e, logger, command):
-    msg = [f"Subprocess command failed with exit code {e.returncode}.", f"Command: {command}"]
+    msg = [
+        f"Subprocess command failed with exit code {e.returncode}.",
+        f"Command: {command}"
+    ]
     if e.stdout:
         msg.append(f"Stdout:\n{e.stdout.strip()}")
     if e.stderr:
@@ -242,6 +201,7 @@ if __name__ == "__main__":
     mock_repo_slug = "sonar-metrics"
     mock_repo_dir = "/Users/fadzi/tools/nosql-injection-vulnapp"
 
+    from modular.models import Session
     try:
         session = Session()
     except Exception as e:

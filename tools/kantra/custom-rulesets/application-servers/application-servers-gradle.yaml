@@ -6,6 +6,9 @@
   when:
     or:
       - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: org\.apache\.tomcat:.*
+      - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]org.apache.tomcat:.*['"]
       - builtin.filecontent:
@@ -28,6 +31,9 @@
   when:
     or:
       - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: org\.eclipse\.jetty:.*
+      - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]org.eclipse.jetty:.*['"]
       - builtin.filecontent:
@@ -46,6 +52,9 @@
     - "cto.io/appserver=WildFly"
   when:
     or:
+      - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: org\.wildfly:.*
       - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]org.wildfly:.*['"]
@@ -66,6 +75,9 @@
   when:
     or:
       - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: org\.jboss\.eap:.*
+      - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]org.jboss.eap:.*['"]
       - builtin.filecontent:
@@ -81,6 +93,9 @@
     - "cto.io/appserver=WebLogic"
   when:
     or:
+      - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: com\.oracle\.weblogic:.*
       - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]com.oracle.weblogic:.*['"]
@@ -98,6 +113,9 @@
   when:
     or:
       - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: com\.ibm\.websphere:.*
+      - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]com.ibm.websphere:.*['"]
       - builtin.filecontent:
@@ -113,6 +131,9 @@
     - "cto.io/appserver=GlassFish"
   when:
     or:
+      - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: org\.glassfish:.*
       - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]org.glassfish:.*['"]
@@ -130,6 +151,9 @@
   when:
     or:
       - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: fish\.payara\..*:.*
+      - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]fish.payara.*:.*['"]
       - builtin.filecontent:
@@ -145,6 +169,9 @@
     - "cto.io/appserver=Undertow"
   when:
     or:
+      - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: io\.undertow:.*
       - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]io.undertow:.*['"]

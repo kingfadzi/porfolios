@@ -6,6 +6,9 @@
   when:
     or:
       - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: log4j:log4j:.*
+      - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]log4j:log4j
       - builtin.filecontent:
@@ -25,6 +28,9 @@
     - "cto.io/logging=Log4j2"
   when:
     or:
+      - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: org\.apache\.logging\.log4j:.*
       - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]org.apache.logging.log4j:.*['"]
@@ -46,6 +52,9 @@
   when:
     or:
       - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: org\.slf4j:.*
+      - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]org.slf4j:.*['"]
       - builtin.filecontent:
@@ -65,6 +74,9 @@
     - "cto.io/logging=Logback"
   when:
     or:
+      - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: ch\.qos\.logback:.*
       - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]ch.qos.logback:.*['"]
@@ -86,6 +98,9 @@
   when:
     or:
       - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: commons-logging:.*
+      - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]commons-logging:.*['"]
       - builtin.filecontent:
@@ -106,6 +121,9 @@
   when:
     or:
       - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: org\.jboss\.logging:.*
+      - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]org.jboss.logging:.*['"]
       - builtin.filecontent:
@@ -125,6 +143,9 @@
     - "cto.io/logging=JavaUtil"
   when:
     or:
+      - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: java\.util\.logging
       - builtin.filecontent:
           filePattern: build.gradle
           pattern: java\.util\.logging

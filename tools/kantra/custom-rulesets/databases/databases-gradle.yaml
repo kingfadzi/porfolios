@@ -7,6 +7,9 @@
   when:
     or:
       - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: org\.mongodb:mongodb-driver-sync:.*
+      - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]org\.mongodb:mongodb-driver-sync:.*['"]
       - builtin.filecontent:
@@ -23,6 +26,9 @@
     - "cto.io/database-type=search"
   when:
     or:
+      - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: org\.elasticsearch\.client:elasticsearch-rest-high-level-client:.*
       - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]org\.elasticsearch\.client:elasticsearch-rest-high-level-client:.*['"]
@@ -41,6 +47,9 @@
   when:
     or:
       - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: com\.datastax\.cassandra:cassandra-driver-core:.*
+      - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]com\.datastax\.cassandra:cassandra-driver-core:.*['"]
       - builtin.filecontent:
@@ -57,6 +66,9 @@
     - "cto.io/database-type=nosql"
   when:
     or:
+      - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: com\.couchbase\.client:java-client:.*
       - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]com\.couchbase\.client:java-client:.*['"]
@@ -75,6 +87,9 @@
   when:
     or:
       - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: org\.neo4j\.driver:neo4j-java-driver:.*
+      - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]org\.neo4j\.driver:neo4j-java-driver:.*['"]
       - builtin.filecontent:
@@ -91,6 +106,9 @@
     - "cto.io/database-type=nosql"
   when:
     or:
+      - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: com\.amazonaws:aws-java-sdk-dynamodb:.*
       - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]com\.amazonaws:aws-java-sdk-dynamodb:.*['"]
@@ -109,6 +127,9 @@
   when:
     or:
       - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: org\.apache\.hbase:hbase-client:.*
+      - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]org\.apache\.hbase:hbase-client:.*['"]
       - builtin.filecontent:
@@ -125,6 +146,9 @@
     - "cto.io/database-type=relational"
   when:
     or:
+      - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: com\.oracle\.database\.jdbc:ojdbc8:.*
       - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]com\.oracle\.database\.jdbc:ojdbc8:.*['"]
@@ -143,6 +167,9 @@
   when:
     or:
       - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: com\.microsoft\.sqlserver:mssql-jdbc:.*
+      - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]com\.microsoft\.sqlserver:mssql-jdbc:.*['"]
       - builtin.filecontent:
@@ -159,6 +186,9 @@
     - "cto.io/database-type=relational"
   when:
     or:
+      - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: org\.postgresql:postgresql:.*
       - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]org\.postgresql:postgresql:.*['"]
@@ -177,6 +207,9 @@
   when:
     or:
       - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: mysql:mysql-connector-java:.*
+      - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]mysql:mysql-connector-java:.*['"]
       - builtin.filecontent:
@@ -193,6 +226,9 @@
     - "cto.io/database-type=relational"
   when:
     or:
+      - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: org\.mariadb\.jdbc:mariadb-java-client:.*
       - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]org\.mariadb\.jdbc:mariadb-java-client:.*['"]
@@ -211,6 +247,9 @@
   when:
     or:
       - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: com\.h2database:h2:.*
+      - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]com\.h2database:h2:.*['"]
       - builtin.filecontent:
@@ -227,6 +266,9 @@
     - "cto.io/database-type=relational"
   when:
     or:
+      - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: com\.ibm\.db2:jcc:.*
       - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*['"]com\.ibm\.db2:jcc:.*['"]

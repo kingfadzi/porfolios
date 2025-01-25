@@ -7,6 +7,9 @@
   when:
     or:
       - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: org\.springframework\.boot:spring-boot-starter.*:2\.[5-6](\.\d+)?
+      - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*\(['"]org\.springframework\.boot:spring-boot-starter.*:2\.[5-6](\.\d+)?['"]\)
 

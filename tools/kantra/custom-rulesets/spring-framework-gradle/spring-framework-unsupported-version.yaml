@@ -7,6 +7,9 @@
   when:
     or:
       - builtin.filecontent:
+          filePattern: all-deps-nodupes.txt
+          pattern: org\.springframework:spring-.*:([1-5]\.\d+|\d)(\.\d+)*(-SNAPSHOT)?
+      - builtin.filecontent:
           filePattern: build.gradle
           pattern: implementation\s*\(['"]org\.springframework:spring-.*:([1-5]\.\d+|\d)(\.\d+)*(-SNAPSHOT)?['"]\)
 

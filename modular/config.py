@@ -18,8 +18,15 @@ class Config:
     GRYPE_CONFIG_PATH = os.getenv("GRYPE_CONFIG_PATH", "/root/.grype/config.yaml")
     SEMGREP_CONFIG_DIR = os.getenv("SEMGREP_CONFIG_DIR", "./tools/semgrep")
 
-    KANTRA_RULESET_FILE = os.getenv("KANTRA_RULESET_FILE", "./tools/kantra/custom-rulesets")
+    KANTRA_RULESETS = os.getenv("KANTRA_RULESETS", "/Users/fadzi/tools/porfolios/tools/kantra/custom-rulesets")
     KANTRA_OUTPUT_ROOT = os.getenv("KANTRA_OUTPUT_ROOT", "output")
 
     MAVEN_TRUSTSTORE = None
     MAVEN_TRUSTSTORE_PASSWORD = None
+
+    JAVA_HOME = os.getenv("JAVA_HOME", "/opt/homebrew/opt/openjdk")
+    JAVA_8_HOME = os.getenv("JAVA_8_HOME", "/Library/Java/JavaVirtualMachines/temurin-8.jdk/Contents/Home")
+    JAVA_11_HOME = os.getenv("JAVA_11_HOME", "/opt/homebrew/opt/openjdk@11")
+    JAVA_17_HOME = os.getenv("JAVA_17_HOME", "/Library/Java/JavaVirtualMachines/openjdk-17.jdk/Contents/Home")
+
+

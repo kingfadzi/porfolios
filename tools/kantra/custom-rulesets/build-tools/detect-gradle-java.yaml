@@ -2,7 +2,7 @@
   category: Mandatory
   effort: 1
   labels:
-    - cto.io/build-tool=gradle
+    - cto.io/build-tool=gradle-2.0-4.2
     - cto.io/java-version=java-8
   when:
     or:
@@ -29,7 +29,7 @@
   category: Mandotory
   effort: 1
   labels:
-    - cto.io/build-tool=gradle
+    - cto.io/build-tool=gradle-4.3-5.9
     - cto.io/java-version=java-1.8-11
   when:
     or:
@@ -56,7 +56,7 @@
   category: informational
   effort: 1
   labels:
-    - cto.io/build-tool=gradle
+    - cto.io/build-tool=gradle-6.0-6.2
     - cto.io/java-version=java-11
   when:
     or:
@@ -83,7 +83,7 @@
   category: informational
   effort: 1
   labels:
-    - cto.io/build-tool=gradle
+    - cto.io/build-tool=gradle-7.3-8.2
     - cto.io/java-version=java-17
   when:
     or:
@@ -110,7 +110,7 @@
   category: informational
   effort: 1
   labels:
-    - cto.io/build-tool=gradle
+    - cto.io/build-tool=gradle-8.3+
     - cto.io/java-version=java-21
   when:
     or:
