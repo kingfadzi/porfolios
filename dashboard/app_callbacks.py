@@ -23,6 +23,8 @@ from data.fetch_multi_language_usage import fetch_multi_language_usage
 from callbacks.viz_multi_language_usage import viz_multi_language_usage
 from data.fetch_last_commit_buckets import fetch_last_commit_buckets
 from callbacks.viz_last_commit_buckets import viz_last_commit_buckets
+from data.fetch_label_tech_data import fetch_label_tech_data
+from callbacks.viz_label_tech import viz_label_tech
 
 def register_dropdown_callbacks(app):
     @app.callback(
@@ -32,6 +34,7 @@ def register_dropdown_callbacks(app):
             Output("tc-filter", "options"),
             Output("language-filter", "options"),
             Output("classification-filter", "options"),
+            Output("label-tech-bar-chart", "figure"),
         ],
         [Input("app-layout", "children")]
     )
@@ -104,6 +107,8 @@ def register_callbacks(app):
         semgrep_chart_fig = viz_semgrep_findings(semgrep_data)
         multi_lang_usage_fig = viz_multi_language_usage(multi_lang_usage_data)
         last_commit_buckets_fig = viz_last_commit_buckets(last_commit_buckets_data)
+        label_tech_data = fetch_label_tech_data(filters)
+        label_tech_fig = viz_label_tech(label_tech_data)
         return (
             active_inactive_fig,
             classification_fig,
@@ -116,4 +121,5 @@ def register_callbacks(app):
             semgrep_chart_fig,
             multi_lang_usage_fig,
             last_commit_buckets_fig,
+            label_tech_fig
         )
