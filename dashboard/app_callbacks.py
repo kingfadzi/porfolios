@@ -34,7 +34,6 @@ def register_dropdown_callbacks(app):
             Output("tc-filter", "options"),
             Output("language-filter", "options"),
             Output("classification-filter", "options"),
-            Output("label-tech-bar-chart", "figure"),
         ],
         [Input("app-layout", "children")]
     )
@@ -62,6 +61,7 @@ def register_callbacks(app):
             Output("semgrep-findings-bar-chart", "figure"),
             Output("language-usage-buckets-bar", "figure"),
             Output("last-commit-buckets-bar", "figure"),
+            Output("label-tech-bar-chart", "figure"),
         ],
         [
             Input("host-name-filter", "value"),
