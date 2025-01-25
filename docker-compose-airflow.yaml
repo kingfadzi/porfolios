@@ -32,17 +32,16 @@ services:
       GRYPE_CONFIG_PATH: ${GRYPE_CONFIG_PATH}
       SEMGREP_CONFIG_DIR: ${SEMGREP_CONFIG_DIR}
 
-      KANTRA_RULESET_FILE: ${KANTRA_RULESET_FILE}
+      KANTRA_RULESETS: ${KANTRA_RULESETS}
       KANTRA_OUTPUT_ROOT: ${KANTRA_OUTPUT_ROOT}
 
     volumes:
       - ./cloned_repositories:/home/airflow/cloned_repositories
-     # - ${KANTRA_OUTPUT_ROOT:-./tmp}:/home/airflow/output
       - ${SSH_KEYS_PATH:-~/.ssh/porfolios_github_key}:/home/airflow/.ssh/id_rsa:ro
       - ${SSH_KEYS_PUB_PATH:-~/.ssh/porfolios_github_key.pub}:/home/airflow/.ssh/id_rsa.pub:ro
       - ${CERT_PATH:-/dev/null}:/etc/pip/certs/self-signed-cert.pem:ro
     ports:
-      - "8088:8080"  # Map host port 8088 to container port 8080
+      - "8088:8080"
     restart: always
 
 networks:

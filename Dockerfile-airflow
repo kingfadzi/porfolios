@@ -58,8 +58,29 @@ RUN python3 -m pip install --no-cache-dir \
     checkov \
     sqlalchemy
 
-# ---- Install Java 21 and set JAVA_HOME ----
-RUN dnf install -y java-21-openjdk-devel
+# Install multiple JDK versions
+RUN dnf install -y \
+    java-1.8.0-openjdk-devel \
+    java-11-openjdk-devel \
+    java-17-openjdk-devel \
+    java-21-openjdk-devel \
+  && dnf clean all
+
+RUN alternatives --install /usr/bin/java java /usr/lib/jvm/java-1.8.0/bin/java 1080 \
+ && alternatives --install /usr/bin/java java /usr/lib/jvm/java-11/bin/java 1110 \
+ && alternatives --install /usr/bin/java java /usr/lib/jvm/java-17/bin/java 1170 \
+ && alternatives --install /usr/bin/java java /usr/lib/jvm/java-21/bin/java 1210
+
+RUN alternatives --set java /usr/lib/jvm/java-17/bin/java
+
+ENV JAVA_8_HOME="/usr/lib/jvm/java-1.8.0"
+ENV JAVA_11_HOME="/usr/lib/jvm/java-11"
+ENV JAVA_17_HOME="/usr/lib/jvm/java-17"
+ENV JAVA_21_HOME="/usr/lib/jvm/java-21"
+
+# default JAVA_HOME set to 17
+ENV JAVA_HOME="${JAVA_17_HOME}"
+ENV PATH="${JAVA_HOME}/bin:${PATH}"
 
 RUN dnf -y update && \
     dnf -y install dnf-plugins-core && \
@@ -69,10 +90,6 @@ RUN dnf -y update && \
     dnf module install -y maven && \
     # Clean up
     dnf clean all
-
-
-ENV JAVA_HOME=/usr/lib/jvm/java-21-openjdk
-ENV PATH="$JAVA_HOME/bin:$PATH"
 
 # Ensure the airflow group exists, rename if GID is already taken
 RUN existing_group=$(getent group ${HOST_GID} | cut -d: -f1) && \
