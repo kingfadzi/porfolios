@@ -23,6 +23,12 @@ task {TASK_NAME} {
 
         project.allprojects { proj ->
             proj.configurations.each { cfg ->
+                // Skip configurations that aren't meant to be resolved in Gradle 6+
+                if (cfg.hasProperty('canBeResolved') && !cfg.canBeResolved) {
+                    logger.lifecycle("Skipping ${cfg.name} in ${proj.name} (canBeResolved=false).")
+                    return
+                }
+
                 try {
                     cfg.resolvedConfiguration.lenientConfiguration.allModuleDependencies.each { dep ->
                         visitDependencyTree(dep)

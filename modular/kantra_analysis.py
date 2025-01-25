@@ -44,7 +44,7 @@ class KantraAnalyzer(BaseLogger):
                 capture_output=True,
                 text=True,
                 check=True,
-                timeout=300
+                timeout=600
             )
             self.logger.info(f"Kantra analysis completed for repo_id: {repo.repo_id}")
 
@@ -56,7 +56,7 @@ class KantraAnalyzer(BaseLogger):
         except subprocess.CalledProcessError as e:
             handle_subprocess_error(e, self.logger, command)
         except subprocess.TimeoutExpired as e:
-            self.logger.error(f"Kantra command timed out after 300 seconds: {e}")
+            self.logger.error(f"Kantra command timed out after 600 seconds: {e}")
             raise RuntimeError("Kantra command timed out.")
         except Exception as e:
             error_message = f"Unexpected error during Kantra analysis: {e}"
