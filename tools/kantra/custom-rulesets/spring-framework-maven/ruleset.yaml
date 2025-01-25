@@ -1,4 +1,3 @@
 name: spring-framework-maven/spring-framework
 description: Ruleset for detecting spring-framework-maven
-labels:
-  - "cto.io/source=spring-framework"
+
