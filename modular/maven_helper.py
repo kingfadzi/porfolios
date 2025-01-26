@@ -19,10 +19,10 @@ class MavenHelper(BaseLogger):
 
         self.logger.debug(f"Found pom.xml at {pom_path}")
         command_list = ["mvn", "help:effective-pom", f"-Doutput={output_file}"]
-        if Config.MAVEN_TRUSTSTORE:
-            command_list.append(f"-Djavax.net.ssl.trustStore={Config.MAVEN_TRUSTSTORE}")
-        if Config.MAVEN_TRUSTSTORE_PASSWORD:
-            command_list.append(f"-Djavax.net.ssl.trustStorePassword={Config.MAVEN_TRUSTSTORE_PASSWORD}")
+        if Config.TRUSTSTORE_PATH:
+            command_list.append(f"-Djavax.net.ssl.trustStore={Config.TRUSTSTORE_PATH}")
+        if Config.TRUSTSTORE_PASSWORD:
+            command_list.append(f"-Djavax.net.ssl.trustStorePassword={Config.TRUSTSTORE_PASSWORD}")
 
         cmd_str = " ".join(command_list)
         self.logger.debug(f"Executing Maven command: {cmd_str}")

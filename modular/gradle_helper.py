@@ -4,9 +4,8 @@ import logging
 import subprocess
 import uuid
 from modular.base_logger import BaseLogger
-from modular.config import Config
+from modular.config import Config  # Make sure this points to your config.py
 
-# Updated snippet: We collect allModuleDependencies into a snapshot list before iterating.
 GRADLE_TASK_SNIPPET = r"""
 task {TASK_NAME} {
     outputs.upToDateWhen { false }
@@ -30,7 +29,6 @@ task {TASK_NAME} {
                 }
 
                 try {
-                    // Create a snapshot list of the dependencies to avoid concurrent modifications
                     def depsSnapshot = cfg.resolvedConfiguration.lenientConfiguration.allModuleDependencies.collect()
                     depsSnapshot.each { dep ->
                         visitDependencyTree(dep)
@@ -91,13 +89,6 @@ class GradleHelper(BaseLogger):
         return final_path
 
     def _gradle_base_cmd(self, repo_dir, extra_args=None):
-        """
-        Build a base Gradle command that:
-          - Disables the daemon
-          - Disables parallelism
-          - Forces a separate user home for each repo_dir
-          - Uses a plain console output
-        """
         gradle_user_home = os.path.join(repo_dir, ".gradle_user_home")
         base = [
             self._detect_gradle_command(repo_dir),
@@ -180,8 +171,47 @@ class GradleHelper(BaseLogger):
 
         env = os.environ.copy()
         env["JAVA_HOME"] = java_home
+
+        # Build up additional Gradle options from Config
+        gradle_opts_list = []
+
+        # HTTP proxy
+        if Config.HTTP_PROXY_HOST:
+            gradle_opts_list.append(f"-Dhttp.proxyHost={Config.HTTP_PROXY_HOST}")
+        if Config.HTTP_PROXY_PORT:
+            gradle_opts_list.append(f"-Dhttp.proxyPort={Config.HTTP_PROXY_PORT}")
+        if Config.HTTP_PROXY_USER:
+            gradle_opts_list.append(f"-Dhttp.proxyUser={Config.HTTP_PROXY_USER}")
+        if Config.HTTP_PROXY_PASSWORD:
+            gradle_opts_list.append(f"-Dhttp.proxyPassword={Config.HTTP_PROXY_PASSWORD}")
+
+        # HTTPS proxy
+        if Config.HTTPS_PROXY_HOST:
+            gradle_opts_list.append(f"-Dhttps.proxyHost={Config.HTTPS_PROXY_HOST}")
+        if Config.HTTPS_PROXY_PORT:
+            gradle_opts_list.append(f"-Dhttps.proxyPort={Config.HTTPS_PROXY_PORT}")
+        if Config.HTTPS_PROXY_USER:
+            gradle_opts_list.append(f"-Dhttps.proxyUser={Config.HTTPS_PROXY_USER}")
+        if Config.HTTPS_PROXY_PASSWORD:
+            gradle_opts_list.append(f"-Dhttps.proxyPassword={Config.HTTPS_PROXY_PASSWORD}")
+
+        # Truststore
+        if Config.TRUSTSTORE_PATH:
+            gradle_opts_list.append(f"-Djavax.net.ssl.trustStore={Config.TRUSTSTORE_PATH}")
+        if Config.TRUSTSTORE_PASSWORD:
+            gradle_opts_list.append(f"-Djavax.net.ssl.trustStorePassword={Config.TRUSTSTORE_PASSWORD}")
+
+        # Merge with existing GRADLE_OPTS, if any
+        existing_gradle_opts = env.get("GRADLE_OPTS", "")
+        new_gradle_opts = " ".join(gradle_opts_list).strip()
+        if existing_gradle_opts:
+            env["GRADLE_OPTS"] = (existing_gradle_opts + " " + new_gradle_opts).strip()
+        else:
+            env["GRADLE_OPTS"] = new_gradle_opts
+
         self.logger.info(f"Forcing JAVA_HOME to: {java_home}")
         self.logger.debug(f"Executing command: {' '.join(cmd)} in {cwd}")
+        self.logger.debug(f"GRADLE_OPTS={env['GRADLE_OPTS']}")
 
         try:
             result = subprocess.run(

@@ -21,12 +21,21 @@ class Config:
     KANTRA_RULESETS = os.getenv("KANTRA_RULESETS", "/Users/fadzi/tools/porfolios/tools/kantra/custom-rulesets")
     KANTRA_OUTPUT_ROOT = os.getenv("KANTRA_OUTPUT_ROOT", "output")
 
-    MAVEN_TRUSTSTORE = os.getenv("MAVEN_TRUSTSTORE", None)
-    MAVEN_TRUSTSTORE_PASSWORD = os.getenv("MAVEN_TRUSTSTORE_PASSWORD", None)
-
     JAVA_HOME = os.getenv("JAVA_HOME", "/opt/homebrew/opt/openjdk")
     JAVA_8_HOME = os.getenv("JAVA_8_HOME", "/Library/Java/JavaVirtualMachines/temurin-8.jdk/Contents/Home")
     JAVA_11_HOME = os.getenv("JAVA_11_HOME", "/opt/homebrew/opt/openjdk@11")
     JAVA_17_HOME = os.getenv("JAVA_17_HOME", "/Library/Java/JavaVirtualMachines/openjdk-17.jdk/Contents/Home")
 
+    HTTP_PROXY_HOST = os.getenv("HTTP_PROXY_HOST", "")
+    HTTP_PROXY_PORT = os.getenv("HTTP_PROXY_PORT", "")
+    HTTP_PROXY_USER = os.getenv("HTTP_PROXY_USER", "")
+    HTTP_PROXY_PASSWORD = os.getenv("HTTP_PROXY_PASSWORD", "")
+    NO_PROXY = os.getenv("NO_PROXY", "")
 
+    HTTPS_PROXY_HOST = os.getenv("HTTPS_PROXY_HOST", "")
+    HTTPS_PROXY_PORT = os.getenv("HTTPS_PROXY_PORT", "")
+    HTTPS_PROXY_USER = os.getenv("HTTPS_PROXY_USER", "")
+    HTTPS_PROXY_PASSWORD = os.getenv("HTTPS_PROXY_PASSWORD", "")
+
+    TRUSTSTORE_PATH = os.getenv("TRUSTSTORE_PATH", "")
+    TRUSTSTORE_PASSWORD = os.getenv("TRUSTSTORE_PASSWORD", "")

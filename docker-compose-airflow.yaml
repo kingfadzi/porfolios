@@ -35,6 +35,17 @@ services:
       KANTRA_RULESETS: ${KANTRA_RULESETS}
       KANTRA_OUTPUT_ROOT: ${KANTRA_OUTPUT_ROOT}
 
+      HTTP_PROXY_HOST: "${HTTP_PROXY_HOST:-}"
+      HTTP_PROXY_PORT: "${HTTP_PROXY_PORT:-}"
+      HTTP_PROXY_USER: "${HTTP_PROXY_USER:-}"
+      HTTP_PROXY_PASSWORD: "${HTTP_PROXY_PASSWORD:-}"
+      HTTPS_PROXY_HOST: "${HTTPS_PROXY_HOST:-}"
+      HTTPS_PROXY_PORT: "${HTTPS_PROXY_PORT:-}"
+      HTTPS_PROXY_USER: "${HTTPS_PROXY_USER:-}"
+      HTTPS_PROXY_PASSWORD: "${HTTPS_PROXY_PASSWORD:-}"
+      TRUSTSTORE_PATH: "${TRUSTSTORE_PATH:-}"
+      TRUSTSTORE_PASSWORD: "${TRUSTSTORE_PASSWORD:-}"
+
     volumes:
       - ./cloned_repositories:/home/airflow/cloned_repositories
       - ${SSH_KEYS_PATH:-~/.ssh/porfolios_github_key}:/home/airflow/.ssh/id_rsa:ro
