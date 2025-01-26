@@ -6,6 +6,7 @@ import uuid
 from modular.base_logger import BaseLogger
 from modular.config import Config
 
+# Updated snippet: We collect allModuleDependencies into a snapshot list before iterating.
 GRADLE_TASK_SNIPPET = r"""
 task {TASK_NAME} {
     outputs.upToDateWhen { false }
@@ -27,8 +28,11 @@ task {TASK_NAME} {
                     logger.lifecycle("Skipping ${cfg.name} in ${proj.name} (canBeResolved=false).")
                     return
                 }
+
                 try {
-                    cfg.resolvedConfiguration.lenientConfiguration.allModuleDependencies.each { dep ->
+                    // Create a snapshot list of the dependencies to avoid concurrent modifications
+                    def depsSnapshot = cfg.resolvedConfiguration.lenientConfiguration.allModuleDependencies.collect()
+                    depsSnapshot.each { dep ->
                         visitDependencyTree(dep)
                     }
                 } catch (Exception e) {
@@ -54,19 +58,24 @@ class GradleHelper(BaseLogger):
         if not os.path.isdir(repo_dir):
             self.logger.error(f"Repository directory does not exist or is not a directory: {repo_dir}")
             return None
+
         build_file = self._find_build_file(repo_dir)
         if not build_file:
             self.logger.warning("No Gradle build file found (build.gradle or build.gradle.kts).")
             return None
+
         unique_task_name = f"allDependenciesNoDupes_{uuid.uuid4().hex[:8]}"
         snippet = GRADLE_TASK_SNIPPET.replace("{TASK_NAME}", unique_task_name)
         self._inject_snippet(build_file, snippet)
+
         gradle_cmd = self._detect_gradle_command(repo_dir)
         self.logger.info(f"Using Gradle command: {gradle_cmd}")
+
         success = self._run_gradle_task(repo_dir, unique_task_name)
         if not success:
             self.logger.info("Custom task failed. Attempting fallback 'dependencies' command.")
             return self._fallback_dependencies(repo_dir, gradle_cmd, output_file)
+
         final_path = self._get_output_path(repo_dir, output_file)
         if final_path:
             self.logger.info(f"Gradle dependencies written to: {final_path}")
@@ -78,10 +87,25 @@ class GradleHelper(BaseLogger):
                 self.logger.warning(f"Could not read {final_path} for debug logging: {e}")
         else:
             self.logger.debug("No dependencies file found after running the custom task.")
+
         return final_path
 
     def _gradle_base_cmd(self, repo_dir, extra_args=None):
-        base = [self._detect_gradle_command(repo_dir), "--no-daemon", "--console=plain"]
+        """
+        Build a base Gradle command that:
+          - Disables the daemon
+          - Disables parallelism
+          - Forces a separate user home for each repo_dir
+          - Uses a plain console output
+        """
+        gradle_user_home = os.path.join(repo_dir, ".gradle_user_home")
+        base = [
+            self._detect_gradle_command(repo_dir),
+            "--no-daemon",
+            "--no-parallel",
+            f"--gradle-user-home={gradle_user_home}",
+            "--console=plain"
+        ]
         if extra_args:
             base.extend(extra_args)
         return base
@@ -125,6 +149,7 @@ class GradleHelper(BaseLogger):
         if not result or result.returncode != 0:
             self.logger.error("Fallback 'dependencies' command also failed.")
             return None
+
         fallback_path = os.path.join(repo_dir, output_file)
         self.logger.debug(f"Writing fallback output to: {fallback_path}")
         try:
@@ -134,6 +159,7 @@ class GradleHelper(BaseLogger):
         except Exception as e:
             self.logger.error(f"Error writing fallback output: {e}")
             return None
+
         return fallback_path
 
     def _get_output_path(self, repo_dir, output_file):
@@ -151,12 +177,21 @@ class GradleHelper(BaseLogger):
         if not java_home:
             self.logger.error("No suitable JAVA_HOME found. Aborting command.")
             return None
+
         env = os.environ.copy()
         env["JAVA_HOME"] = java_home
         self.logger.info(f"Forcing JAVA_HOME to: {java_home}")
         self.logger.debug(f"Executing command: {' '.join(cmd)} in {cwd}")
+
         try:
-            result = subprocess.run(cmd, cwd=cwd, env=env, capture_output=True, text=True, check=check)
+            result = subprocess.run(
+                cmd,
+                cwd=cwd,
+                env=env,
+                capture_output=True,
+                text=True,
+                check=check
+            )
             self.logger.debug(f"Command return code: {result.returncode}")
             if result.stdout:
                 self.logger.debug(f"Command stdout:\n{result.stdout.strip()}")
@@ -164,7 +199,11 @@ class GradleHelper(BaseLogger):
                 self.logger.debug(f"Command stderr:\n{result.stderr.strip()}")
             return result
         except subprocess.CalledProcessError as e:
-            self.logger.error(f"Command failed with CalledProcessError: {e}\nStdout:\n{e.stdout}\nStderr:\n{e.stderr}")
+            self.logger.error(
+                f"Command failed with CalledProcessError: {e}\n"
+                f"Stdout:\n{e.stdout}\n"
+                f"Stderr:\n{e.stderr}"
+            )
         except Exception as ex:
             self.logger.error(f"Unexpected error running {cmd}: {ex}")
         return None
@@ -174,10 +213,12 @@ class GradleHelper(BaseLogger):
         if not os.path.isfile(wrapper_props):
             self.logger.warning("No gradle-wrapper.properties found; defaulting to Java 17.")
             return Config.JAVA_17_HOME
+
         version = self._parse_gradle_version(wrapper_props)
         if not version:
             self.logger.warning("Could not parse Gradle version; defaulting to Java 17.")
             return Config.JAVA_17_HOME
+
         major, minor = version
         if major < 5:
             chosen = Config.JAVA_8_HOME
@@ -185,6 +226,7 @@ class GradleHelper(BaseLogger):
             chosen = Config.JAVA_11_HOME
         else:
             chosen = Config.JAVA_17_HOME
+
         self.logger.info(f"Detected Gradle {major}.{minor}, using {chosen}")
         return chosen
 
