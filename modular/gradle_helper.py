@@ -23,12 +23,10 @@ task {TASK_NAME} {
 
         project.allprojects { proj ->
             proj.configurations.each { cfg ->
-                // Skip configurations that aren't meant to be resolved in Gradle 6+
                 if (cfg.hasProperty('canBeResolved') && !cfg.canBeResolved) {
                     logger.lifecycle("Skipping ${cfg.name} in ${proj.name} (canBeResolved=false).")
                     return
                 }
-
                 try {
                     cfg.resolvedConfiguration.lenientConfiguration.allModuleDependencies.each { dep ->
                         visitDependencyTree(dep)
@@ -45,6 +43,7 @@ task {TASK_NAME} {
     }
 }
 """
+
 class GradleHelper(BaseLogger):
     def __init__(self):
         self.logger = self.get_logger(self.__class__.__name__)
@@ -55,24 +54,19 @@ class GradleHelper(BaseLogger):
         if not os.path.isdir(repo_dir):
             self.logger.error(f"Repository directory does not exist or is not a directory: {repo_dir}")
             return None
-
         build_file = self._find_build_file(repo_dir)
         if not build_file:
             self.logger.warning("No Gradle build file found (build.gradle or build.gradle.kts).")
             return None
-
         unique_task_name = f"allDependenciesNoDupes_{uuid.uuid4().hex[:8]}"
         snippet = GRADLE_TASK_SNIPPET.replace("{TASK_NAME}", unique_task_name)
         self._inject_snippet(build_file, snippet)
-
         gradle_cmd = self._detect_gradle_command(repo_dir)
         self.logger.info(f"Using Gradle command: {gradle_cmd}")
-
-        success = self._run_gradle_task(repo_dir, [gradle_cmd, unique_task_name])
+        success = self._run_gradle_task(repo_dir, unique_task_name)
         if not success:
             self.logger.info("Custom task failed. Attempting fallback 'dependencies' command.")
             return self._fallback_dependencies(repo_dir, gradle_cmd, output_file)
-
         final_path = self._get_output_path(repo_dir, output_file)
         if final_path:
             self.logger.info(f"Gradle dependencies written to: {final_path}")
@@ -85,6 +79,12 @@ class GradleHelper(BaseLogger):
         else:
             self.logger.debug("No dependencies file found after running the custom task.")
         return final_path
+
+    def _gradle_base_cmd(self, repo_dir, extra_args=None):
+        base = [self._detect_gradle_command(repo_dir), "--no-daemon", "--console=plain"]
+        if extra_args:
+            base.extend(extra_args)
+        return base
 
     def _find_build_file(self, repo_dir):
         self.logger.debug(f"Looking for build.gradle or build.gradle.kts in: {repo_dir}")
@@ -100,7 +100,7 @@ class GradleHelper(BaseLogger):
         try:
             with open(build_file, "a", encoding="utf-8") as f:
                 f.write(f"\n{snippet}\n")
-            self.logger.debug(f"Snippet injected successfully.")
+            self.logger.debug("Snippet injected successfully.")
         except Exception as e:
             self.logger.error(f"Failed injecting snippet into {build_file}: {e}")
 
@@ -112,22 +112,19 @@ class GradleHelper(BaseLogger):
         self.logger.debug("No gradlew wrapper; defaulting to system 'gradle' command.")
         return "gradle"
 
-    def _run_gradle_task(self, repo_dir, cmd):
+    def _run_gradle_task(self, repo_dir, task_name):
+        cmd = self._gradle_base_cmd(repo_dir, [task_name])
         self.logger.info(f"Running Gradle task with command: {cmd}")
         result = self._run_command(cmd, repo_dir, check=True)
         return result and (result.returncode == 0)
 
     def _fallback_dependencies(self, repo_dir, gradle_cmd, output_file):
         self.logger.debug("Running fallback: gradle dependencies --configuration implementation.")
-        result = self._run_command(
-            [gradle_cmd, "dependencies", "--configuration", "implementation", "--console=plain"],
-            repo_dir,
-            check=False
-        )
+        cmd = self._gradle_base_cmd(repo_dir, ["dependencies", "--configuration", "implementation"])
+        result = self._run_command(cmd, repo_dir, check=False)
         if not result or result.returncode != 0:
             self.logger.error("Fallback 'dependencies' command also failed.")
             return None
-
         fallback_path = os.path.join(repo_dir, output_file)
         self.logger.debug(f"Writing fallback output to: {fallback_path}")
         try:
@@ -154,12 +151,10 @@ class GradleHelper(BaseLogger):
         if not java_home:
             self.logger.error("No suitable JAVA_HOME found. Aborting command.")
             return None
-
         env = os.environ.copy()
         env["JAVA_HOME"] = java_home
         self.logger.info(f"Forcing JAVA_HOME to: {java_home}")
         self.logger.debug(f"Executing command: {' '.join(cmd)} in {cwd}")
-
         try:
             result = subprocess.run(cmd, cwd=cwd, env=env, capture_output=True, text=True, check=check)
             self.logger.debug(f"Command return code: {result.returncode}")
@@ -179,12 +174,10 @@ class GradleHelper(BaseLogger):
         if not os.path.isfile(wrapper_props):
             self.logger.warning("No gradle-wrapper.properties found; defaulting to Java 17.")
             return Config.JAVA_17_HOME
-
         version = self._parse_gradle_version(wrapper_props)
         if not version:
             self.logger.warning("Could not parse Gradle version; defaulting to Java 17.")
             return Config.JAVA_17_HOME
-
         major, minor = version
         if major < 5:
             chosen = Config.JAVA_8_HOME
@@ -192,7 +185,6 @@ class GradleHelper(BaseLogger):
             chosen = Config.JAVA_11_HOME
         else:
             chosen = Config.JAVA_17_HOME
-
         self.logger.info(f"Detected Gradle {major}.{minor}, using {chosen}")
         return chosen
 
@@ -207,7 +199,6 @@ class GradleHelper(BaseLogger):
                     self.logger.debug(f"Parsed Gradle version: {maj}.{min}")
                     return maj, min
         return None
-
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.DEBUG)

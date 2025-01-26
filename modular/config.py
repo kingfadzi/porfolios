@@ -21,8 +21,8 @@ class Config:
     KANTRA_RULESETS = os.getenv("KANTRA_RULESETS", "/Users/fadzi/tools/porfolios/tools/kantra/custom-rulesets")
     KANTRA_OUTPUT_ROOT = os.getenv("KANTRA_OUTPUT_ROOT", "output")
 
-    MAVEN_TRUSTSTORE = None
-    MAVEN_TRUSTSTORE_PASSWORD = None
+    MAVEN_TRUSTSTORE = os.getenv("MAVEN_TRUSTSTORE", None)
+    MAVEN_TRUSTSTORE_PASSWORD = os.getenv("MAVEN_TRUSTSTORE_PASSWORD", None)
 
     JAVA_HOME = os.getenv("JAVA_HOME", "/opt/homebrew/opt/openjdk")
     JAVA_8_HOME = os.getenv("JAVA_8_HOME", "/Library/Java/JavaVirtualMachines/temurin-8.jdk/Contents/Home")
