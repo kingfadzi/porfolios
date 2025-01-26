@@ -12,6 +12,14 @@ ARG GLOBAL_INDEX_URL
 ARG HOST_UID=1000
 ARG HOST_GID=1000
 
+RUN if [ -f "./ssh/tls-ca-bundle.pem" ]; then \
+      echo "Copying key.pem to /etc/pip/certs/tls-ca-bundle.pem"; \
+      cp ./ssh/tls-ca-bundle.pem /etc/pip/certs/tls-ca-bundle.pem; \
+    else \
+      echo "No tls-ca-bundle.pem found to use for pip, skipping cert copy."; \
+    fi
+
+
 # Install system dependencies (merged duplicate blocks)
 RUN dnf update -y && \
     dnf module reset -y python36 && \
@@ -30,18 +38,20 @@ ENV PYTHONIOENCODING=utf-8
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
 
-# Set Python 3.11 as default and ensure pip is installed
-RUN alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1 && \
-    alternatives --set python3 /usr/bin/python3.11 && \
-    python3 -m ensurepip && \
-    python3 -m pip install --no-cache-dir --upgrade pip
-
 # Configure pip with dynamic settings (global)
 RUN if [ -n "$GLOBAL_CERT" ]; then \
       echo -e "[global]\ncert = ${GLOBAL_CERT}\nindex-url = ${GLOBAL_INDEX_URL}" > /etc/pip.conf; \
     else \
       echo -e "[global]\nindex-url = ${GLOBAL_INDEX_URL}" > /etc/pip.conf; \
     fi
+
+
+# Set Python 3.11 as default and ensure pip is installed
+RUN alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1 && \
+    alternatives --set python3 /usr/bin/python3.11 && \
+    python3 -m ensurepip && \
+    python3 -m pip install --no-cache-dir --upgrade pip
+
 
 # Install Python dependencies (merged duplicate pip installs)
 RUN python3 -m pip install --no-cache-dir \
