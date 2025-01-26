@@ -6,19 +6,25 @@ ENV AIRFLOW_HOME=/home/airflow/airflow
 ENV AIRFLOW_DAGS_FOLDER=/home/airflow/airflow/dags
 
 # Accept build arguments for pip configuration and user IDs
-ARG GLOBAL_CERT
 ARG GLOBAL_INDEX
 ARG GLOBAL_INDEX_URL
 ARG HOST_UID=1000
 ARG HOST_GID=1000
 
-RUN if [ -f "./ssh/tls-ca-bundle.pem" ]; then \
-      echo "Copying key.pem to /etc/pip/certs/tls-ca-bundle.pem"; \
-      cp ./ssh/tls-ca-bundle.pem /etc/pip/certs/tls-ca-bundle.pem; \
-    else \
-      echo "No tls-ca-bundle.pem found to use for pip, skipping cert copy."; \
-    fi
+ARG GLOBAL_INDEX=""
+ARG GLOBAL_INDEX_URL="https://pypi.org/simple"
 
+COPY keys/ /tmp/keys/
+
+RUN if [ -f "/tmp/keys/tls-ca-bundle.pem" ]; then \
+      mkdir -p /etc/ssl/certs && \
+      cp /tmp/keys/tls-ca-bundle.pem /etc/ssl/certs/ && \
+      echo -e "[global]\ncert = /etc/ssl/certs/tls-ca-bundle.pem" > /etc/pip.conf; \
+    else \
+      echo "[global]" > /etc/pip.conf; \
+    fi && \
+    [ -n "$GLOBAL_INDEX" ] && echo "index = ${GLOBAL_INDEX}" >> /etc/pip.conf; \
+    echo "index-url = ${GLOBAL_INDEX_URL}" >> /etc/pip.conf
 
 # Install system dependencies (merged duplicate blocks)
 RUN dnf update -y && \
@@ -37,14 +43,6 @@ RUN dnf update -y && \
 ENV PYTHONIOENCODING=utf-8
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
-
-# Configure pip with dynamic settings (global)
-RUN if [ -n "$GLOBAL_CERT" ]; then \
-      echo -e "[global]\ncert = ${GLOBAL_CERT}\nindex-url = ${GLOBAL_INDEX_URL}" > /etc/pip.conf; \
-    else \
-      echo -e "[global]\nindex-url = ${GLOBAL_INDEX_URL}" > /etc/pip.conf; \
-    fi
-
 
 # Set Python 3.11 as default and ensure pip is installed
 RUN alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1 && \
