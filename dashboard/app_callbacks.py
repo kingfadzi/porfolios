@@ -117,28 +117,28 @@ def register_callbacks(app):
         multi_lang_usage_fig = viz_multi_language_usage(multi_lang_usage_data)
         last_commit_buckets_fig = viz_last_commit_buckets(last_commit_buckets_data)
 
-        java_data = fetch_label_tech_data("cto.io/java-version", filters=filters)
+        java_data = fetch_label_tech_data(filters, "cto.io/java-version")
         java_fig = viz_label_tech(java_data)
 
-        buildtool_data = fetch_label_tech_data("cto.io/build-tool", filters=filters)
+        buildtool_data = fetch_label_tech_data(filters, "cto.io/build-tool")
         buildtool_fig = viz_label_tech(buildtool_data)
 
-        appserver_data = fetch_label_tech_data("cto.io/appserver", filters=filters)
+        appserver_data = fetch_label_tech_data(filters, "cto.io/appserver")
         appserver_fig = viz_label_tech(appserver_data)
 
-        db_data = fetch_label_tech_data("cto.io/database", filters=filters)
+        db_data = fetch_label_tech_data(filters, "cto.io/database")
         db_fig = viz_label_tech(db_data)
 
-        sf_data = fetch_label_tech_data("cto.io/spring-framework-version", filters=filters)
+        sf_data = fetch_label_tech_data(filters, "cto.io/spring-framework-version")
         sf_fig = viz_label_tech(sf_data)
 
-        sb_data = fetch_label_tech_data("cto.io/spring-boot-version", filters=filters)
+        sb_data = fetch_label_tech_data(filters, "cto.io/spring-boot-version")
         sb_fig = viz_label_tech(sb_data)
 
-        mw_data = fetch_label_tech_data("cto.io/middleware", filters=filters)
+        mw_data = fetch_label_tech_data(filters, "cto.io/middleware")
         mw_fig = viz_label_tech(mw_data)
 
-        logging_data = fetch_label_tech_data("cto.io/logging", filters=filters)
+        logging_data = fetch_label_tech_data(filters, "cto.io/logging")
         logging_fig = viz_label_tech(logging_data)
 
         return (
