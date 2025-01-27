@@ -1,19 +1,24 @@
 import plotly.express as px
 
 def viz_classification(filtered_df):
-    fig = px.pie(
+
+    fig = px.bar(
         filtered_df,
-        names="classification_label",
-        values="repo_count",
+        x="classification_label",
+        y="repo_count",
+        text="repo_count"
     )
+
     fig.update_traces(
-        textinfo="label+value+percent",
         textposition="outside",
         textfont_size=10
     )
+
+    # Update layout
     fig.update_layout(
-        showlegend=False,               # Hide legend entirely
+        showlegend=False,
         title={"x": 0.5},
-        dragmode=False,
+        dragmode=False
     )
+
     return fig

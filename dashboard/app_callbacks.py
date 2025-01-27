@@ -61,7 +61,16 @@ def register_callbacks(app):
             Output("semgrep-findings-bar-chart", "figure"),
             Output("language-usage-buckets-bar", "figure"),
             Output("last-commit-buckets-bar", "figure"),
-            Output("label-tech-bar-chart", "figure"),
+
+            Output("label-tech-bar-chart-java-version", "figure"),
+            Output("label-tech-bar-chart-build-tool", "figure"),
+            Output("label-tech-bar-chart-appserver", "figure"),
+            Output("label-tech-bar-chart-database", "figure"),
+            Output("label-tech-bar-chart-spring-framework-version", "figure"),
+            Output("label-tech-bar-chart-spring-boot-version", "figure"),
+            Output("label-tech-bar-chart-middleware", "figure"),
+            Output("label-tech-bar-chart-logging", "figure"),
+
         ],
         [
             Input("host-name-filter", "value"),
@@ -107,8 +116,31 @@ def register_callbacks(app):
         semgrep_chart_fig = viz_semgrep_findings(semgrep_data)
         multi_lang_usage_fig = viz_multi_language_usage(multi_lang_usage_data)
         last_commit_buckets_fig = viz_last_commit_buckets(last_commit_buckets_data)
-        label_tech_data = fetch_label_tech_data(filters)
-        label_tech_fig = viz_label_tech(label_tech_data)
+
+        java_data = fetch_label_tech_data("cto.io/java-version", filters=filters)
+        java_fig = viz_label_tech(java_data)
+
+        buildtool_data = fetch_label_tech_data("cto.io/build-tool", filters=filters)
+        buildtool_fig = viz_label_tech(buildtool_data)
+
+        appserver_data = fetch_label_tech_data("cto.io/appserver", filters=filters)
+        appserver_fig = viz_label_tech(appserver_data)
+
+        db_data = fetch_label_tech_data("cto.io/database", filters=filters)
+        db_fig = viz_label_tech(db_data)
+
+        sf_data = fetch_label_tech_data("cto.io/spring-framework-version", filters=filters)
+        sf_fig = viz_label_tech(sf_data)
+
+        sb_data = fetch_label_tech_data("cto.io/spring-boot-version", filters=filters)
+        sb_fig = viz_label_tech(sb_data)
+
+        mw_data = fetch_label_tech_data("cto.io/middleware", filters=filters)
+        mw_fig = viz_label_tech(mw_data)
+
+        logging_data = fetch_label_tech_data("cto.io/logging", filters=filters)
+        logging_fig = viz_label_tech(logging_data)
+
         return (
             active_inactive_fig,
             classification_fig,
@@ -121,5 +153,12 @@ def register_callbacks(app):
             semgrep_chart_fig,
             multi_lang_usage_fig,
             last_commit_buckets_fig,
-            label_tech_fig
+            java_fig,
+            buildtool_fig,
+            appserver_fig,
+            db_fig,
+            sf_fig,
+            sb_fig,
+            mw_fig,
+            logging_fig
         )
