@@ -74,14 +74,14 @@ class CloningAnalyzer(BaseLogger):
             owner_or_org, repo_slug, _ = match.groups()
             return f"git@github.com:{owner_or_org}/{repo_slug}.git"
 
-        elif host_name == "bitbucket":
+        elif host_name == Config.BITBUCKET_HOSTNAME:
             match = re.match(r"https://([^/]+)/scm/([^/]+)/(.+?)(\.git)?$", clone_url_ssh)
             if not match:
                 raise ValueError(f"URL not recognized as a valid Bitbucket URL: {clone_url_ssh}")
             domain, project_key, repo_slug, _ = match.groups()
             return f"ssh://git@{domain}:7999/{project_key}/{repo_slug}.git"
 
-        elif host_name == "gitlab":
+        elif host_name == Config.GITLAB_HOSTNAME:
             match = re.match(r"https://([^/]+)/([^/]+(?:/[^/]+)*)/(.+?)(\.git)?$", clone_url_ssh)
             if not match:
                 raise ValueError(f"URL not recognized as a valid GitLab URL: {clone_url_ssh}")

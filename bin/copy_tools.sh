@@ -70,9 +70,9 @@ if [ -d /root/.cache/trivy/db ]; then
   cp -rv /root/.cache/trivy/db "${DEST}/tools/trivy/" || echo "Failed to copy trivy DB"
 fi
 
-if [ -d /root/.semgrep/semgrep-rules ]; then
+if [ -d /root/tools/semgrep/semgrep-rules ]; then
   echo "Copying semgrep-rules"
-  cp -rv /root/.semgrep/semgrep-rules "${DEST}/tools/semgrep/" || echo "Failed to copy semgrep-rules"
+  cp -rv /root/tools/semgrep/semgrep-rules "${DEST}/tools/semgrep/" || echo "Failed to copy semgrep-rules"
 fi
 
 echo "Done."
