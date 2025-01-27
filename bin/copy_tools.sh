@@ -62,12 +62,12 @@ fi
 if [ ! -f /usr/local/bin/semgrep ]; then
   echo "Warning: semgrep CLI not found. Please install via: pip install semgrep"
 fi
-if [ ! -d /root/.semgrep/semgrep-rules ]; then
-  echo "Error: /root/.semgrep/semgrep-rules not found."
+if [ ! -d /root/tools/semgrep/semgrep-rules ]; then
+  echo "Error: /root/tools/semgrep/semgrep-rules not found."
   exit 1
 fi
 echo "Copying semgrep rules..."
-cp -r /root/.semgrep/semgrep-rules "${DEST}/tools/semgrep/"
+cp -r /root/tools/semgrep/semgrep-rules "${DEST}/tools/semgrep/"
 
 # grype (CLI + config + db)
 if [ ! -f /usr/local/bin/grype ]; then
@@ -86,15 +86,15 @@ if [ ! -f /root/tools/.grype/listing.json ]; then
   echo "Error: /root/tools/.grype/listing.json not found."
   exit 1
 fi
-if [ ! -d /root/tools/.grype/db ]; then
-  echo "Error: /root/tools/.grype/db not found."
+if [ ! -d /root/.grype/5 ]; then
+  echo "Error: /root/.grype/5 not found."
   exit 1
 fi
 echo "Copying grype config..."
 cp /root/tools/.grype/config.yaml "${DEST}/tools/grype/"
 cp /root/tools/.grype/listing.json "${DEST}/tools/grype/"
 echo "Copying grype DB..."
-cp -r /root/tools/.grype/db "${DEST}/tools/grype/"
+cp -r /root/.grype/5 "${DEST}/tools/grype/"
 
 # syft (CLI + config)
 if [ ! -f /usr/local/bin/syft ]; then
