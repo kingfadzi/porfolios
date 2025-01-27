@@ -69,40 +69,25 @@ RUN python3 -m pip install --no-cache-dir \
 
 # Install multiple JDK versions
 RUN dnf install -y \
-    java-1.5.0-openjdk-devel \
-    java-1.6.0-openjdk-devel \
     java-1.7.0-openjdk-devel \
     java-1.8.0-openjdk-devel \
     java-11-openjdk-devel \
-    java-13-openjdk-devel \
-    java-15-openjdk-devel \
     java-17-openjdk-devel \
-    java-19-openjdk-devel \
     java-21-openjdk-devel \
   && dnf clean all
 
-RUN alternatives --install /usr/bin/java java /usr/lib/jvm/java-1.5.0/bin/java 1050 \
- && alternatives --install /usr/bin/java java /usr/lib/jvm/java-1.6.0/bin/java 1060 \
- && alternatives --install /usr/bin/java java /usr/lib/jvm/java-1.7.0/bin/java 1070 \
+RUN alternatives --install /usr/bin/java java /usr/lib/jvm/java-1.7.0/bin/java 1070 \
  && alternatives --install /usr/bin/java java /usr/lib/jvm/java-1.8.0/bin/java 1080 \
  && alternatives --install /usr/bin/java java /usr/lib/jvm/java-11/bin/java 1110 \
- && alternatives --install /usr/bin/java java /usr/lib/jvm/java-13/bin/java 1130 \
- && alternatives --install /usr/bin/java java /usr/lib/jvm/java-15/bin/java 1150 \
  && alternatives --install /usr/bin/java java /usr/lib/jvm/java-17/bin/java 1170 \
- && alternatives --install /usr/bin/java java /usr/lib/jvm/java-19/bin/java 1190 \
  && alternatives --install /usr/bin/java java /usr/lib/jvm/java-21/bin/java 1210
 
 RUN alternatives --set java /usr/lib/jvm/java-17/bin/java
 
-ENV JAVA_5_HOME="/usr/lib/jvm/java-1.5.0"
-ENV JAVA_6_HOME="/usr/lib/jvm/java-1.6.0"
 ENV JAVA_7_HOME="/usr/lib/jvm/java-1.7.0"
 ENV JAVA_8_HOME="/usr/lib/jvm/java-1.8.0"
 ENV JAVA_11_HOME="/usr/lib/jvm/java-11"
-ENV JAVA_13_HOME="/usr/lib/jvm/java-13"
-ENV JAVA_15_HOME="/usr/lib/jvm/java-15"
 ENV JAVA_17_HOME="/usr/lib/jvm/java-17"
-ENV JAVA_19_HOME="/usr/lib/jvm/java-19"
 ENV JAVA_21_HOME="/usr/lib/jvm/java-21"
 
 # default JAVA_HOME set to 17
