@@ -9,9 +9,8 @@ from modular.base_logger import BaseLogger
 from modular.execution_decorator import analyze_execution
 from modular.models import Session, Ruleset, Violation, Label, ViolationLabel
 from modular.config import Config
-from modular.maven_helper import MavenHelper
-from modular.gradle_helper import GradleHelper
-
+from modular.maven.maven_helper import MavenHelper
+from modular.gradle.gradle_helper import GradleHelper
 
 class KantraAnalyzer(BaseLogger):
     def __init__(self):
@@ -199,7 +198,7 @@ if __name__ == "__main__":
     analyzer = KantraAnalyzer()
     mock_repo_id = "sonar-metrics"
     mock_repo_slug = "sonar-metrics"
-    mock_repo_dir = "/Users/fadzi/tools/SecurityShepherd"
+    mock_repo_dir = "/Users/fadzi/tools/spring-boot"
 
     from modular.models import Session
     try:

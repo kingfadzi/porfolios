@@ -17,7 +17,7 @@ class MavenHelper(BaseLogger):
             self.logger.info("No pom.xml found. Skipping effective POM generation.")
             return None
 
-        self.logger.debug(f"Found pom.xml at {pom_path}")
+        self.logger.info(f"Found pom.xml at {pom_path}")
         command_list = ["mvn", "help:effective-pom", f"-Doutput={output_file}"]
         if Config.TRUSTSTORE_PATH:
             command_list.append(f"-Djavax.net.ssl.trustStore={Config.TRUSTSTORE_PATH}")
@@ -35,7 +35,7 @@ class MavenHelper(BaseLogger):
                 text=True,
                 check=True
             )
-            self.logger.debug("Maven help:effective-pom completed successfully.")
+            self.logger.info("Maven help:effective-pom completed successfully.")
             if result.stdout:
                 self.logger.debug(f"Command output:\n{result.stdout.strip()}")
             return os.path.join(repo_dir, output_file)

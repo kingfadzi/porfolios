@@ -11,7 +11,7 @@ class ClocAnalyzer(BaseLogger):
 
     def __init__(self):
         self.logger = self.get_logger("ClocAnalyzer")
-        self.logger.setLevel(logging.DEBUG)  # Default logging level
+        self.logger.setLevel(logging.DEBUG)
 
     @analyze_execution(session_factory=Session, stage="CLOC Analysis")
     def run_analysis(self, repo_dir, repo, session, run_id=None):

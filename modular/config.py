@@ -25,6 +25,7 @@ class Config:
     JAVA_8_HOME = os.getenv("JAVA_8_HOME", "/Library/Java/JavaVirtualMachines/temurin-8.jdk/Contents/Home")
     JAVA_11_HOME = os.getenv("JAVA_11_HOME", "/opt/homebrew/opt/openjdk@11")
     JAVA_17_HOME = os.getenv("JAVA_17_HOME", "/Library/Java/JavaVirtualMachines/openjdk-17.jdk/Contents/Home")
+    JAVA_21_HOME = os.getenv("JAVA_21_HOME", "/opt/homebrew/opt/openjdk")
 
     HTTP_PROXY_HOST = os.getenv("HTTP_PROXY_HOST", "")
     HTTP_PROXY_PORT = os.getenv("HTTP_PROXY_PORT", "")
