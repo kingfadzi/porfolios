@@ -4,6 +4,7 @@ from modular.base_logger import BaseLogger
 from modular.gradle.environment_manager import GradleEnvironmentManager
 from modular.gradle.snippet_builder import GradleSnippetBuilder
 from modular.gradle.gradle_runner import GradleRunner
+import logging
 
 class GradleHelper(BaseLogger):
     def __init__(self):
@@ -26,17 +27,23 @@ class GradleHelper(BaseLogger):
 
         gradle_executable = gradle_env["gradle_executable"]
         java_home = gradle_env["java_home"]
-        task_name = f"allDependenciesNoDupes_{uuid.uuid4().hex[:8]}"
+        gradle_version = self.environment_manager._detect_gradle_version(repo_dir)
+
+        if not gradle_version:
+            self.logger.error(f"Failed to detect Gradle version for {repo_dir}.")
+            return None
 
         self.logger.debug(f"Selected Gradle executable: {gradle_executable}")
         self.logger.debug(f"Selected JAVA_HOME: {java_home}")
+        self.logger.debug(f"Detected Gradle version: {gradle_version}")
 
         build_file = self._ensure_root_build_file(repo_dir)
         if not build_file:
             self.logger.error("Failed to find or create a root build file.")
             return None
 
-        snippet = self.snippet_builder.build_snippet(gradle_env["gradle_executable"], task_name)
+        task_name = f"allDependenciesNoDupes_{uuid.uuid4().hex[:8]}"
+        snippet = self.snippet_builder.build_snippet(gradle_version, task_name)
         self._inject_snippet(build_file, snippet)
 
         cmd = [
@@ -48,12 +55,12 @@ class GradleHelper(BaseLogger):
         result = self.runner.run(
             cmd=cmd,
             cwd=repo_dir,
-            gradle_version=gradle_env["gradle_executable"],
+            gradle_version=gradle_version,
             check=True
         )
         if not result or result.returncode != 0:
             self.logger.warning("Custom task failed; attempting fallback 'dependencies' command.")
-            return self._fallback_dependencies(repo_dir, gradle_executable, output_file, gradle_env["gradle_executable"])
+            return self._fallback_dependencies(repo_dir, gradle_executable, output_file, gradle_version)
 
         return self._find_output_file(repo_dir, output_file)
 

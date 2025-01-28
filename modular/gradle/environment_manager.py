@@ -29,7 +29,7 @@ class GradleEnvironmentManager(BaseLogger):
             return None
 
         if not self._is_gradle_project(repo_dir):
-            self.logger.info(f"Directory '{repo_dir}' is not a Gradle project.")
+            self.logger.info(f"Repo '{repo_dir}' is not a Gradle project.")
             return None
 
         gradle_version = self._detect_gradle_version(repo_dir)
@@ -80,7 +80,10 @@ class GradleEnvironmentManager(BaseLogger):
 
     def _get_wrapper_version(self, repo_dir):
         path = os.path.join(repo_dir, "gradle", "wrapper", "gradle-wrapper.properties")
-        return self._parse_version_from_file(path, r"distributionUrl=.*gradle-(\d+\.\d+).*")
+        version = self._parse_version_from_file(path, r"distributionUrl=.*gradle-(\d+\.\d+).*")
+        if version:
+            self.logger.debug(f"Parsed Gradle version from wrapper: {version}")
+        return version
 
     def _get_system_gradle_version(self):
         try:
@@ -94,19 +97,29 @@ class GradleEnvironmentManager(BaseLogger):
         return None
 
     def _select_java_home(self, gradle_version):
-        if not gradle_version:
-            self.logger.debug("Gradle version not detected; defaulting to JAVA_HOME for unknown versions.")
-            return Config.JAVA_21_HOME
+        if not gradle_version or not re.match(r"^\d+\.\d+(\.\d+)?$", gradle_version):
+            self.logger.warning(f"Invalid Gradle version '{gradle_version}'. Defaulting to JAVA_8_HOME.")
+            return Config.JAVA_8_HOME
 
         major, minor = self._parse_version(gradle_version)
+
+        if major < 3:
+            self.logger.warning(f"Gradle version {gradle_version} is too old. Defaulting to JAVA_8_HOME.")
+            return Config.JAVA_8_HOME
+
         if major < 5:
             return Config.JAVA_8_HOME
+
         if major < 7:
             return Config.JAVA_11_HOME
+
         if major < 8:
             return Config.JAVA_17_HOME
+
         if major == 8:
             return Config.JAVA_21_HOME if minor >= 3 else Config.JAVA_17_HOME
+
+        self.logger.warning(f"Unrecognized Gradle version {gradle_version}. Defaulting to JAVA_21_HOME.")
         return Config.JAVA_21_HOME
 
     def _get_gradle_executable(self, repo_dir, gradle_version):
@@ -136,13 +149,16 @@ class GradleEnvironmentManager(BaseLogger):
 
     def _parse_version_from_file(self, path, pattern):
         if not os.path.isfile(path):
+            self.logger.debug(f"File '{path}' does not exist.")
             return None
 
         try:
             with open(path, "r", encoding="utf-8") as file:
                 content = file.read()
                 match = re.search(pattern, content)
-                return match.group(1) if match else None
+                version = match.group(1) if match else None
+                self.logger.debug(f"Parsed version from '{path}': {version}")
+                return version
         except Exception as ex:
             self.logger.error(f"Error reading version from {path}: {ex}")
         return None
