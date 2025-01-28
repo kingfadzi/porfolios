@@ -4,8 +4,8 @@ from data.cache_instance import cache
 from data.db_connection import engine
 from data.build_filter_conditions import build_filter_conditions
 
+@cache.memoize()
 def fetch_label_tech_data(filters=None, label_key=None):
-    #@cache.memoize()
     def query_data(condition_string, param_dict):
         sql = """
         SELECT
@@ -28,4 +28,7 @@ def fetch_label_tech_data(filters=None, label_key=None):
         return pd.read_sql(stmt, engine, params=param_dict)
 
     condition_string, param_dict = build_filter_conditions(filters)
-    return query_data(condition_string, param_dict)
+    
+    # Include label_key and filters in the cache key to avoid duplication
+    cache_key = (condition_string, frozenset(param_dict.items()), label_key)
+    return cache.cached_function(query_data)(*cache_key)
