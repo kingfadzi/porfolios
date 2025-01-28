@@ -10,6 +10,7 @@ SELECT
     crm.activity_status,
     crm.app_id,
     crm.tc,
+    crm.all_languages,
     v.id AS violation_id,
     v.ruleset_name,
     v.rule_name,

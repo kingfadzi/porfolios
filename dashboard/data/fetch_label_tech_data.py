@@ -5,7 +5,7 @@ from data.db_connection import engine
 from data.build_filter_conditions import build_filter_conditions
 
 def fetch_label_tech_data(filters=None, label_key=None):
-    @cache.memoize()
+    #@cache.memoize()
     def query_data(condition_string, param_dict):
         sql = """
         SELECT
