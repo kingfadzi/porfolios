@@ -122,7 +122,7 @@ def chart_layout():
             dbc.Card(
                 [
                     dbc.CardHeader(
-                        html.B("CLOC Metrics by Language", className="text-center"),
+                        html.B("Total Lines of per Languagee", className="text-center"),
                         className="bg-light",
                     ),
                     dcc.Graph(
@@ -138,7 +138,7 @@ def chart_layout():
             dbc.Card(
                 [
                     dbc.CardHeader(
-                        html.B("Repositories by IaC Type", className="text-center"),
+                        html.B("infrastructure as Code Usage", className="text-center"),
                         className="bg-light",
                     ),
                     dcc.Graph(
