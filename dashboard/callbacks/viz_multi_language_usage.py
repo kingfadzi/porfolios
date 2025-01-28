@@ -10,7 +10,7 @@ def viz_multi_language_usage(df):
         y="repo_count",
         color="language_bucket",
         labels={
-            "language_bucket": "Number of Languages (Bucket)",
+            "language_bucket": "Number of Languages per Repo",
             "repo_count": "Repository Count"
         },
         

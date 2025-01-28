@@ -10,7 +10,7 @@ def viz_last_commit_buckets(df):
         y="repo_count",
         color="commit_bucket",
         labels={
-            "commit_bucket": "Commit Recency (Bucket)",
+            "commit_bucket": "Commit Recency",
             "repo_count": "Repository Count",
         },
     )

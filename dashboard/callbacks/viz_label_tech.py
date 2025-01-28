@@ -12,7 +12,7 @@ def viz_label_tech(df):
     fig.update_layout(
         dragmode=False,
         xaxis_title="Category (label_key)",
-        yaxis_title="Repository Count",
-        legend_title="Technology (label_value)"
+        yaxis_title="", 
+        legend_title_text=None
     )
     return fig
