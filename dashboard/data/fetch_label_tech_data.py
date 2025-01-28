@@ -29,6 +29,5 @@ def fetch_label_tech_data(filters=None, label_key=None):
 
     condition_string, param_dict = build_filter_conditions(filters)
     
-    # Include label_key and filters in the cache key to avoid duplication
-    cache_key = (condition_string, frozenset(param_dict.items()), label_key)
-    return cache.cached_function(query_data)(*cache_key)
+    # Call the inner function and let Flask-Caching handle memoization
+    return query_data(condition_string, param_dict)
