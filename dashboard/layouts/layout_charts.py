@@ -65,7 +65,7 @@ def chart_layout():
             dbc.Card(
                 [
                     dbc.CardHeader(
-                        html.B("Repositories by Main Language", className="text-center"),
+                        html.B("Repositories Count by Main Language", className="text-center"),
                         className="bg-light",
                     ),
                     dcc.Graph(
