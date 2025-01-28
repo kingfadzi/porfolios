@@ -1,9 +1,9 @@
 import os
-import re
+import logging
 import subprocess
 from modular.base_logger import BaseLogger
 from modular.config import Config
-import logging
+import re
 
 class GradleEnvironmentManager(BaseLogger):
     def __init__(self):
@@ -37,7 +37,7 @@ class GradleEnvironmentManager(BaseLogger):
             self.logger.error("Unable to detect Gradle version.")
             return {
                 "gradle_executable": None,
-                "java_home": self._select_java_home(None)
+                "JAVA_HOME": self._select_java_home(None)
             }
 
         java_home = self._select_java_home(gradle_version)
@@ -47,13 +47,13 @@ class GradleEnvironmentManager(BaseLogger):
             self.logger.warning("No suitable Gradle executable found. Assigning JAVA_HOME only.")
             return {
                 "gradle_executable": None,
-                "java_home": java_home
+                "JAVA_HOME": java_home
             }
 
         self.logger.info(f"Gradle environment detected: Executable={gradle_executable}, JAVA_HOME={java_home}")
         return {
             "gradle_executable": gradle_executable,
-            "java_home": java_home
+            "JAVA_HOME": java_home
         }
 
     def _is_gradle_project(self, repo_dir):
@@ -96,10 +96,66 @@ class GradleEnvironmentManager(BaseLogger):
             self.logger.error(f"Error detecting system Gradle version: {ex}")
         return None
 
+    def _get_gradle_executable(self, repo_dir, gradle_version):
+        # Check for Gradle wrapper
+        wrapper_path = os.path.join(repo_dir, "gradlew")
+        if self._is_executable(wrapper_path):
+            self.logger.debug(f"Using Gradle wrapper executable: {wrapper_path}")
+            return wrapper_path
+
+        # Check system Gradle version
+        try:
+            output = subprocess.run(["gradle", "-v"], capture_output=True, text=True, check=True).stdout
+            detected_version = self._parse_version_from_output(output, r"Gradle\s+(\d+\.\d+)")
+            self.logger.debug(f"Detected system Gradle version: {detected_version}")
+            if detected_version and detected_version.startswith(str(gradle_version.split('.')[0])):
+                return "gradle"  # Use the system Gradle
+        except FileNotFoundError:
+            self.logger.warning("System Gradle not found.")
+
+        # Check for compatible version in /opt/gradle
+        gradle_path = self._get_compatible_gradle_path(gradle_version)
+        if gradle_path and self._is_executable(gradle_path):
+            self.logger.debug(f"Using Gradle executable from /opt: {gradle_path}")
+            return gradle_path
+
+        # Fall back to system Gradle
+        if self._is_executable("gradle"):
+            self.logger.info("Using system Gradle as fallback.")
+            return "gradle"
+
+        self.logger.warning("No suitable Gradle executable found.")
+        return None
+
+    def _get_compatible_gradle_path(self, gradle_version):
+        try:
+            major, minor, *_ = map(int, gradle_version.split(".")[:3])
+            self.logger.debug(f"Parsed Gradle version: major={major}, minor={minor}")
+
+            compatible_version = self.available_gradle_versions.get(major)
+            if compatible_version is None:
+                self.logger.warning(f"No compatible Gradle version found for major version {major}.")
+                return None
+
+            if isinstance(compatible_version, dict):
+                gradle_path = f"/opt/gradle/gradle-{compatible_version['latest' if minor >= 12 else 'default']}/bin/gradle"
+            else:
+                gradle_path = f"/opt/gradle/gradle-{compatible_version}/bin/gradle"
+
+            self.logger.debug(f"Constructed Gradle path: {gradle_path}")
+            if os.path.isfile(gradle_path) and os.access(gradle_path, os.X_OK):
+                return gradle_path
+            else:
+                self.logger.warning(f"Gradle executable not found or not executable at: {gradle_path}")
+                return None
+        except Exception as ex:
+            self.logger.error(f"Error determining compatible Gradle path for version {gradle_version}: {ex}")
+            return None
+
     def _select_java_home(self, gradle_version):
         if not gradle_version or not re.match(r"^\d+\.\d+(\.\d+)?$", gradle_version):
-            self.logger.warning(f"Invalid Gradle version '{gradle_version}'. Defaulting to JAVA_8_HOME.")
-            return Config.JAVA_8_HOME
+            self.logger.warning(f"Invalid Gradle version '{gradle_version}'. Defaulting to system JAVA_HOME.")
+            return Config.JAVA_HOME
 
         major, minor = self._parse_version(gradle_version)
 
@@ -119,33 +175,8 @@ class GradleEnvironmentManager(BaseLogger):
         if major == 8:
             return Config.JAVA_21_HOME if minor >= 3 else Config.JAVA_17_HOME
 
-        self.logger.warning(f"Unrecognized Gradle version {gradle_version}. Defaulting to JAVA_21_HOME.")
-        return Config.JAVA_21_HOME
-
-    def _get_gradle_executable(self, repo_dir, gradle_version):
-        wrapper_path = os.path.join(repo_dir, "gradlew")
-        if self._is_executable(wrapper_path):
-            self.logger.debug(f"Using Gradle wrapper executable: {wrapper_path}")
-            return wrapper_path
-
-        gradle_path = self._get_compatible_gradle_path(gradle_version)
-        if self._is_executable(gradle_path):
-            self.logger.debug(f"Using Gradle executable from /opt: {gradle_path}")
-            return gradle_path
-
-        if self._is_executable("gradle"):
-            self.logger.info("Using system Gradle as fallback.")
-            return "gradle"
-
-        self.logger.warning("No suitable Gradle executable found.")
-        return None
-
-    def _get_compatible_gradle_path(self, gradle_version):
-        major, minor, *_ = map(int, gradle_version.split(".")[:3])
-        compatible_version = self.available_gradle_versions.get(major)
-        if isinstance(compatible_version, dict):
-            return f"/opt/gradle/gradle-{compatible_version['latest' if minor >= 12 else 'default']}/bin/gradle"
-        return f"/opt/gradle/gradle-{compatible_version}/bin/gradle" if compatible_version else None
+        self.logger.warning(f"Unrecognized Gradle version {gradle_version}. Defaulting to system JAVA_HOME.")
+        return os.getenv("JAVA_HOME", "/usr/lib/jvm/default-java")
 
     def _parse_version_from_file(self, path, pattern):
         if not os.path.isfile(path):
@@ -184,6 +215,6 @@ if __name__ == "__main__":
     env = manager.get_gradle_environment("/Users/fadzi/tools/gradle_projects/VyAPI")
     if env:
         print(f"Gradle Executable: {env['gradle_executable']}")
-        print(f"JAVA_HOME: {env['java_home']}")
+        print(f"JAVA_HOME: {env['JAVA_HOME']}")
     else:
         print("No valid Gradle environment detected.")

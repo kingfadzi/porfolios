@@ -25,8 +25,9 @@ class GradleHelper(BaseLogger):
             self.logger.warning(f"Skipping dependency generation for {repo_dir} due to missing Gradle executable.")
             return None
 
+        # Ensure consistent case for JAVA_HOME
         gradle_executable = gradle_env["gradle_executable"]
-        java_home = gradle_env["java_home"]
+        java_home = gradle_env["JAVA_HOME"]
         gradle_version = self.environment_manager._detect_gradle_version(repo_dir)
 
         if not gradle_version:
@@ -36,6 +37,9 @@ class GradleHelper(BaseLogger):
         self.logger.debug(f"Selected Gradle executable: {gradle_executable}")
         self.logger.debug(f"Selected JAVA_HOME: {java_home}")
         self.logger.debug(f"Detected Gradle version: {gradle_version}")
+
+        # Debugging full Gradle environment
+        self.logger.debug(f"Gradle environment: {gradle_env}")
 
         build_file = self._ensure_root_build_file(repo_dir)
         if not build_file:
