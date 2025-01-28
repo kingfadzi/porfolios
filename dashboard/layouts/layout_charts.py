@@ -49,7 +49,7 @@ def chart_layout():
             dbc.Card(
                 [
                     dbc.CardHeader(
-                        html.B("Code Contributions by Language", className="text-center"),
+                        html.B("Code Contributions", className="text-center"),
                         className="bg-light",
                     ),
                     dcc.Graph(
@@ -122,7 +122,7 @@ def chart_layout():
             dbc.Card(
                 [
                     dbc.CardHeader(
-                        html.B("Total Lines of per Languagee", className="text-center"),
+                        html.B("Total Lines of Code per Languagee", className="text-center"),
                         className="bg-light",
                     ),
                     dcc.Graph(
@@ -154,7 +154,7 @@ def chart_layout():
             dbc.Card(
                 [
                     dbc.CardHeader(
-                        html.B("Programming Languages vs Contributor Buckets Heatmap", className="text-center"),
+                        html.B("Code Contribution by Language", className="text-center"),
                         className="bg-light",
                     ),
                     dcc.Graph(
