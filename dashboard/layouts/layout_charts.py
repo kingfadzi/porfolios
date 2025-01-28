@@ -4,7 +4,7 @@ import dash_bootstrap_components as dbc
 def chart_layout():
     return dbc.Col(
         [
-            # Row: Active vs Inactive Repositories & Repository Classification
+            # Row: Activity Status & Repository Classification
             dbc.Row(
                 [
                     dbc.Col(
@@ -166,7 +166,7 @@ def chart_layout():
                 className="mb-4",
             ),
 
-            # Row: Trivy Vulnerabilities & Semgrep Findings
+            # Row: Vulnerabilities by Severity & Standards Issues
             dbc.Row(
                 [
                     dbc.Col(
@@ -207,8 +207,7 @@ def chart_layout():
                 className="mb-4",
             ),
 
-
-            # Row: Category vs Technology (Stacked Bar)
+            # Category vs Technology Usage
             dbc.Row(
                 [
                     dbc.Col(
@@ -232,73 +231,129 @@ def chart_layout():
                 className="mb-4",
             ),
 
-            # Row 1: java-version, build-tool
+            # Row 1: Java Versions & Build Tools
             dbc.Row([
                 dbc.Col(
                     dbc.Card([
-                        dbc.CardHeader(html.B("Java Version: Category vs Technology Usage", className="text-center")),
-                        dcc.Graph(id="label-tech-bar-chart-java-version", config={"displayModeBar": False}, style={"height": 300}),
+                        dbc.CardHeader(
+                            html.B("Java Versions", className="text-center"),
+                            className="bg-light",
+                        ),
+                        dcc.Graph(
+                            id="label-tech-bar-chart-java-version",
+                            config={"displayModeBar": False},
+                            style={"height": 300},
+                        ),
                     ], className="mb-4"),
                     width=6
                 ),
                 dbc.Col(
                     dbc.Card([
-                        dbc.CardHeader(html.B("Build Tool: Category vs Technology Usage", className="text-center")),
-                        dcc.Graph(id="label-tech-bar-chart-build-tool", config={"displayModeBar": False}, style={"height": 300}),
+                        dbc.CardHeader(
+                            html.B("Build Tools", className="text-center"),
+                            className="bg-light",
+                        ),
+                        dcc.Graph(
+                            id="label-tech-bar-chart-build-tool",
+                            config={"displayModeBar": False},
+                            style={"height": 300},
+                        ),
                     ], className="mb-4"),
                     width=6
                 ),
             ], className="mb-4"),
 
-            # Row 2: appserver, database
+            # Row 2: Application Servers & Databases
             dbc.Row([
                 dbc.Col(
                     dbc.Card([
-                        dbc.CardHeader(html.B("App Server: Category vs Technology Usage", className="text-center")),
-                        dcc.Graph(id="label-tech-bar-chart-appserver", config={"displayModeBar": False}, style={"height": 300}),
+                        dbc.CardHeader(
+                            html.B("Application Servers", className="text-center"),
+                            className="bg-light",
+                        ),
+                        dcc.Graph(
+                            id="label-tech-bar-chart-appserver",
+                            config={"displayModeBar": False},
+                            style={"height": 300},
+                        ),
                     ], className="mb-4"),
                     width=6
                 ),
                 dbc.Col(
                     dbc.Card([
-                        dbc.CardHeader(html.B("Database: Category vs Technology Usage", className="text-center")),
-                        dcc.Graph(id="label-tech-bar-chart-database", config={"displayModeBar": False}, style={"height": 300}),
+                        dbc.CardHeader(
+                            html.B("Databases", className="text-center"),
+                            className="bg-light",
+                        ),
+                        dcc.Graph(
+                            id="label-tech-bar-chart-database",
+                            config={"displayModeBar": False},
+                            style={"height": 300},
+                        ),
                     ], className="mb-4"),
                     width=6
                 ),
             ], className="mb-4"),
 
-            # Row 3: spring-framework-version, spring-boot-version
+            # Row 3: Spring Framework & Spring Boot
             dbc.Row([
                 dbc.Col(
                     dbc.Card([
-                        dbc.CardHeader(html.B("Spring Framework Version: Category vs Technology Usage", className="text-center")),
-                        dcc.Graph(id="label-tech-bar-chart-spring-framework-version", config={"displayModeBar": False}, style={"height": 300}),
+                        dbc.CardHeader(
+                            html.B("Spring Framework", className="text-center"),
+                            className="bg-light",
+                        ),
+                        dcc.Graph(
+                            id="label-tech-bar-chart-spring-framework-version",
+                            config={"displayModeBar": False},
+                            style={"height": 300},
+                        ),
                     ], className="mb-4"),
                     width=6
                 ),
                 dbc.Col(
                     dbc.Card([
-                        dbc.CardHeader(html.B("Spring Boot Version: Category vs Technology Usage", className="text-center")),
-                        dcc.Graph(id="label-tech-bar-chart-spring-boot-version", config={"displayModeBar": False}, style={"height": 300}),
+                        dbc.CardHeader(
+                            html.B("Spring Boot", className="text-center"),
+                            className="bg-light",
+                        ),
+                        dcc.Graph(
+                            id="label-tech-bar-chart-spring-boot-version",
+                            config={"displayModeBar": False},
+                            style={"height": 300},
+                        ),
                     ], className="mb-4"),
                     width=6
                 ),
             ], className="mb-4"),
 
-            # Row 4: middleware, logging
+            # Row 4: Middleware & Logging
             dbc.Row([
                 dbc.Col(
                     dbc.Card([
-                        dbc.CardHeader(html.B("Middleware: Category vs Technology Usage", className="text-center")),
-                        dcc.Graph(id="label-tech-bar-chart-middleware", config={"displayModeBar": False}, style={"height": 300}),
+                        dbc.CardHeader(
+                            html.B("Middleware", className="text-center"),
+                            className="bg-light",
+                        ),
+                        dcc.Graph(
+                            id="label-tech-bar-chart-middleware",
+                            config={"displayModeBar": False},
+                            style={"height": 300},
+                        ),
                     ], className="mb-4"),
                     width=6
                 ),
                 dbc.Col(
                     dbc.Card([
-                        dbc.CardHeader(html.B("Logging: Category vs Technology Usage", className="text-center")),
-                        dcc.Graph(id="label-tech-bar-chart-logging", config={"displayModeBar": False}, style={"height": 300}),
+                        dbc.CardHeader(
+                            html.B("Logging", className="text-center"),
+                            className="bg-light",
+                        ),
+                        dcc.Graph(
+                            id="label-tech-bar-chart-logging",
+                            config={"displayModeBar": False},
+                            style={"height": 300},
+                        ),
                     ], className="mb-4"),
                     width=6
                 ),
