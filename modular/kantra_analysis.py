@@ -198,7 +198,7 @@ if __name__ == "__main__":
     analyzer = KantraAnalyzer()
     mock_repo_id = "sonar-metrics"
     mock_repo_slug = "sonar-metrics"
-    mock_repo_dir = "/Users/fadzi/tools/spring-boot"
+    mock_repo_dir = "/Users/fadzi/tools/SecurityShepherd"
 
     from modular.models import Session
     try:

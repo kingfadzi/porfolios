@@ -23,7 +23,7 @@ class GradleHelper(BaseLogger):
 
         gradle_version = self.version_detector.detect_version(repo_dir)
         if not gradle_version:
-            self.logger.error("No Gradle version detected. Aborting.")
+            self.logger.info("No Gradle version detected. Possibly not a Gradle Project.")
             return None
 
         build_file = self._ensure_root_build_file(repo_dir)
