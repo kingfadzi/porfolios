@@ -101,7 +101,7 @@ def chart_layout():
                         dbc.Card(
                             [
                                 dbc.CardHeader(
-                                    html.B("Repository Activity by Last Commit Date", className="text-center"),
+                                    html.B("Last Commit Date", className="text-center"),
                                     className="bg-light",
                                 ),
                                 dcc.Graph(
