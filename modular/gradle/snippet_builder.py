@@ -6,7 +6,7 @@ class GradleSnippetBuilder(BaseLogger):
         self.logger = self.get_logger("GradleSnippetBuilder")
         self.logger.setLevel(logging.DEBUG)
 
-    def 12(self, gradle_version, task_name):
+    def build_snippet(self, gradle_version, task_name):
         major, minor = self._parse_major_minor(gradle_version)
         if major < 7:
             self.logger.debug(f"Using legacy snippet for Gradle {gradle_version}")

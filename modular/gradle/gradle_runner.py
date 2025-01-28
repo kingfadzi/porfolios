@@ -4,16 +4,16 @@ import subprocess
 
 from modular.base_logger import BaseLogger
 from modular.config import Config
-from modular.gradle.java_home_selector import JavaHomeSelector
+from modular.gradle.environment_manager import GradleEnvironmentManager
 
 class GradleRunner(BaseLogger):
     def __init__(self):
         self.logger = self.get_logger("GradleRunner")
         self.logger.setLevel(logging.DEBUG)
-        self.java_selector = JavaHomeSelector()  # We'll instantiate it here
+        self.environment_manager = GradleEnvironmentManager()
 
     def run(self, cmd, cwd, gradle_version, check=True):
-        java_home = self.java_selector.select_java_home(gradle_version)
+        java_home = self.environment_manager._select_java_home(gradle_version)
         env = self._setup_env(java_home)
         self.logger.info(f"Running Gradle command: {' '.join(cmd)} in {cwd}")
         try:
