@@ -28,7 +28,7 @@ def chart_layout():
                         dbc.Card(
                             [
                                 dbc.CardHeader(
-                                    html.B("Repository Classification", className="text-center"),
+                                    html.B("Repository Sizes", className="text-center"),
                                     className="bg-light",
                                 ),
                                 dcc.Graph(
@@ -49,7 +49,7 @@ def chart_layout():
             dbc.Card(
                 [
                     dbc.CardHeader(
-                        html.B("Contributors vs Commits Scatter Plot", className="text-center"),
+                        html.B("Code Contributions by Language", className="text-center"),
                         className="bg-light",
                     ),
                     dcc.Graph(
@@ -84,7 +84,7 @@ def chart_layout():
                         dbc.Card(
                             [
                                 dbc.CardHeader(
-                                    html.B("Language Usage Buckets", className="text-center"),
+                                    html.B("Num of Languages Used", className="text-center"),
                                     className="bg-light",
                                 ),
                                 dcc.Graph(
