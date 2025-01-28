@@ -55,7 +55,7 @@ def filter_layout():
                 ),
                 html.Div(
                     [
-                        dbc.Label("Filter by Main Language", html_for="language-filter"),
+                        dbc.Label("Filter by Repo Main Language", html_for="language-filter"),
                         dcc.Dropdown(
                             id="language-filter",
                             options=[],  # Options will be populated dynamically
