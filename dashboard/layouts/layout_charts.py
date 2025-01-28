@@ -11,7 +11,7 @@ def chart_layout():
                         dbc.Card(
                             [
                                 dbc.CardHeader(
-                                    html.B("Activity Status", className="text-center"),
+                                    html.B("Repo Status", className="text-center"),
                                     className="bg-light",
                                 ),
                                 dcc.Graph(
