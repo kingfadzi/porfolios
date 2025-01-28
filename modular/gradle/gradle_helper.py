@@ -1,10 +1,8 @@
 import os
-import logging
 import uuid
-
 from modular.base_logger import BaseLogger
-from modular.gradle.version_detector import GradleVersionDetector
-from modular.gradle.snippet_builder import GradleSnippetBuilder  # Must return 'gradle.rootProject.allprojects' snippet
+from modular.gradle.environment_manager import GradleEnvironmentManager
+from modular.gradle.snippet_builder import GradleSnippetBuilder
 from modular.gradle.gradle_runner import GradleRunner
 
 class GradleHelper(BaseLogger):
@@ -12,55 +10,58 @@ class GradleHelper(BaseLogger):
         self.logger = self.get_logger("GradleHelper")
         self.logger.setLevel(logging.DEBUG)
 
-        self.version_detector = GradleVersionDetector()
+        self.environment_manager = GradleEnvironmentManager()
         self.snippet_builder = GradleSnippetBuilder()
         self.runner = GradleRunner()
 
     def generate_resolved_dependencies(self, repo_dir, output_file="all-deps-nodupes.txt"):
         if not os.path.isdir(repo_dir):
-            self.logger.error(f"Not a valid directory: {repo_dir}")
+            self.logger.error(f"Invalid directory: {repo_dir}")
             return None
 
-        gradle_version = self.version_detector.detect_version(repo_dir)
-        if not gradle_version:
-            self.logger.info("No Gradle version detected. Possibly not a Gradle Project.")
+        gradle_env = self.environment_manager.get_gradle_environment(repo_dir)
+        if not gradle_env or not gradle_env["gradle_executable"]:
+            self.logger.warning(f"Skipping dependency generation for {repo_dir} due to missing Gradle executable.")
             return None
+
+        gradle_executable = gradle_env["gradle_executable"]
+        java_home = gradle_env["java_home"]
+        task_name = f"allDependenciesNoDupes_{uuid.uuid4().hex[:8]}"
+
+        self.logger.debug(f"Selected Gradle executable: {gradle_executable}")
+        self.logger.debug(f"Selected JAVA_HOME: {java_home}")
 
         build_file = self._ensure_root_build_file(repo_dir)
         if not build_file:
             self.logger.error("Failed to find or create a root build file.")
             return None
 
-        task_name = f"allDependenciesNoDupes_{uuid.uuid4().hex[:8]}"
-        snippet = self.snippet_builder.build_snippet(gradle_version, task_name)
+        snippet = self.snippet_builder.build_snippet(gradle_env["gradle_executable"], task_name)
         self._inject_snippet(build_file, snippet)
 
-        gradle_cmd = self.version_detector.detect_gradle_command(repo_dir)
         cmd = [
-            gradle_cmd,
+            gradle_executable,
             "--no-daemon",
             "--no-parallel",
-            "--warning-mode=all",
             task_name
         ]
         result = self.runner.run(
             cmd=cmd,
             cwd=repo_dir,
-            gradle_version=gradle_version,
+            gradle_version=gradle_env["gradle_executable"],
             check=True
         )
         if not result or result.returncode != 0:
             self.logger.warning("Custom task failed; attempting fallback 'dependencies' command.")
-            return self._fallback_dependencies(repo_dir, gradle_cmd, output_file, gradle_version)
+            return self._fallback_dependencies(repo_dir, gradle_executable, output_file, gradle_env["gradle_executable"])
 
         return self._find_output_file(repo_dir, output_file)
 
-    def _fallback_dependencies(self, repo_dir, gradle_cmd, output_file, gradle_version):
+    def _fallback_dependencies(self, repo_dir, gradle_executable, output_file, gradle_version):
         cmd = [
-            gradle_cmd,
+            gradle_executable,
             "--no-daemon",
             "--no-parallel",
-            "--warning-mode=all",
             "dependencies"
         ]
         result = self.runner.run(
@@ -93,7 +94,6 @@ class GradleHelper(BaseLogger):
         minimal_build = os.path.join(repo_dir, "build.gradle")
         try:
             with open(minimal_build, "w", encoding="utf-8") as f:
-                # If needed, insert minimal content, e.g.:
                 f.write("// Minimal root build file for enumerating dependencies.\n")
                 f.write("// Additional config may be placed here if desired.\n")
             self.logger.info(f"Created minimal build.gradle at {minimal_build}")
