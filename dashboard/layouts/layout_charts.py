@@ -49,7 +49,7 @@ def chart_layout():
             dbc.Card(
                 [
                     dbc.CardHeader(
-                        html.B("Code Contributions", className="text-center"),
+                        html.B("Code Contribution Activity", className="text-center"),
                         className="bg-light",
                     ),
                     dcc.Graph(
