@@ -12,24 +12,34 @@ class GradleRunner(BaseLogger):
         self.logger.setLevel(logging.DEBUG)
         self.environment_manager = GradleEnvironmentManager()
 
-    def run(self, cmd, cwd, gradle_version, check=True):
-        java_home = self.environment_manager._select_java_home(gradle_version)
-        env = self._setup_env(java_home)
-        self.logger.info(f"Running Gradle command: {' '.join(cmd)} in {cwd}")
-        try:
-            result = subprocess.run(cmd, cwd=cwd, env=env, capture_output=True, text=True, check=check)
-            self.logger.debug(f"Return code: {result.returncode}")
-            if result.stdout:
-                self.logger.debug(f"Stdout:\n{result.stdout}")
-            if result.stderr:
-                self.logger.debug(f"Stderr:\n{result.stderr}")
-            return result
-        except subprocess.CalledProcessError as cpe:
-            self.logger.error(f"Gradle command failed with CalledProcessError: {cpe}")
-            return None
-        except Exception as ex:
-            self.logger.error(f"Unexpected error: {ex}")
-            return None
+def run(self, cmd, cwd, gradle_version, check=True):
+    java_home = self.environment_manager._select_java_home(gradle_version)
+    env = self._setup_env(java_home)
+
+    # Log the JAVA_HOME being set
+    self.logger.debug(f"Setting JAVA_HOME for Gradle: {env['JAVA_HOME']}")
+
+    self.logger.info(f"Running Gradle command: {' '.join(cmd)} in {cwd}")
+    try:
+        # Validate Gradle environment by running `gradle -v`
+        validation_cmd = cmd + ["-v"]
+        validation_result = subprocess.run(validation_cmd, cwd=cwd, env=env, capture_output=True, text=True)
+        self.logger.debug(f"Gradle version output:\n{validation_result.stdout}")
+
+        result = subprocess.run(cmd, cwd=cwd, env=env, capture_output=True, text=True, check=check)
+        self.logger.debug(f"Return code: {result.returncode}")
+        if result.stdout:
+            self.logger.debug(f"Stdout:\n{result.stdout}")
+        if result.stderr:
+            self.logger.debug(f"Stderr:\n{result.stderr}")
+        return result
+    except subprocess.CalledProcessError as cpe:
+        self.logger.error(f"Gradle command failed with CalledProcessError: {cpe}")
+        return None
+    except Exception as ex:
+        self.logger.error(f"Unexpected error: {ex}")
+        return None
+
 
     def _setup_env(self, java_home):
         env = os.environ.copy()
