@@ -84,7 +84,7 @@ def chart_layout():
                         dbc.Card(
                             [
                                 dbc.CardHeader(
-                                    html.B("Num of Languages Used", className="text-center"),
+                                    html.B("Num of Languages Use per repod", className="text-center"),
                                     className="bg-light",
                                 ),
                                 dcc.Graph(
