@@ -2,7 +2,7 @@ services:
   postgres-service:
     build:
       context: .
-      dockerfile: Dockerfile-postgres
+      dockerfile: postgres.dockerfile
       args:
         USER_ID: ${HOST_UID}
         GROUP_ID: ${HOST_GID}
