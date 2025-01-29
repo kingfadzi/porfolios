@@ -207,30 +207,6 @@ def chart_layout():
                 className="mb-4",
             ),
 
-            # Category vs Technology Usage
-            dbc.Row(
-                [
-                    dbc.Col(
-                        dbc.Card(
-                            [
-                                dbc.CardHeader(
-                                    html.B("Category vs Technology Usage", className="text-center"),
-                                    className="bg-light",
-                                ),
-                                dcc.Graph(
-                                    id="label-tech-bar-chart",
-                                    config={"displayModeBar": False},
-                                    style={"height": 300},
-                                ),
-                            ],
-                            className="mb-4",
-                        ),
-                        width=12,
-                    ),
-                ],
-                className="mb-4",
-            ),
-
             # Row 1: Java Versions & Build Tools
             dbc.Row([
                 dbc.Col(

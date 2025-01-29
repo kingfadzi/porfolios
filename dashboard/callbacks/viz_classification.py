@@ -18,6 +18,8 @@ def viz_classification(filtered_df):
     fig.update_layout(
         showlegend=False,
         title={"x": 0.5},
+        xaxis_title="",
+        yaxis_title="Repository Count",
         dragmode=False
     )
 

@@ -16,7 +16,18 @@ def fetch_classification_data(filters=None):
         sql += " GROUP BY classification_label"
 
         stmt = text(sql)
-        return pd.read_sql(stmt, engine, params=param_dict)
+        df = pd.read_sql(stmt, engine, params=param_dict)
+
+        df['classification_value'] = (
+            df['classification_label']
+            .apply(lambda x: x.split("->", 1)[1].strip() if "->" in x else x.strip())
+        )
+
+        df = df.groupby('classification_value', as_index=False)['repo_count'].sum()
+
+        df.rename(columns={'classification_value': 'classification_label'}, inplace=True)
+
+        return df
 
     condition_string, param_dict = build_filter_conditions(filters)
     return query_data(condition_string, param_dict)

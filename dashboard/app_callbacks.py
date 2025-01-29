@@ -25,6 +25,7 @@ from data.fetch_last_commit_buckets import fetch_last_commit_buckets
 from callbacks.viz_last_commit_buckets import viz_last_commit_buckets
 from data.fetch_label_tech_data import fetch_label_tech_data
 from callbacks.viz_label_tech import viz_label_tech
+from data.fetch_kpi_data import fetch_kpi_data
 
 def register_dropdown_callbacks(app):
     @app.callback(
@@ -70,6 +71,13 @@ def register_callbacks(app):
             Output("label-tech-bar-chart-spring-boot-version", "figure"),
             Output("label-tech-bar-chart-middleware", "figure"),
             Output("label-tech-bar-chart-logging", "figure"),
+
+            Output("kpi-total-repos", "children"),
+            Output("kpi-avg-commits", "children"),
+            Output("kpi-avg-contributors", "children"),
+            Output("kpi-avg-loc", "children"),
+            Output("kpi-avg-ccn", "children"),
+            Output("kpi-avg-repo-size", "children"),
 
         ],
         [
@@ -141,6 +149,16 @@ def register_callbacks(app):
         logging_data = fetch_label_tech_data(filters, "cto.io/logging")
         logging_fig = viz_label_tech(logging_data)
 
+        kpi_data = fetch_kpi_data(filters)
+
+        kpi_data = fetch_kpi_data(filters)
+        total_repos = kpi_data["total_repos"]
+        avg_commits = kpi_data["avg_commits"]
+        avg_contributors = kpi_data["avg_contributors"]
+        avg_loc = kpi_data["avg_loc"]
+        avg_ccn = kpi_data["avg_ccn"]
+        avg_repo_size = kpi_data["avg_repo_size"]
+
         return (
             active_inactive_fig,
             classification_fig,
@@ -160,5 +178,12 @@ def register_callbacks(app):
             sf_fig,
             sb_fig,
             mw_fig,
-            logging_fig
+            logging_fig,
+
+            total_repos,
+            avg_commits,
+            avg_contributors,
+            avg_loc,
+            avg_ccn,
+            avg_repo_size
         )

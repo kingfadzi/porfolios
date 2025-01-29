@@ -85,11 +85,11 @@ def filter_layout():
                         dbc.Tooltip(
                             r"""
                             Classification Guide:
-                            - Tiny: <500 LOC, <20 files, <1MB.
-                            - Small: <5,000 LOC, <200 files, <10MB.
-                            - Medium: <50,000 LOC, <1,000 files, <100MB.
-                            - Large: <100,000 LOC, <5,000 files, <1GB.
-                            - Massive: ≥100,000 LOC, ≥5,000 files, ≥1GB.
+                            - Tiny: < 1MB.
+                            - Small: < 10MB.
+                            - Medium: < 100MB.
+                            - Large: < 1GB.
+                            - Massive: ≥ 1GB.                            - 
                             - Unclassified: Doesn't fit any above criteria.
                             """,
                             target="classification-help-text",

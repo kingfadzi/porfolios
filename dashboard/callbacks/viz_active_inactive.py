@@ -30,7 +30,7 @@ def viz_active_inactive(filtered_df):
 
     fig.update_layout(
         dragmode=False,
-        xaxis_title="Activity Status",
+        xaxis_title="",
         yaxis_title="Repository Count",
         legend_title="Host Name",
     )
