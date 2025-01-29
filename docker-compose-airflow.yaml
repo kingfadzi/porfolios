@@ -2,7 +2,7 @@ services:
   airflow-webserver:
     build:
       context: .
-      dockerfile: airflow.dockerfile
+      dockerfile: airflow.Dockerfile
       args:
         GLOBAL_CERT: ${GLOBAL_CERT}
         GLOBAL_INDEX: ${GLOBAL_INDEX}
