@@ -63,7 +63,7 @@ def fetch_repositories(batch_size=1000):
             .filter(CombinedRepoMetrics.main_language == "Java")
             # .filter(CombinedRepoMetrics.activity_status == "ACTIVE")
             # .filter(CombinedRepoMetrics.classification_label != "Code -> Massive")
-            # .filter(Repository.status == "NEW")
+            .filter(Repository.status == "NEW")
             .offset(offset)
             .limit(batch_size)
             .all()
