@@ -30,7 +30,7 @@ class KantraAnalyzer(BaseLogger):
         gradle_result = GradleHelper().generate_resolved_dependencies(repo_dir)
 
         if maven_result is None and gradle_result is None:
-            self.logger.info("Neither a valid Maven POM nor Gradle dependencies were found. Stopping Kantra analysis.")
+            self.logger.warn("Neither a valid Maven POM nor Gradle dependencies were found. Stopping Kantra analysis.")
             return
 
         output_dir = os.path.join(Config.KANTRA_OUTPUT_ROOT, f"kantra_output_{repo.repo_slug}")
