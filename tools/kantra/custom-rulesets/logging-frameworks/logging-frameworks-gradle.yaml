@@ -8,12 +8,6 @@
       - builtin.filecontent:
           filePattern: all-deps-nodupes.txt
           pattern: log4j:log4j:.*
-      - builtin.filecontent:
-          filePattern: build.gradle
-          pattern: implementation\s*['"]log4j:log4j
-      - builtin.filecontent:
-          filePattern: build.gradle.kts
-          pattern: implementation\(['"]log4j:log4j['"]\)
   description: "Detected Apache Log4j 1.x usage in Gradle"
   message: |
     Application uses Log4j 1.x. This framework is deprecated and no longer maintained. Consider upgrading to Log4j 2 or migrating to SLF4J.
@@ -31,12 +25,6 @@
       - builtin.filecontent:
           filePattern: all-deps-nodupes.txt
           pattern: org\.apache\.logging\.log4j:.*
-      - builtin.filecontent:
-          filePattern: build.gradle
-          pattern: implementation\s*['"]org.apache.logging.log4j:.*['"]
-      - builtin.filecontent:
-          filePattern: build.gradle.kts
-          pattern: implementation\(['"]org.apache.logging.log4j:.*['"]\)
   description: "Detected Apache Log4j 2 usage in Gradle"
   message: |
     Application uses Log4j 2, a modern and actively maintained logging framework.
@@ -54,12 +42,6 @@
       - builtin.filecontent:
           filePattern: all-deps-nodupes.txt
           pattern: org\.slf4j:.*
-      - builtin.filecontent:
-          filePattern: build.gradle
-          pattern: implementation\s*['"]org.slf4j:.*['"]
-      - builtin.filecontent:
-          filePattern: build.gradle.kts
-          pattern: implementation\(['"]org.slf4j:.*['"]\)
   description: "Detected SLF4J usage in Gradle"
   message: |
     Application uses SLF4J, which is a popular logging facade.
@@ -77,12 +59,6 @@
       - builtin.filecontent:
           filePattern: all-deps-nodupes.txt
           pattern: ch\.qos\.logback:.*
-      - builtin.filecontent:
-          filePattern: build.gradle
-          pattern: implementation\s*['"]ch.qos.logback:.*['"]
-      - builtin.filecontent:
-          filePattern: build.gradle.kts
-          pattern: implementation\(['"]ch.qos.logback:.*['"]\)
   description: "Detected Logback usage in Gradle"
   message: |
     Application uses Logback, the native implementation of SLF4J.
@@ -100,12 +76,6 @@
       - builtin.filecontent:
           filePattern: all-deps-nodupes.txt
           pattern: commons-logging:.*
-      - builtin.filecontent:
-          filePattern: build.gradle
-          pattern: implementation\s*['"]commons-logging:.*['"]
-      - builtin.filecontent:
-          filePattern: build.gradle.kts
-          pattern: implementation\(['"]commons-logging:.*['"]\)
   description: "Detected Apache Commons Logging usage in Gradle"
   message: |
     Application uses Apache Commons Logging. Consider migrating to SLF4J for better compatibility and maintainability.
@@ -123,12 +93,6 @@
       - builtin.filecontent:
           filePattern: all-deps-nodupes.txt
           pattern: org\.jboss\.logging:.*
-      - builtin.filecontent:
-          filePattern: build.gradle
-          pattern: implementation\s*['"]org.jboss.logging:.*['"]
-      - builtin.filecontent:
-          filePattern: build.gradle.kts
-          pattern: implementation\(['"]org.jboss.logging:.*['"]\)
   description: "Detected JBoss Logging usage in Gradle"
   message: |
     Application uses JBoss Logging. Consider standardizing on SLF4J for a more flexible logging implementation.
@@ -145,12 +109,6 @@
     or:
       - builtin.filecontent:
           filePattern: all-deps-nodupes.txt
-          pattern: java\.util\.logging
-      - builtin.filecontent:
-          filePattern: build.gradle
-          pattern: java\.util\.logging
-      - builtin.filecontent:
-          filePattern: build.gradle.kts
           pattern: java\.util\.logging
   description: "Detected Java Util Logging usage in Gradle"
   message: |

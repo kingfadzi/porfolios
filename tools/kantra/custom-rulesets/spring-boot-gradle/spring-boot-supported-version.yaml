@@ -9,37 +9,6 @@
       - builtin.filecontent:
           filePattern: all-deps-nodupes.txt
           pattern: org\.springframework\.boot:spring-boot-starter.*:((2\.(7|[8-9]|\d{2,}))|([3-9]|[1-9]\d+)\.\d+(\.\d+)?)
-      - builtin.filecontent:
-          filePattern: build.gradle
-          pattern: implementation\s*\(['"]org\.springframework\.boot:spring-boot-starter.*:((2\.(7|[8-9]|\d{2,}))|([3-9]|[1-9]\d+)\.\d+(\.\d+)?)['"]\)
-
-      - builtin.filecontent:
-          filePattern: build.gradle.kts
-          pattern: implementation\(["']org\.springframework\.boot:spring-boot-starter.*:((2\.(7|[8-9]|\d{2,}))|([3-9]|[1-9]\d+)\.\d+(\.\d+)?)["']\)
-
-      - and:
-          - builtin.filecontent:
-              filePattern: build.gradle
-              pattern: implementation\s*\(['"]org\.springframework\.boot:spring-boot-starter.*:\$springBootVersion['"]\)
-          - builtin.filecontent:
-              filePattern: gradle.properties
-              pattern: springBootVersion\s*=\s*((2\.(7|[8-9]|\d{2,}))|([3-9]|[1-9]\d+)\.\d+(\.\d+)?)
-
-      - and:
-          - builtin.filecontent:
-              filePattern: build.gradle.kts
-              pattern: implementation\(["']org\.springframework\.boot:spring-boot-starter.*:\$\{springBootVersion\}["']\)
-          - builtin.filecontent:
-              filePattern: gradle.properties
-              pattern: springBootVersion\s*=\s*((2\.(7|[8-9]|\d{2,}))|([3-9]|[1-9]\d+)\.\d+(\.\d+)?)
-
-      - builtin.filecontent:
-          filePattern: build.gradle
-          pattern: id\s*\(['"]org\.springframework\.boot['"]\)\s*version\s*['"]((2\.(7|[8-9]|\d{2,}))|([3-9]|[1-9]\d+)\.\d+(\.\d+)?)['"]\)
-
-      - builtin.filecontent:
-          filePattern: build.gradle.kts
-          pattern: id\(["']org\.springframework\.boot["']\)\s*version\s*["']((2\.(7|[8-9]|\d{2,}))|([3-9]|[1-9]\d+)\.\d+(\.\d+)?)["']\)
 
   description: "Detected supported Spring Boot version (>=2.7)."
   message: |

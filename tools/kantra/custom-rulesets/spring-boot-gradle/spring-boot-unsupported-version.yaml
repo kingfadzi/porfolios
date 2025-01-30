@@ -10,37 +10,6 @@
       - builtin.filecontent:
           filePattern: all-deps-nodupes.txt
           pattern: org\.springframework\.boot:spring-boot-starter.*:(1\.\d+(\.\d+)?|2\.[0-4](\.\d+)?)
-      - builtin.filecontent:
-          filePattern: build.gradle
-          pattern: implementation\s*\(['"]org\.springframework\.boot:spring-boot-starter.*:(1\.\d+(\.\d+)?|2\.[0-4](\.\d+)?)['"]\)
-
-      - builtin.filecontent:
-          filePattern: build.gradle.kts
-          pattern: implementation\(["']org\.springframework\.boot:spring-boot-starter.*:(1\.\d+(\.\d+)?|2\.[0-4](\.\d+)?)["']\)
-
-      - and:
-          - builtin.filecontent:
-              filePattern: build.gradle
-              pattern: implementation\s*\(['"]org\.springframework\.boot:spring-boot-starter.*:\$(\{springBootVersion\}|springBootVersion)['"]\)
-          - builtin.filecontent:
-              filePattern: gradle.properties
-              pattern: springBootVersion\s*=\s*(1\.\d+(\.\d+)?|2\.[0-4](\.\d+)?)
-
-      - and:
-          - builtin.filecontent:
-              filePattern: build.gradle.kts
-              pattern: implementation\(["']org\.springframework\.boot:spring-boot-starter.*:\$(\{springBootVersion\}|springBootVersion)["']\)
-          - builtin.filecontent:
-              filePattern: gradle.properties
-              pattern: springBootVersion\s*=\s*(1\.\d+(\.\d+)?|2\.[0-4](\.\d+)?)
-
-      - builtin.filecontent:
-          filePattern: build.gradle
-          pattern: id\s*\(['"]org\.springframework\.boot['"]\)\s*version\s*['"](1\.\d+(\.\d+)?|2\.[0-4](\.\d+)?)['"]\)
-
-      - builtin.filecontent:
-          filePattern: build.gradle.kts
-          pattern: id\(["']org\.springframework\.boot["']\)\s*version\s*[""](1\.\d+(\.\d+)?|2\.[0-4](\.\d+)?)[""]\)
 
   description: "Detected unsupported Spring Boot version (< 2.5)."
   message: |

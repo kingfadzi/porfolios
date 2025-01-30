@@ -9,12 +9,6 @@
       - builtin.filecontent:
           filePattern: all-deps-nodupes.txt
           pattern: org\.mongodb:mongodb-driver-sync:.*
-      - builtin.filecontent:
-          filePattern: build.gradle
-          pattern: implementation\s*['"]org\.mongodb:mongodb-driver-sync:.*['"]
-      - builtin.filecontent:
-          filePattern: build.gradle.kts
-          pattern: implementation\(['"]org\.mongodb:mongodb-driver-sync:.*['"]\)
   message: "Detected usage of MongoDB database."
   description: "Detected usage of MongoDB database."
 
@@ -29,12 +23,6 @@
       - builtin.filecontent:
           filePattern: all-deps-nodupes.txt
           pattern: org\.elasticsearch\.client:elasticsearch-rest-high-level-client:.*
-      - builtin.filecontent:
-          filePattern: build.gradle
-          pattern: implementation\s*['"]org\.elasticsearch\.client:elasticsearch-rest-high-level-client:.*['"]
-      - builtin.filecontent:
-          filePattern: build.gradle.kts
-          pattern: implementation\(['"]org\.elasticsearch\.client:elasticsearch-rest-high-level-client:.*['"]\)
   message: "Detected usage of Elasticsearch database."
   description: "Detected usage of Elasticsearch database."
 
@@ -49,12 +37,6 @@
       - builtin.filecontent:
           filePattern: all-deps-nodupes.txt
           pattern: com\.datastax\.cassandra:cassandra-driver-core:.*
-      - builtin.filecontent:
-          filePattern: build.gradle
-          pattern: implementation\s*['"]com\.datastax\.cassandra:cassandra-driver-core:.*['"]
-      - builtin.filecontent:
-          filePattern: build.gradle.kts
-          pattern: implementation\(['"]com\.datastax\.cassandra:cassandra-driver-core:.*['"]\)
   message: "Detected usage of Cassandra database."
   description: "Detected usage of Cassandra database."
 
@@ -69,12 +51,6 @@
       - builtin.filecontent:
           filePattern: all-deps-nodupes.txt
           pattern: com\.couchbase\.client:java-client:.*
-      - builtin.filecontent:
-          filePattern: build.gradle
-          pattern: implementation\s*['"]com\.couchbase\.client:java-client:.*['"]
-      - builtin.filecontent:
-          filePattern: build.gradle.kts
-          pattern: implementation\(['"]com\.couchbase\.client:java-client:.*['"]\)
   message: "Detected usage of Couchbase database."
   description: "Detected usage of Couchbase database."
 
@@ -89,12 +65,6 @@
       - builtin.filecontent:
           filePattern: all-deps-nodupes.txt
           pattern: org\.neo4j\.driver:neo4j-java-driver:.*
-      - builtin.filecontent:
-          filePattern: build.gradle
-          pattern: implementation\s*['"]org\.neo4j\.driver:neo4j-java-driver:.*['"]
-      - builtin.filecontent:
-          filePattern: build.gradle.kts
-          pattern: implementation\(['"]org\.neo4j\.driver:neo4j-java-driver:.*['"]\)
   message: "Detected usage of Neo4j database."
   description: "Detected usage of Neo4j database."
 
@@ -109,12 +79,6 @@
       - builtin.filecontent:
           filePattern: all-deps-nodupes.txt
           pattern: com\.amazonaws:aws-java-sdk-dynamodb:.*
-      - builtin.filecontent:
-          filePattern: build.gradle
-          pattern: implementation\s*['"]com\.amazonaws:aws-java-sdk-dynamodb:.*['"]
-      - builtin.filecontent:
-          filePattern: build.gradle.kts
-          pattern: implementation\(['"]com\.amazonaws:aws-java-sdk-dynamodb:.*['"]\)
   message: "Detected usage of DynamoDB database."
   description: "Detected usage of DynamoDB database."
 
@@ -129,12 +93,6 @@
       - builtin.filecontent:
           filePattern: all-deps-nodupes.txt
           pattern: org\.apache\.hbase:hbase-client:.*
-      - builtin.filecontent:
-          filePattern: build.gradle
-          pattern: implementation\s*['"]org\.apache\.hbase:hbase-client:.*['"]
-      - builtin.filecontent:
-          filePattern: build.gradle.kts
-          pattern: implementation\(['"]org\.apache\.hbase:hbase-client:.*['"]\)
   message: "Detected usage of HBase database."
   description: "Detected usage of HBase database."
 
@@ -149,12 +107,6 @@
       - builtin.filecontent:
           filePattern: all-deps-nodupes.txt
           pattern: com\.oracle\.database\.jdbc:ojdbc8:.*
-      - builtin.filecontent:
-          filePattern: build.gradle
-          pattern: implementation\s*['"]com\.oracle\.database\.jdbc:ojdbc8:.*['"]
-      - builtin.filecontent:
-          filePattern: build.gradle.kts
-          pattern: implementation\(['"]com\.oracle\.database\.jdbc:ojdbc8:.*['"]\)
   message: "Detected usage of Oracle database."
   description: "Detected usage of Oracle database."
 
@@ -169,12 +121,6 @@
       - builtin.filecontent:
           filePattern: all-deps-nodupes.txt
           pattern: com\.microsoft\.sqlserver:mssql-jdbc:.*
-      - builtin.filecontent:
-          filePattern: build.gradle
-          pattern: implementation\s*['"]com\.microsoft\.sqlserver:mssql-jdbc:.*['"]
-      - builtin.filecontent:
-          filePattern: build.gradle.kts
-          pattern: implementation\(['"]com\.microsoft\.sqlserver:mssql-jdbc:.*['"]\)
   message: "Detected usage of SQL Server database."
   description: "Detected usage of SQL Server database."
 
@@ -189,12 +135,6 @@
       - builtin.filecontent:
           filePattern: all-deps-nodupes.txt
           pattern: org\.postgresql:postgresql:.*
-      - builtin.filecontent:
-          filePattern: build.gradle
-          pattern: implementation\s*['"]org\.postgresql:postgresql:.*['"]
-      - builtin.filecontent:
-          filePattern: build.gradle.kts
-          pattern: implementation\(['"]org\.postgresql:postgresql:.*['"]\)
   message: "Detected usage of PostgreSQL database."
   description: "Detected usage of PostgreSQL database."
 
@@ -209,12 +149,6 @@
       - builtin.filecontent:
           filePattern: all-deps-nodupes.txt
           pattern: mysql:mysql-connector-java:.*
-      - builtin.filecontent:
-          filePattern: build.gradle
-          pattern: implementation\s*['"]mysql:mysql-connector-java:.*['"]
-      - builtin.filecontent:
-          filePattern: build.gradle.kts
-          pattern: implementation\(['"]mysql:mysql-connector-java:.*['"]\)
   message: "Detected usage of MySQL database."
   description: "Detected usage of MySQL database."
 
@@ -229,12 +163,6 @@
       - builtin.filecontent:
           filePattern: all-deps-nodupes.txt
           pattern: org\.mariadb\.jdbc:mariadb-java-client:.*
-      - builtin.filecontent:
-          filePattern: build.gradle
-          pattern: implementation\s*['"]org\.mariadb\.jdbc:mariadb-java-client:.*['"]
-      - builtin.filecontent:
-          filePattern: build.gradle.kts
-          pattern: implementation\(['"]org\.mariadb\.jdbc:mariadb-java-client:.*['"]\)
   message: "Detected usage of MariaDB database."
   description: "Detected usage of MariaDB database."
 
@@ -249,12 +177,6 @@
       - builtin.filecontent:
           filePattern: all-deps-nodupes.txt
           pattern: com\.h2database:h2:.*
-      - builtin.filecontent:
-          filePattern: build.gradle
-          pattern: implementation\s*['"]com\.h2database:h2:.*['"]
-      - builtin.filecontent:
-          filePattern: build.gradle.kts
-          pattern: implementation\(['"]com\.h2database:h2:.*['"]\)
   message: "Detected usage of H2 database."
   description: "Detected usage of H2 database."
 
@@ -269,11 +191,5 @@
       - builtin.filecontent:
           filePattern: all-deps-nodupes.txt
           pattern: com\.ibm\.db2:jcc:.*
-      - builtin.filecontent:
-          filePattern: build.gradle
-          pattern: implementation\s*['"]com\.ibm\.db2:jcc:.*['"]
-      - builtin.filecontent:
-          filePattern: build.gradle.kts
-          pattern: implementation\(['"]com\.ibm\.db2:jcc:.*['"]\)
   message: "Detected usage of IBM Db2 database."
   description: "Detected usage of IBM Db2 database."

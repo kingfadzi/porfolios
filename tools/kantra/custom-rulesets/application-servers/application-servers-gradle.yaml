@@ -8,18 +8,6 @@
       - builtin.filecontent:
           filePattern: all-deps-nodupes.txt
           pattern: org\.apache\.tomcat:.*
-      - builtin.filecontent:
-          filePattern: build.gradle
-          pattern: implementation\s*['"]org.apache.tomcat:.*['"]
-      - builtin.filecontent:
-          filePattern: build.gradle.kts
-          pattern: implementation\(['"]org.apache.tomcat:.*['"]\)
-      - builtin.filecontent:
-          filePattern: build.gradle
-          pattern: appServer\s*['"]org.apache.tomcat:.*['"]
-      - builtin.filecontent:
-          filePattern: gradle.properties
-          pattern: tomcatVersion\s*=\s*\d+\.\d+\.\d+
   message: "Detected usage of Tomcat application server."
   description: "Detected usage of Tomcat application server."
 
@@ -33,15 +21,6 @@
       - builtin.filecontent:
           filePattern: all-deps-nodupes.txt
           pattern: org\.eclipse\.jetty:.*
-      - builtin.filecontent:
-          filePattern: build.gradle
-          pattern: implementation\s*['"]org.eclipse.jetty:.*['"]
-      - builtin.filecontent:
-          filePattern: build.gradle.kts
-          pattern: implementation\(['"]org.eclipse.jetty:.*['"]\)
-      - builtin.filecontent:
-          filePattern: gradle.properties
-          pattern: jettyVersion\s*=\s*\d+\.\d+\.\d+
   message: "Detected usage of Jetty application server."
   description: "Detected usage of Jetty application server."
 
@@ -55,15 +34,6 @@
       - builtin.filecontent:
           filePattern: all-deps-nodupes.txt
           pattern: org\.wildfly:.*
-      - builtin.filecontent:
-          filePattern: build.gradle
-          pattern: implementation\s*['"]org.wildfly:.*['"]
-      - builtin.filecontent:
-          filePattern: build.gradle.kts
-          pattern: implementation\(['"]org.wildfly:.*['"]\)
-      - builtin.filecontent:
-          filePattern: gradle.properties
-          pattern: wildflyVersion\s*=\s*\d+\.\d+\.\d+
   message: "Detected usage of WildFly application server."
   description: "Detected usage of WildFly application server."
 
@@ -77,12 +47,6 @@
       - builtin.filecontent:
           filePattern: all-deps-nodupes.txt
           pattern: org\.jboss\.eap:.*
-      - builtin.filecontent:
-          filePattern: build.gradle
-          pattern: implementation\s*['"]org.jboss.eap:.*['"]
-      - builtin.filecontent:
-          filePattern: build.gradle.kts
-          pattern: implementation\(['"]org.jboss.eap:.*['"]\)
   message: "Detected usage of JBoss EAP application server."
   description: "Detected usage of JBoss EAP application server."
 
@@ -96,12 +60,6 @@
       - builtin.filecontent:
           filePattern: all-deps-nodupes.txt
           pattern: com\.oracle\.weblogic:.*
-      - builtin.filecontent:
-          filePattern: build.gradle
-          pattern: implementation\s*['"]com.oracle.weblogic:.*['"]
-      - builtin.filecontent:
-          filePattern: build.gradle.kts
-          pattern: implementation\(['"]com.oracle.weblogic:.*['"]\)
   message: "Detected usage of WebLogic application server."
   description: "Detected usage of WebLogic application server."
 
@@ -115,12 +73,6 @@
       - builtin.filecontent:
           filePattern: all-deps-nodupes.txt
           pattern: com\.ibm\.websphere:.*
-      - builtin.filecontent:
-          filePattern: build.gradle
-          pattern: implementation\s*['"]com.ibm.websphere:.*['"]
-      - builtin.filecontent:
-          filePattern: build.gradle.kts
-          pattern: implementation\(['"]com.ibm.websphere:.*['"]\)
   message: "Detected usage of WebSphere application server."
   description: "Detected usage of WebSphere application server."
 
@@ -134,12 +86,6 @@
       - builtin.filecontent:
           filePattern: all-deps-nodupes.txt
           pattern: org\.glassfish:.*
-      - builtin.filecontent:
-          filePattern: build.gradle
-          pattern: implementation\s*['"]org.glassfish:.*['"]
-      - builtin.filecontent:
-          filePattern: build.gradle.kts
-          pattern: implementation\(['"]org.glassfish:.*['"]\)
   message: "Detected usage of GlassFish application server."
   description: "Detected usage of GlassFish application server."
 
@@ -153,12 +99,6 @@
       - builtin.filecontent:
           filePattern: all-deps-nodupes.txt
           pattern: fish\.payara\..*:.*
-      - builtin.filecontent:
-          filePattern: build.gradle
-          pattern: implementation\s*['"]fish.payara.*:.*['"]
-      - builtin.filecontent:
-          filePattern: build.gradle.kts
-          pattern: implementation\(['"]fish.payara.*:.*['"]\)
   message: "Detected usage of Payara application server."
   description: "Detected usage of Payara application server."
 
@@ -172,11 +112,5 @@
       - builtin.filecontent:
           filePattern: all-deps-nodupes.txt
           pattern: io\.undertow:.*
-      - builtin.filecontent:
-          filePattern: build.gradle
-          pattern: implementation\s*['"]io.undertow:.*['"]
-      - builtin.filecontent:
-          filePattern: build.gradle.kts
-          pattern: implementation\(['"]io.undertow:.*['"]\)
   message: "Detected usage of Undertow application server."
   description: "Detected usage of Undertow application server."
