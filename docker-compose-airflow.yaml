@@ -10,7 +10,10 @@ services:
         HOST_UID: ${HOST_UID}
         HOST_GID: ${HOST_GID}
     container_name: airflow-webserver
+    tmpfs:
+      - /home/airflow/cloned_repositories:size=10G,mode=1777
     environment:
+      CLONED_REPOSITORIES_DIR: /home/airflow/cloned_repositories
       POSTGRES_HOST: ${POSTGRES_HOST}
       POSTGRES_PORT: ${POSTGRES_PORT}
       POSTGRES_USER: ${POSTGRES_USER}
@@ -26,7 +29,6 @@ services:
       METRICS_DATABASE_HOST: ${METRICS_DATABASE_HOST}
       METRICS_DATABASE_PORT: ${METRICS_DATABASE_PORT}
       METRICS_DATABASE_NAME: ${METRICS_DATABASE_NAME}
-      CLONED_REPOSITORIES_DIR: ${CLONED_REPOSITORIES_DIR}
       TRIVYIGNORE_TEMPLATE: ${TRIVYIGNORE_TEMPLATE}
       SYFT_CONFIG_PATH: ${SYFT_CONFIG_PATH}
       GRYPE_CONFIG_PATH: ${GRYPE_CONFIG_PATH}
