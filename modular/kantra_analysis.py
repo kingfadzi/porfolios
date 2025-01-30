@@ -26,9 +26,12 @@ class KantraAnalyzer(BaseLogger):
         if not os.path.exists(Config.KANTRA_RULESETS):
             raise FileNotFoundError(f"Ruleset file not found: {Config.KANTRA_RULESETS}")
 
-        MavenHelper().generate_effective_pom(repo_dir)
+        maven_result = MavenHelper().generate_effective_pom(repo_dir)
+        gradle_result = GradleHelper().generate_resolved_dependencies(repo_dir)
 
-        GradleHelper().generate_resolved_dependencies(repo_dir)
+        if maven_result is None and gradle_result is None:
+            self.logger.info("Neither a valid Maven POM nor Gradle dependencies were found. Stopping Kantra analysis.")
+            return
 
         output_dir = os.path.join(Config.KANTRA_OUTPUT_ROOT, f"kantra_output_{repo.repo_slug}")
         os.makedirs(output_dir, exist_ok=True)
