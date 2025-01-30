@@ -22,7 +22,7 @@ class Config:
     GITLAB_HOSTNAME = os.getenv("GITLAB_HOSTNAME", "gitlab.com")
 
     KANTRA_RULESETS = os.getenv("KANTRA_RULESETS", "/Users/fadzi/tools/porfolios/tools/kantra/custom-rulesets")
-    KANTRA_OUTPUT_ROOT = os.getenv("KANTRA_OUTPUT_ROOT", "output")
+    KANTRA_OUTPUT_ROOT = os.getenv("KANTRA_OUTPUT_ROOT", "./output")
 
     JAVA_HOME = os.getenv("JAVA_HOME", "/opt/homebrew/opt/openjdk")
     JAVA_8_HOME = os.getenv("JAVA_8_HOME", "/Library/Java/JavaVirtualMachines/temurin-8.jdk/Contents/Home")

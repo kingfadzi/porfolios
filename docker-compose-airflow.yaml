@@ -13,7 +13,7 @@ services:
     tmpfs:
       - /home/airflow/cloned_repositories:size=10G,mode=1777
       - /home/airflow/airflow/logs:size=500M,mode=177
-      - /home/airflow/output
+      - /home/airflow/airflow/output
     environment:
       CLONED_REPOSITORIES_DIR: /home/airflow/cloned_repositories
       POSTGRES_HOST: ${POSTGRES_HOST}
@@ -40,7 +40,7 @@ services:
       GITLAB_HOSTNAME: ${GITLAB_HOSTNAME}
 
       KANTRA_RULESETS: ${KANTRA_RULESETS}
-      KANTRA_OUTPUT_ROOT: ${KANTRA_OUTPUT_ROOT}
+      KANTRA_OUTPUT_ROOT: /home/airflow/airflow/output
 
       HTTP_PROXY_HOST: "${HTTP_PROXY_HOST:-}"
       HTTP_PROXY_PORT: "${HTTP_PROXY_PORT:-}"

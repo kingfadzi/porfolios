@@ -52,8 +52,8 @@ class GradleHelper(BaseLogger):
 
         cmd = [
             gradle_executable,
-            "--no-daemon",
-            "--no-parallel",
+            # "--no-daemon",
+            # "--no-parallel",
             task_name
         ]
         result = self.runner.run(
@@ -71,8 +71,8 @@ class GradleHelper(BaseLogger):
     def _fallback_dependencies(self, repo_dir, gradle_executable, output_file, gradle_version):
         cmd = [
             gradle_executable,
-            "--no-daemon",
-            "--no-parallel",
+            # "--no-daemon",
+            # "--no-parallel",
             "dependencies"
         ]
         result = self.runner.run(
