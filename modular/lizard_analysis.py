@@ -10,13 +10,10 @@ from modular.base_logger import BaseLogger  # Import BaseLogger
 
 
 class LizardAnalyzer(BaseLogger):
-    """
-    Analyzer for running Lizard and processing results.
-    """
 
     def __init__(self):
         self.logger = self.get_logger("LizardAnalyzer")
-        self.logger.setLevel(logging.WARN)  # Set default logging level to WARN
+        self.logger.setLevel(logging.DEBUG)  # Set default logging level to WARN
 
     @analyze_execution(session_factory=Session, stage="Lizard Analysis")
     def run_analysis(self, repo_dir, repo, session, run_id=None):
@@ -71,9 +68,7 @@ class LizardAnalyzer(BaseLogger):
         )
 
     def parse_and_persist_lizard_results(self, repo_id, analysis_file_path, session):
-        """
-        Parse the lizard analysis output and persist the summary results to the database.
-        """
+
         summary = {
             "total_nloc": 0,
             "total_ccn": 0,
@@ -157,7 +152,7 @@ if __name__ == "__main__":
             self.repo_name = repo_slug
 
     repo = MockRepo(repo_id, repo_slug)
-    repo_dir = f"/tmp/{repo.repo_slug}"
+    repo_dir = "/Users/fadzi/tools/gradle_projects/sonar-metrics"
     session = Session()
     analyzer = LizardAnalyzer()
 
