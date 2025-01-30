@@ -12,6 +12,8 @@ services:
     container_name: airflow-webserver
     tmpfs:
       - /home/airflow/cloned_repositories:size=10G,mode=1777
+      - /home/airflow/airflow/logs:size=500M,mode=177
+      - /home/airflow/output
     environment:
       CLONED_REPOSITORIES_DIR: /home/airflow/cloned_repositories
       POSTGRES_HOST: ${POSTGRES_HOST}
